@@ -20,8 +20,11 @@
   --sky-top:#141830;
   --sky-mid:#232a52;
   --sky-low:#3c3f6b;
-  --land:#5a5f9b;
-  --land-lip:#7f85c4;
+  --land:#474c82;
+  --land-lip:#8f97d4;
+  --grass:#7d88c8;
+  --grass-lit:#a7b0e0;
+  --water:#8fb2e0;
   --ink:#eef0fb;
   --ink-soft:#b3b9dd;
   --ink-faint:#7d84b0;
@@ -46,25 +49,29 @@
 }
 [data-env="alpine"]{
   --sky-top:#1b2436; --sky-mid:#2c3b53; --sky-low:#48607d;
-  --land:#8fa4bd; --land-lip:#cfdcea;
+  --land:#6b8098; --land-lip:#dbe6f2;
+  --grass:#a3b8ca; --grass-lit:#d8e5f0; --water:#bcd8ea;
   --ink:#f2f6fb; --ink-soft:#c2d1e2; --ink-faint:#8ba0b8;
   --glow:#ffd9a0; --leaf:#a9cfb4; --petal:#cfd8ea;
 }
 [data-env="tidal"]{
   --sky-top:#2a3350; --sky-mid:#4a5570; --sky-low:#8a9a9c;
-  --land:#c2b394; --land-lip:#e6dcc2;
+  --land:#a08e6c; --land-lip:#f0e8d4;
+  --grass:#d8c9a4; --grass-lit:#f2e9d0; --water:#7fc9c0;
   --ink:#fbf7ee; --ink-soft:#dccfb8; --ink-faint:#a89a83;
   --glow:#ffd08a; --leaf:#8fd2c4; --petal:#f2cdd4;
 }
 [data-env="springs"]{
   --sky-top:#232a34; --sky-mid:#3b4a4a; --sky-low:#6f8375;
-  --land:#8e9b8a; --land-lip:#cfd6c2;
+  --land:#66745f; --land-lip:#d8e0cc;
+  --grass:#9db092; --grass-lit:#c8d6ba; --water:#bfe0d6;
   --ink:#f4f6f0; --ink-soft:#ccd5c6; --ink-faint:#94a08f;
   --glow:#ffe0a8; --leaf:#a3cfa8; --petal:#f0d4dd;
 }
 [data-env="cavern"]{
   --sky-top:#0d0f16; --sky-mid:#161a26; --sky-low:#1f2433;
-  --land:#33394d; --land-lip:#4a5270;
+  --land:#242938; --land-lip:#5a6486;
+  --grass:#3d4761; --grass-lit:#5d6889; --water:#4fb7ab;
   --ink:#dfe3ef; --ink-soft:#9aa2bb; --ink-faint:#6b7288;
   --glow:#7fe3d4; --leaf:#93c9a7; --petal:#b9a5d8;
 }
@@ -156,13 +163,17 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 /* ---------- 4. ISLAND ---------- */
 .stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
   overflow:hidden;z-index:2}
-.island-wrap{position:relative;width:min(100%,540px);aspect-ratio:1/1;max-height:100%;
+.island-wrap{position:relative;width:min(116%,660px);aspect-ratio:1/1;max-height:104%;
   animation:float calc(14s / var(--motion,1)) ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(-6px)}50%{transform:translateY(6px)}}
+.drift-a{animation:drift-a calc(19s / var(--motion,1)) ease-in-out infinite}
+.drift-b{animation:drift-b calc(25s / var(--motion,1)) ease-in-out infinite}
+@keyframes drift-a{0%,100%{transform:translate(0,4px)}50%{transform:translate(9px,-7px)}}
+@keyframes drift-b{0%,100%{transform:translate(0,-5px)}50%{transform:translate(-11px,6px)}}
 .island-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 
 .plot{
-  position:absolute;width:66px;height:66px;margin:-33px 0 0 -33px;
+  position:absolute;width:62px;height:62px;margin:-31px 0 0 -31px;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
   border:1px dashed transparent;transition:border-color .25s ease,background .25s ease;
 }
@@ -243,8 +254,12 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .row:active{background:rgba(233,236,255,.15)}
 .row .leaf{flex:none;width:44px;height:44px}
 .row .body{flex:1;min-width:0}
-.row .name{color:var(--ink);font-size:.98rem}
-.row .meta{color:var(--ink-faint);font-size:.8rem;margin-top:3px;line-height:1.45}
+.row .body{display:flex;flex-direction:column;gap:4px}
+.row .name{display:block;color:var(--ink);font-size:.98rem;line-height:1.3}
+.row .meta{display:block;color:var(--ink-faint);font-size:.8rem;line-height:1.5}
+.toggle .body{display:flex;flex-direction:column;gap:4px}
+.toggle .name{display:block}
+.toggle .meta{display:block;margin-top:0}
 .row .cost{font-variant-numeric:tabular-nums;color:var(--glow);font-size:.9rem;flex:none}
 .row[disabled]{opacity:.42}
 
@@ -262,8 +277,9 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
   display:flex;align-items:center;gap:14px;transition:background .2s ease,transform .2s ease;
 }
 .energy:active{transform:scale(.985);background:rgba(233,236,255,.16)}
-.energy .lab{font-size:1.05rem;color:var(--ink)}
-.energy .hint{font-size:.82rem;color:var(--ink-faint);margin-top:4px;line-height:1.45}
+.energy > span:last-child{display:flex;flex-direction:column;gap:5px;min-width:0}
+.energy .lab{display:block;font-size:1.05rem;color:var(--ink);line-height:1.3}
+.energy .hint{display:block;font-size:.82rem;color:var(--ink-faint);line-height:1.5}
 .energy .orb{width:34px;height:34px;border-radius:50%;flex:none}
 .footnote{font-size:.8rem;color:var(--ink-faint);text-align:center;margin-top:14px;line-height:1.6}
 
@@ -302,9 +318,13 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .sky-star{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;
   background:transparent;border:0;padding:0}
 .sky-star:active{background:rgba(242,192,120,.14)}
+.sky-star.next{animation:nextStar calc(2.2s / var(--motion,1)) ease-in-out infinite;border-radius:50%}
+@keyframes nextStar{0%,100%{box-shadow:0 0 0 0 rgba(242,192,120,0)}50%{box-shadow:0 0 0 9px rgba(242,192,120,.12)}}
 
 /* trail */
-.trail-art{height:150px;margin-bottom:14px;border-radius:20px;overflow:hidden;background:rgba(10,12,26,.4)}
+.trail-art{height:180px;margin-bottom:16px;border-radius:20px;overflow:hidden;
+  background:rgba(10,12,26,.4);border:1px solid var(--vapor-line)}
+.trail-art svg{display:block;width:100%;height:100%}
 .trail-text{font-family:var(--display);font-size:1.08rem;line-height:1.66;color:var(--ink);margin-bottom:16px}
 .trail-log{font-size:.85rem;color:var(--ink-faint);line-height:1.6;margin-bottom:10px}
 
@@ -337,6 +357,32 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 .note{font-size:.84rem;color:var(--ink-faint);line-height:1.65;margin:4px 0 16px}
 .divider{height:1px;background:var(--vapor-line);margin:18px 0;opacity:.7}
 
+.reveal{
+  position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
+  padding:26px;background:radial-gradient(circle at 50% 42%,rgba(52,48,84,.97),rgba(12,14,28,.985));
+}
+.reveal.on{display:flex;animation:revealIn .7s ease both}
+@keyframes revealIn{from{opacity:0}to{opacity:1}}
+.reveal-inner{text-align:center;max-width:340px;width:100%}
+.reveal-inner h2{font-size:1.7rem;margin-top:22px}
+.reveal-take{margin-top:14px;font-variant-numeric:tabular-nums;color:var(--glow);font-size:1.05rem}
+.reveal-gem{position:relative;width:200px;height:200px;margin:0 auto;
+  animation:gemRise 1.1s cubic-bezier(.2,.9,.3,1) both}
+@keyframes gemRise{from{transform:scale(.4) translateY(26px);opacity:0}to{transform:none;opacity:1}}
+.reveal-gem svg{width:100%;height:100%;display:block}
+.reveal-gem .rays{position:absolute;inset:-22%;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0 6%,rgba(255,255,255,.16) 7%,transparent 9% 22%,
+    rgba(255,255,255,.12) 23%,transparent 25% 47%,rgba(255,255,255,.16) 48%,transparent 50% 72%,
+    rgba(255,255,255,.12) 73%,transparent 75%);
+  animation:spin calc(24s / var(--motion,1)) linear infinite;pointer-events:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.reveal-gem .halo{position:absolute;inset:8%;border-radius:50%;
+  animation:haloPulse calc(3.4s / var(--motion,1)) ease-in-out infinite;pointer-events:none}
+@keyframes haloPulse{0%,100%{opacity:.30;transform:scale(.93)}50%{opacity:.62;transform:scale(1.06)}}
+.spark{position:absolute;width:7px;height:7px;border-radius:50%;background:#fff;
+  animation:sparkle calc(2.4s / var(--motion,1)) ease-in-out infinite}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(.3)}45%{opacity:.95;transform:scale(1)}}
+
 .toast{
   position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
   background:rgba(20,24,48,.95);border:1px solid var(--vapor-line);color:var(--ink);
@@ -344,6 +390,18 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
   opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:86vw;text-align:center;
 }
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:400px){
+  .plot{width:54px;height:54px;margin:-27px 0 0 -27px}
+  .plot .sprite{height:74px}
+}
+/* polished stones sit on the front rim, well clear of the beds */
+.gem{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none}
+.gem svg{width:100%;height:100%;display:block}
+.gem i{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 34% 32%,rgba(255,255,255,.85),transparent 58%);
+  animation:gleam calc(5s / var(--motion,1)) ease-in-out infinite}
+@keyframes gleam{0%,100%{opacity:.12}50%{opacity:.5}}
 
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001s !important;transition-duration:.14s !important}
@@ -374,6 +432,7 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
     <div class="stars" id="stars" aria-hidden="true"></div>
     <div class="island-wrap" id="islandWrap">
       <svg class="island-art" id="islandArt" viewBox="0 0 400 400" aria-hidden="true"></svg>
+      <div id="gems" aria-hidden="true"></div>
       <div id="plots"></div>
       <div id="wisps"></div>
     </div>
@@ -469,7 +528,7 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 
 <div class="mg" id="mgSky" role="dialog" aria-modal="true" aria-label="Constellation Grids">
   <div class="mg-head">
-    <h2 id="skyTitle">Constellations</h2>
+    <h2 id="skyTitle">Star Threads</h2>
     <button class="close-x" data-close-mg="mgSky" aria-label="Close">&#10005;</button>
   </div>
   <div class="mg-body">
@@ -478,8 +537,8 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
     <div style="font-size:.85rem;color:var(--ink-faint);text-align:center;margin-top:10px" id="skyStatus"></div>
   </div>
   <div class="mg-foot">
-    <button class="btn" id="skyHint">Show me a line</button>
-    <button class="btn quiet" id="skyReset">Start this one over</button>
+    <button class="btn" id="skyHint">Join the next one for me</button>
+    <button class="btn quiet" id="skyNext">Show me a different one</button>
   </div>
 </div>
 
@@ -489,11 +548,22 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
     <button class="close-x" data-close-mg="mgTrail" aria-label="Close">&#10005;</button>
   </div>
   <div class="mg-body">
-    <div class="trail-art"><svg id="trailArt" viewBox="0 0 320 150" width="100%" height="100%"></svg></div>
+    <div class="trail-art"><svg id="trailArt" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice"></svg></div>
     <div class="trail-text" id="trailText"></div>
     <div class="trail-log" id="trailLog"></div>
   </div>
   <div class="mg-foot" id="trailChoices"></div>
+</div>
+
+<!-- a polished stone, revealed -->
+<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-labelledby="revealName">
+  <div class="reveal-inner">
+    <div class="reveal-gem" id="revealGem"></div>
+    <h2 id="revealName">—</h2>
+    <p id="revealLine" style="max-width:30ch;margin:10px auto 0;text-align:center"></p>
+    <div class="reveal-take" id="revealTake">—</div>
+    <button class="btn warm" id="revealBtn" style="max-width:280px;margin:22px auto 0">Put it on the shelf</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -588,23 +658,21 @@ const STONES = {
   aqua:    {name:"Aquamarine",   rough:"#5f7d82", polished:"#a8e0e6", work:260, worth:70}
 };
 
-/* ---------- constellations ---------- */
-/* stars are [x,y] in a 0..100 space; edges are index pairs, order-free */
+/* ---------- star threads ---------- */
+/* Each is one continuous line, numbered. There is nothing to work out:
+   you follow the numbers and a picture appears. */
 const SKIES = [
-  {id:"heron", name:"The Heron", clue:"A long neck, a folded leg, one wing half-open.",
-   stars:[[22,74],[34,52],[46,34],[62,26],[78,34],[50,62],[40,86],[66,54]],
-   edges:[[0,1],[1,2],[2,3],[3,4],[2,5],[5,6],[5,7]], reward:60, unlock:"glasswort"},
+  {id:"river", name:"The Slow River", clue:"It bends four times before it leaves the sky.",
+   path:[[14,24],[30,38],[24,56],[42,68],[62,60],[56,42],[76,32],[88,50]], reward:40},
+  {id:"heron", name:"The Heron", clue:"A beak, a long neck, and one leg in the water.",
+   path:[[16,28],[28,22],[40,34],[56,46],[74,40],[62,64],[58,84]], reward:50, unlock:"glasswort"},
+  {id:"ladle", name:"The Ladle", clue:"A deep bowl and a long handle, tipped to pour.",
+   path:[[22,38],[20,58],[38,70],[46,50],[62,44],[76,34],[88,22]], reward:45},
+  {id:"wave", name:"The Long Wave", clue:"It never quite breaks.",
+   path:[[10,60],[24,42],[40,58],[56,40],[72,56],[88,38]], reward:40},
   {id:"lantern", name:"The Lantern", clue:"A box of light with a handle over the top.",
-   stars:[[30,42],[70,42],[70,76],[30,76],[50,20],[50,32]],
-   edges:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[4,5]], reward:45},
-  {id:"river", name:"The Slow River", clue:"It bends four times before it leaves the frame.",
-   stars:[[14,24],[32,40],[26,60],[44,72],[64,62],[58,42],[78,30],[88,50]],
-   edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]], reward:50},
-  {id:"hearth", name:"The Hearth", clue:"Two stones, a flame between them, smoke going up.",
-   stars:[[26,78],[74,78],[50,60],[50,40],[42,24],[58,24],[50,12]],
-   edges:[[0,2],[1,2],[2,3],[3,4],[3,5],[4,6],[5,6]], reward:55}
+   path:[[50,14],[28,34],[28,72],[72,72],[72,34]], close:true, reward:55}
 ];
-
 /* ---------- trail expeditions ---------- */
 const TRAILS = [
   {id:"scree", title:"The Scree Path", art:"peaks", start:"a",
@@ -700,7 +768,7 @@ const DEFAULT_STATE = {
   skies:{},                  // id -> {done:true}
   trails:{},                 // id -> count completed
   seen:{},                   // one-time notes
-  comfort:{dim:0, warm:0, motion:1, vol:.55, soften:0, haptics:1, scale:1, breath:0}
+  comfort:{dim:0, warm:0, motion:1, vol:.55, music:.45, soften:0, haptics:1, scale:1, breath:0}
 };
 let S = null;
 let SESSION = {mgOpen:null, armedSeed:null, tumblerStone:null, lastTick:now(), restAccum:0, idleSince:now()};
@@ -735,6 +803,10 @@ async function load(){
     }catch(e){ /* corrupt save: start fresh rather than fail */ }
   }
   if(!S.created) S.created = now();
+  // stones used to occupy a planting bed; they belong on the rim now
+  S.plots.forEach((p,i)=>{
+    if(p && p.stone){ S.polished.push(p.stone); S.plots[i]=null; }
+  });
 }
 let saveTimer = null;
 function save(){
@@ -785,10 +857,11 @@ const Sound = {
     this.lp.type="lowpass"; this.lp.frequency.value = 11000; this.lp.Q.value=.3;
     this.lp.connect(this.master); this.master.connect(this.ctx.destination);
     this.master.gain.value = 0;
-    this.buildPad(); this.buildRain();
+    this.buildPad(); this.buildRain(); this.buildMusic();
     this.started = true;
     this.applyComfort();
     this.env(S.env);
+    this.music(true);
   },
   buildPad(){
     const c=this.ctx;
@@ -803,6 +876,57 @@ const Sound = {
       o.connect(g); g.connect(this.padGain);
       o.start(); lfo.start();
     });
+  },
+  /* A slow generative line. No loop to ship, no loop to get tired of:
+     notes are drawn from a pentatonic set so nothing can land wrong. */
+  buildMusic(){
+    const c=this.ctx;
+    this.musicGain=c.createGain(); this.musicGain.gain.value=0;
+    // a long soft echo gives it room to breathe
+    const dl=c.createDelay(4); dl.delayTime.value=1.15;
+    const fb=c.createGain(); fb.gain.value=.34;
+    const wet=c.createGain(); wet.gain.value=.5;
+    dl.connect(fb); fb.connect(dl); dl.connect(wet);
+    this.musicGain.connect(this.lp); this.musicGain.connect(dl); wet.connect(this.lp);
+  },
+  SCALES:{
+    cloud:  [220,247,277,330,370,440,494,554],        // A major pentatonic
+    alpine: [261.6,293.7,349.2,392,440,523.3,587.3],  // open and airy
+    cavern: [164.8,196,220,261.6,293.7,329.6],        // low and sparse
+    tidal:  [293.7,329.6,392,440,493.9,587.3,659.3],
+    springs:[196,233.1,261.6,311.1,349.2,392,466.2]   // warmer, minor-leaning
+  },
+  voice(f, len, gain){
+    const c=this.ctx, t=c.currentTime;
+    const o=c.createOscillator(); o.type="triangle"; o.frequency.value=f;
+    const o2=c.createOscillator(); o2.type="sine"; o2.frequency.value=f*2.003;
+    const g=c.createGain(), g2=c.createGain();
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(gain, t+.35);          // no attack transient
+    g.gain.exponentialRampToValueAtTime(.0006, t+len);
+    g2.gain.value=.18;
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(this.musicGain);
+    o.start(t); o2.start(t); o.stop(t+len+.1); o2.stop(t+len+.1);
+  },
+  musicStep(){
+    if(!this.started || !this.musicGain) return;
+    const scale = this.SCALES[S.env] || this.SCALES.cloud;
+    if(this.mi===undefined) this.mi=2;
+    // a random walk, gently pulled back toward the middle of the range
+    let step = pick([-2,-1,-1,0,1,1,2]);
+    this.mi = clamp(this.mi + step, 0, scale.length-1);
+    if(Math.random()<.22) this.mi = clamp(Math.round(scale.length/2), 0, scale.length-1);
+    this.voice(scale[this.mi], rnd(5,9), .09);
+    if(Math.random()<.3) this.voice(scale[0]/2, rnd(9,13), .06);   // an occasional root below
+    const gap = (S.energy==="low" ? rnd(4200,7600) : rnd(2600,5200));
+    this.mTimer = setTimeout(()=>this.musicStep(), gap);
+  },
+  music(on){
+    if(!this.started || !this.musicGain) return;
+    const t=this.ctx.currentTime;
+    this.musicGain.gain.linearRampToValueAtTime(on ? clamp(S.comfort.music,0,1)*.5 : 0, t+2.5);
+    clearTimeout(this.mTimer);
+    if(on && S.comfort.music>0) this.mTimer=setTimeout(()=>this.musicStep(), 1200);
   },
   buildRain(){
     const c=this.ctx, len=c.sampleRate*3;
@@ -822,6 +946,12 @@ const Sound = {
     this.master.gain.linearRampToValueAtTime(clamp(S.comfort.vol,0,1)*.85, t+.6);
     // "soften" pulls the top end out — the migraine dial
     this.lp.frequency.linearRampToValueAtTime(S.comfort.soften?1500:11000, t+.5);
+    if(this.musicGain){
+      const want = clamp(S.comfort.music,0,1)*.5;
+      this.musicGain.gain.linearRampToValueAtTime(want, t+1.2);
+      if(want>0 && !this.mTimer) this.mTimer=setTimeout(()=>this.musicStep(), 900);
+      if(want<=0){ clearTimeout(this.mTimer); this.mTimer=null; }
+    }
   },
   rain(on){
     if(!this.started||!this.rainGain) return;
@@ -881,7 +1011,8 @@ function applyComfort(){
   save();
 }
 function lowLightPreset(){
-  Object.assign(S.comfort,{dim:.5, warm:.34, motion:0, soften:1, vol:Math.min(S.comfort.vol,.35)});
+  Object.assign(S.comfort,{dim:.5, warm:.34, motion:0, soften:1,
+    vol:Math.min(S.comfort.vol,.35), music:Math.min(S.comfort.music,.3)});
   applyComfort(); renderComfort();
   toast("Low light on. Change it any time.");
 }
@@ -930,44 +1061,149 @@ function cashRest(){
 }
 
 /* ---------- island art ---------- */
+/* Four rows sitting on the grass ellipse, ordered back to front so the
+   nearer plants paint over the further ones. */
 const PLOT_POS = [
-  [30,32],[50,25],[70,32],
-  [19,47],[40,45],[60,45],[81,48],
-  [31,62],[50,60],[69,62],
-  [41,77],[59,77]
+  [35,34],[50,33],[65,34],
+  [24,44],[41,43],[59,43],[76,44],
+  [33,53],[48,52],[63,53],
+  [42,62],[58,62]
 ];
+
+function conifer(x,y,h,w,o){
+  return `<g opacity="${o}">
+    <path d="M${x-1.4} ${y} h2.8 v${-h*0.2} h-2.8Z" fill="var(--land)"/>
+    <path d="M${x} ${y-h} L${x+w} ${y-h*0.34} L${x-w} ${y-h*0.34}Z" fill="var(--land)"/>
+    <path d="M${x} ${y-h*0.78} L${x+w*1.16} ${y-h*0.12} L${x-w*1.16} ${y-h*0.12}Z" fill="var(--land)"/>
+    <path d="M${x} ${y-h*0.72} L${x+w*0.5} ${y-h*0.3} L${x} ${y-h*0.34}Z" fill="var(--grass-lit)" opacity=".45"/>
+  </g>`;
+}
+function islet(cx,cy,rx,ry){
+  return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="var(--land-lip)"/>
+    <ellipse cx="${cx}" cy="${cy-2}" rx="${rx-3}" ry="${ry-3}" fill="var(--grass)"/>
+    <path d="M${cx-rx} ${cy} A${rx} ${ry} 0 0 0 ${cx+rx} ${cy}
+      L${cx+rx*0.55} ${cy+ry*1.9} L${cx} ${cy+ry*2.7} L${cx-rx*0.55} ${cy+ry*1.9} Z" fill="var(--land)"/>`;
+}
+function lantern(x,y,s){
+  return `<g><path d="M${x} ${y} V${y-22*s}" stroke="var(--land)" stroke-width="${3*s}" stroke-linecap="round"/>
+    <circle cx="${x}" cy="${y-26*s}" r="${11*s}" fill="var(--glow)" opacity=".18"/>
+    <circle cx="${x}" cy="${y-26*s}" r="${5.5*s}" fill="var(--glow)"/>
+    <circle cx="${x}" cy="${y-26*s}" r="${2.4*s}" fill="#fff" opacity=".85"/></g>`;
+}
+function boulder(x,y,r,o){
+  return `<path d="M${x-r} ${y} q${r*0.15} ${-r*1.1} ${r} ${-r*0.95} q${r*0.9} ${-0.1*r} ${r} ${r*0.95}Z"
+           fill="var(--land)" opacity="${o}"/>`;
+}
+
 function drawIsland(){
   const env = S.env;
-  const svg = $("#islandArt");
-  const rock = env==="cavern"
-    ? '<path d="M60 250 Q40 200 80 175 Q130 150 200 152 Q272 150 320 176 Q358 200 340 250 Q300 330 200 344 Q100 330 60 250Z" fill="var(--land)"/>'
-    : '<path d="M72 236 Q56 196 96 178 Q150 152 200 154 Q252 152 305 178 Q346 196 330 236 Q296 328 200 352 Q104 328 72 236Z" fill="var(--land)"/>';
-  const lip = '<ellipse cx="200" cy="186" rx="132" ry="46" fill="var(--land-lip)" opacity=".95"/>' +
-              '<ellipse cx="200" cy="182" rx="118" ry="38" fill="var(--land)" opacity=".45"/>';
-  const trail = '<path d="M150 214 Q200 198 252 216" stroke="var(--land-lip)" stroke-width="7" fill="none" opacity=".5" stroke-linecap="round"/>';
-  const halo = '<ellipse cx="200" cy="188" rx="150" ry="60" fill="var(--glow)" opacity=".07"/>';
-  let extra = "";
-  if(env==="tidal"){
-    extra = '<ellipse cx="200" cy="196" rx="146" ry="52" fill="#8fd2c4" opacity=".16"/>' +
-            '<path d="M96 200 q34 -10 66 0 M238 204 q34 -10 66 0" stroke="#e9f6f2" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>';
-  }
-  if(env==="springs"){
-    extra = '<ellipse cx="156" cy="196" rx="42" ry="15" fill="#cfe4de" opacity=".55"/>' +
-            '<ellipse cx="246" cy="206" rx="34" ry="12" fill="#cfe4de" opacity=".45"/>' +
-            '<path d="M152 186 q-8 -18 4 -30 M250 196 q8 -16 -3 -28" stroke="#eef4f0" stroke-width="5" fill="none" opacity=".28" stroke-linecap="round"/>';
-  }
+  const A = [];
+  const CX=200, CY=184, RX=170, RY=74;          // the ground slab, in perspective
+
+  // — a soft halo behind everything, so the island sits in light
+  A.push(`<ellipse cx="${CX}" cy="${CY+6}" rx="${RX+34}" ry="${RY+30}" fill="var(--glow)" opacity=".05"/>`);
+
+  // — far weather
+  A.push('<ellipse cx="74" cy="92" rx="62" ry="16" fill="var(--land-lip)" opacity=".09"/>'+
+         '<ellipse cx="322" cy="66" rx="50" ry="13" fill="var(--land-lip)" opacity=".07"/>'+
+         '<ellipse cx="206" cy="40" rx="76" ry="15" fill="var(--land-lip)" opacity=".06"/>');
+
+  // — two islets at a distance, same construction in miniature
+  A.push('<g class="drift-a" opacity=".5">'+islet(50,142,32,13)+conifer(44,136,20,7,.9)+'</g>');
+  A.push('<g class="drift-b" opacity=".45">'+islet(336,106,26,10)+conifer(342,101,17,6,.85)+'</g>');
+
+  // — the rock beneath: its top edge IS the front of the slab, so they read as one mass
+  A.push(`<path d="M${CX-RX} ${CY} A${RX} ${RY} 0 0 0 ${CX+RX} ${CY}
+      L344 250 L300 316 L246 368 L${CX} 392 L152 370 L100 320 L58 252 Z" fill="var(--land)"/>`);
+  A.push(`<path d="M${CX} 392 L246 368 L300 316 L344 250 L${CX+RX} ${CY}
+      A${RX} ${RY} 0 0 1 ${CX} ${CY+RY} Q${CX+20} 322 ${CX} 392 Z" fill="#000" opacity=".16"/>`);
+  A.push('<path d="M58 252 L104 240 L128 306 L100 320Z" fill="#fff" opacity=".05"/>');
+  A.push('<path d="M168 258 L212 262 L204 350 L176 336Z" fill="#fff" opacity=".04"/>');
+  A.push('<path d="M300 316 L344 250 L318 244 L282 306Z" fill="#000" opacity=".07"/>');
+  A.push('<path d="M74 262 q60 30 122 30 M236 300 q54 -8 96 -42" stroke="var(--land-lip)" '+
+         'stroke-width="2.5" fill="none" opacity=".20"/>');
+  A.push(boulder(108,312,16,.85)+boulder(292,296,13,.8)+boulder(196,360,11,.7));
+
+  // — the ground, sitting on that rock
+  A.push(`<ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="var(--land)"/>`);
+  A.push(`<ellipse cx="${CX}" cy="${CY-4}" rx="${RX-7}" ry="${RY-6}" fill="var(--grass)"/>`);
+  A.push(`<ellipse cx="${CX}" cy="${CY-24}" rx="${RX-46}" ry="${RY-32}" fill="var(--grass-lit)" opacity=".26"/>`);
+  A.push(`<path d="M${CX-RX+16} ${CY+18} A${RX-16} ${RY-10} 0 0 0 ${CX+RX-16} ${CY+18}"
+      stroke="var(--land-lip)" stroke-width="3" fill="none" opacity=".30"/>`);
+
+  // — a rise at the back with a stand of trees
+  A.push('<path d="M96 156 q48 -42 108 -40 q60 2 100 38 q-100 22 -208 2Z" fill="var(--grass-lit)" opacity=".5"/>');
+  A.push(conifer(122,154,56,18,.95)+conifer(152,160,40,13,.82)+conifer(98,158,34,11,.7)+
+         conifer(276,156,50,16,.92)+conifer(300,161,35,12,.78)+conifer(252,159,28,9,.6));
+
+  // — a stream crossing the ground and falling off the front rim
+  A.push('<defs><linearGradient id="fallGrad" x1="0" y1="0" x2="0" y2="1">'+
+         '<stop offset="0" stop-color="var(--water)" stop-opacity=".55"/>'+
+         '<stop offset=".55" stop-color="var(--water)" stop-opacity=".26"/>'+
+         '<stop offset="1" stop-color="var(--water)" stop-opacity="0"/></linearGradient></defs>');
+  A.push('<path d="M128 150 Q160 188 204 200 Q250 212 272 228" stroke="var(--water)" '+
+         'stroke-width="7" fill="none" opacity=".34" stroke-linecap="round"/>');
+  A.push('<path d="M128 150 Q160 188 204 200 Q250 212 272 228" stroke="#fff" '+
+         'stroke-width="2.2" fill="none" opacity=".22" stroke-linecap="round"/>');
+  A.push('<path d="M262 226 q-9 44 -2 76 q4 28 -2 48 q-13 -22 -11 -48 q-5 -34 1 -76Z" fill="url(#fallGrad)"/>');
+  A.push('<path d="M262 232 q-7 40 -2 66" stroke="#fff" stroke-width="2" fill="none" '+
+         'opacity=".22" stroke-linecap="round"/>');
+  A.push('<ellipse cx="254" cy="344" rx="26" ry="7" fill="#fff" opacity=".10"/>');
+
+  A.push(lantern(330,208,1)+lantern(74,186,.8));
+
+  // — what makes each island its own place
   if(env==="alpine"){
-    extra = '<path d="M140 176 l16 -34 16 34Z" fill="var(--land-lip)" opacity=".7"/>' +
-            '<path d="M236 178 l13 -27 13 27Z" fill="var(--land-lip)" opacity=".55"/>';
+    A.push('<path d="M146 152 l20 -44 20 44Z" fill="#fff" opacity=".55"/>'+
+           '<path d="M248 156 l15 -32 15 32Z" fill="#fff" opacity=".4"/>'+
+           '<path d="M118 216 q40 -8 76 -2 M232 226 q42 -10 74 -4" stroke="#fff" '+
+           'stroke-width="3" fill="none" opacity=".22" stroke-linecap="round"/>');
   }
   if(env==="cavern"){
-    extra = '<path d="M108 168 l10 -30 10 30Z" fill="var(--glow)" opacity=".28"/>' +
-            '<path d="M276 172 l9 -26 9 26Z" fill="var(--glow)" opacity=".22"/>';
+    A.push('<path d="M100 122 l11 -34 11 34Z" fill="var(--glow)" opacity=".3"/>'+
+           '<path d="M292 128 l10 -28 10 28Z" fill="var(--glow)" opacity=".24"/>'+
+           '<circle cx="146" cy="198" r="8" fill="var(--glow)" opacity=".32"/>'+
+           '<circle cx="268" cy="214" r="6" fill="var(--glow)" opacity=".26"/>'+
+           '<path d="M62 46 v36 M338 34 v30 M196 28 v24" stroke="var(--land-lip)" '+
+           'stroke-width="7" opacity=".28" stroke-linecap="round"/>');
   }
-  svg.innerHTML = halo + rock + lip + trail + extra;
+  if(env==="tidal"){
+    A.push(`<ellipse cx="${CX}" cy="${CY+14}" rx="${RX+24}" ry="${RY+10}" fill="var(--water)" opacity=".15"/>`+
+           '<path d="M48 208 q38 -12 74 0 M266 220 q40 -12 76 0 M120 240 q36 -10 70 0" '+
+           'stroke="#fff" stroke-width="3" fill="none" opacity=".38" stroke-linecap="round"/>');
+  }
+  if(env==="springs"){
+    A.push('<ellipse cx="292" cy="196" rx="40" ry="15" fill="var(--water)" opacity=".5"/>'+
+           '<ellipse cx="292" cy="194" rx="32" ry="11" fill="#fff" opacity=".2"/>'+
+           '<path d="M280 178 q-12 -26 6 -44 M306 182 q12 -22 -4 -40 M150 200 q-10 -20 5 -34" '+
+           'stroke="#fff" stroke-width="6" fill="none" opacity=".15" stroke-linecap="round"/>');
+  }
+
+  $("#islandArt").innerHTML = A.join("");
   Sound.env(env);
   $("#envName").textContent = PLACES[env].name;
   $("#app").dataset.env = env;
+  renderGems();
+}
+
+/* Polished stones line the front rim — visible, and nowhere near the beds. */
+function renderGems(){
+  const box=$("#gems"); if(!box) return;
+  box.innerHTML="";
+  const show = S.polished.slice(-9);
+  const n = show.length;
+  show.forEach((k,i)=>{
+    const st=STONES[k];
+    const t = n===1 ? .5 : i/(n-1);
+    const x = 26 + t*48;
+    const y = 74 + Math.sin(t*Math.PI)*4.5;
+    const d=document.createElement("div");
+    d.className="gem";
+    d.style.left=x+"%"; d.style.top=y+"%";
+    d.innerHTML = `<svg viewBox="0 0 26 26"><path d="M4 16 L2 9 L8 3 L18 4 L24 11 L19 20Z" fill="${st.polished}"/>
+      <path d="M8 3 L18 4 L14 11 L6 10Z" fill="#fff" opacity=".3"/></svg><i></i>`;
+    box.appendChild(d);
+  });
 }
 function makeStars(){
   const box = $("#stars"); box.innerHTML="";
@@ -1352,11 +1588,11 @@ function openPastimes(){
     <button class="row pick" data-open="tumbler">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><circle cx="22" cy="22" r="15"/><path d="M15 26l5-8 6 5 4-6"/></svg>
       <span class="body"><span class="name">The Tumbler</span>
-      <span class="meta">${rough?rough+" rough stone"+(rough>1?"s":"")+" waiting":"No stones yet — wisps and trails bring them"} &middot; swipe to polish, or let it run</span></span></button>
+      <span class="meta">${rough?rough+" rough stone"+(rough>1?"s":"")+" waiting":"No stones yet — wisps and trails bring them"}${S.polished.length?" &middot; "+S.polished.length+" polished on the rim":""} &middot; swipe to polish, or let it run</span></span></button>
     <button class="row pick" data-open="sky">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--leaf)" stroke-width="1.5"><path d="M10 30l7-12 8 6 9-12"/><circle cx="10" cy="30" r="2"/><circle cx="34" cy="12" r="2"/></svg>
-      <span class="body"><span class="name">Constellation Grids</span>
-      <span class="meta">${solved} of ${SKIES.length} traced &middot; the hint button is always there</span></span></button>
+      <span class="body"><span class="name">Star Threads</span>
+      <span class="meta">${solved} of ${SKIES.length} threaded &middot; follow the numbers, a picture appears &middot; nothing to work out</span></span></button>
     <button class="row pick" data-open="trail">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--petal)" stroke-width="1.5"><path d="M8 34l8-6 6 4 6-10 8 6"/></svg>
       <span class="body"><span class="name">Trail Expeditions</span>
@@ -1427,6 +1663,10 @@ function renderComfort(){
     <div class="slider-block">
       <div class="lab"><span>Sound</span><i>${Math.round(c.vol*100)}%</i></div>
       <input type="range" min="0" max="100" value="${Math.round(c.vol*100)}" data-slider="vol" aria-label="Sound volume">
+    </div>
+    <div class="slider-block">
+      <div class="lab"><span>Music</span><i>${c.music>0?Math.round(c.music*100)+"%":"off"}</i></div>
+      <input type="range" min="0" max="100" value="${Math.round(c.music*100)}" data-slider="music" aria-label="Music volume">
     </div>
     <div class="slider-block">
       <div class="lab"><span>Text size</span><i>${Math.round(c.scale*100)}%</i></div>
@@ -1544,15 +1784,57 @@ const Tumbler = {
     S.polished.push(s.k);
     S.stones.splice(SESSION.tumblerStone,1);
     S.sd += st.worth;
-    // a polished stone can sit on the island if there is room
-    const free = S.plots.indexOf(null);
-    if(free>=0){ S.plots[free]={stone:s.k}; }
-    Sound.chime(5); buzz(24);
-    toast(st.name + " came out beautiful. +" + st.worth + " stardust.", 4200);
+    Reveal.push(s.k, st.worth);
     SESSION.tumblerStone = S.stones.findIndex(x=>x.work>0);
     if(SESSION.tumblerStone<0) SESSION.tumblerStone=0;
-    paintPurse(); renderPlots(); save();
+    paintPurse(); save();          // it reaches the rim when the player puts it there
     this.strip(); this.draw(); this.status();
+  }
+};
+
+/* ============ THE REVEAL ============ */
+const STONE_LINES = [
+  "Forty years of water could not do this. You did it in an afternoon.",
+  "The colour was in there the whole time.",
+  "It will catch the light on your island from now on.",
+  "Nothing about it is useful. That is rather the point.",
+  "Hold it up. There, that is the one."
+];
+const Reveal = {
+  queue:[],
+  push(key, worth){
+    this.queue.push({key, worth});
+    if(!this.open) this.next();
+  },
+  next(){
+    const item=this.queue.shift();
+    if(!item){ this.open=false; $("#reveal").classList.remove("on"); return; }
+    this.open=true;
+    const st=STONES[item.key];
+    $("#revealName").textContent = st.name;
+    $("#revealLine").textContent = pick(STONE_LINES);
+    $("#revealTake").textContent = "+" + item.worth + " stardust";
+    $("#revealGem").innerHTML = `
+      <div class="rays"></div>
+      <div class="halo" style="background:radial-gradient(circle,${st.polished}55,transparent 66%)"></div>
+      <svg viewBox="0 0 120 120">
+        <path d="M22 74 L12 46 L34 20 L84 22 L108 52 L88 96 L46 98Z" fill="${st.polished}"/>
+        <path d="M34 20 L84 22 L70 54 L28 50Z" fill="#fff" opacity=".34"/>
+        <path d="M70 54 L108 52 L88 96Z" fill="#000" opacity=".14"/>
+        <path d="M28 50 L70 54 L46 98 L22 74Z" fill="#fff" opacity=".10"/>
+        <path d="M40 28 L62 30 L54 46 L37 43Z" fill="#fff" opacity=".45"/>
+      </svg>
+      <i class="spark" style="left:12%;top:24%"></i>
+      <i class="spark" style="left:82%;top:38%;animation-delay:.8s"></i>
+      <i class="spark" style="left:62%;top:8%;animation-delay:1.5s"></i>`;
+    $("#reveal").classList.add("on");
+    Sound.chime(5); buzz(26);
+    setTimeout(()=>{ Sound.chime(3); }, 420);
+  },
+  take(){
+    renderGems();
+    Sound.chime(2); buzz(12);
+    this.next();
   }
 };
 function autoPolish(dt){
@@ -1572,122 +1854,126 @@ function mixHex(a,b,t){
 function lighten(c,t){ const p=hex(c); return "rgb("+p.map(v=>Math.round(v+(255-v)*t)).join(",")+")"; }
 function hex(c){ const h=c.replace("#",""); return [0,2,4].map(i=>parseInt(h.substr(i,2),16)); }
 
-/* ============ CONSTELLATION GRIDS ============ */
+/* ============ STAR THREADS ============ */
 const Sky = {
-  puz:null, edges:[], sel:null, hinted:[],
+  puz:null, idx:-1,
   open(){
-    const next = SKIES.find(s=>!S.skies[s.id]) || SKIES[0];
+    const next = SKIES.find(s=>!S.skies[s.id]) || pick(SKIES);
     this.start(next);
     showMg("mgSky");
     if(!this.bound){ this.bind(); this.bound=true; }
   },
   start(p){
-    this.puz=p; this.edges=[]; this.sel=null; this.hinted=[];
+    this.puz=p; this.idx=-1;
     $("#skyTitle").textContent = p.name;
-    $("#skyClue").textContent = p.clue + (S.skies[p.id] ? " (You have traced this one before — trace it again any time.)" : "");
-    $("#skyStatus").textContent = "Tap one star, then another, to draw a line. Tap the same line to remove it.";
+    $("#skyClue").textContent = p.clue;
     this.buttons(); this.draw();
+    this.say("Tap the stars in order. Number 1 is glowing.");
   },
+  say(t){ $("#skyStatus").textContent = t; },
   size(){ const cv=$("#skyCanvas"); return cv.getBoundingClientRect().width || 340; },
-  /* A transparent button over every star. Touch, keyboard and screen readers
-     all go through these; the canvas only ever draws. */
+  count(){ return this.puz.path.length; },
+  /* a transparent button per star: touch, keyboard and screen readers alike */
   buttons(){
     const box=$("#skyStars"); box.innerHTML="";
-    this.puz.stars.forEach((p,i)=>{
+    this.puz.path.forEach((p,i)=>{
       const b=document.createElement("button");
       b.className="sky-star"; b.dataset.i=i;
       b.style.left=p[0]+"%"; b.style.top=p[1]+"%";
-      b.setAttribute("aria-label","Star "+(i+1)+" of "+this.puz.stars.length);
       b.addEventListener("click", ()=> this.tap(i));
       box.appendChild(b);
     });
   },
   label(){
     $$("#skyStars .sky-star").forEach(b=>{
-      const i=+b.dataset.i;
-      const links=this.edges.filter(e=>e[0]===i||e[1]===i).length;
-      b.setAttribute("aria-pressed", this.sel===i ? "true":"false");
-      b.setAttribute("aria-label","Star "+(i+1)+", "+links+" line"+(links===1?"":"s")+
-        (this.sel===i?", chosen":this.sel===null?"":", tap to join to star "+(this.sel+1)));
+      const i=+b.dataset.i, next=(i===this.idx+1);
+      b.setAttribute("aria-label", "Star " + (i+1) + " of " + this.count() +
+        (i<=this.idx ? ", joined" : next ? ", tap this one next" : ""));
+      b.classList.toggle("next", next);
     });
   },
   draw(){
     const cv=$("#skyCanvas"), g=cv.getContext("2d");
-    const w = Math.min(this.size()||320, 420);
-    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const w=Math.min(this.size(),440), dpr=Math.min(window.devicePixelRatio||1,2);
     cv.width=w*dpr; cv.height=w*dpr; cv.style.height=w+"px";
     g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,w);
-    const P=this.puz, pt=i=>({x:P.stars[i][0]/100*w, y:P.stars[i][1]/100*w});
-    // drawn lines
-    this.edges.forEach(e=>{
-      const a=pt(e[0]), b=pt(e[1]);
-      const isHint = this.hinted.some(h=> same(h,e));
-      g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y);
-      g.strokeStyle = isHint ? "rgba(242,192,120,.55)" : "rgba(233,236,255,.72)";
-      g.lineWidth=2.4; g.stroke();
-    });
-    // stars
-    P.stars.forEach((s,i)=>{
-      const p=pt(i), on = this.sel===i;
-      g.beginPath(); g.arc(p.x,p.y, on?15:11, 0, Math.PI*2);
-      g.fillStyle = on ? "rgba(242,192,120,.30)" : "rgba(233,236,255,.12)"; g.fill();
-      g.beginPath(); g.arc(p.x,p.y,5,0,Math.PI*2);
-      g.fillStyle = on ? "#f2c078" : "#eef0fb"; g.fill();
+    const P=this.puz, pt=i=>({x:P.path[i][0]/100*w, y:P.path[i][1]/100*w});
+    const done = this.idx>=this.count()-1;
+
+    // the thread so far
+    if(this.idx>0){
+      g.beginPath();
+      for(let i=0;i<=this.idx;i++){ const p=pt(i); i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y); }
+      if(done && P.close){ const p=pt(0); g.lineTo(p.x,p.y); }
+      g.strokeStyle = done ? "rgba(242,192,120,.85)" : "rgba(233,236,255,.72)";
+      g.lineWidth=2.6; g.lineJoin="round"; g.stroke();
+      if(done){ g.strokeStyle="rgba(242,192,120,.22)"; g.lineWidth=11; g.stroke(); }
+    }
+    // the rest of the route, as a faint guide
+    if(!done){
+      g.beginPath();
+      for(let i=Math.max(this.idx,0);i<this.count();i++){ const p=pt(i); i===Math.max(this.idx,0)?g.moveTo(p.x,p.y):g.lineTo(p.x,p.y); }
+      if(P.close){ const p=pt(0); g.lineTo(p.x,p.y); }
+      g.setLineDash([3,9]); g.strokeStyle="rgba(233,236,255,.16)"; g.lineWidth=1.6; g.stroke();
+      g.setLineDash([]);
+    }
+    // stars, numbered
+    P.path.forEach((s,i)=>{
+      const p=pt(i), joined=i<=this.idx, next=(i===this.idx+1);
+      if(next){
+        g.beginPath(); g.arc(p.x,p.y,17,0,Math.PI*2);
+        g.fillStyle="rgba(242,192,120,.20)"; g.fill();
+      }
+      g.beginPath(); g.arc(p.x,p.y, next?9:7, 0, Math.PI*2);
+      g.fillStyle = joined ? "#f2c078" : next ? "#fff" : "rgba(233,236,251,.55)"; g.fill();
+      g.font = "600 " + Math.round(w*0.036) + "px system-ui, sans-serif";
+      g.textAlign="center"; g.textBaseline="middle";
+      g.fillStyle = joined||next ? "rgba(20,24,48,.9)" : "rgba(20,24,48,.55)";
+      if(w>240) g.fillText(String(i+1), p.x, p.y+0.5);
     });
     this.label();
   },
-  hit(x,y){
-    const w=this.size(), P=this.puz;
-    let best=-1, bd=1e9;
-    P.stars.forEach((s,i)=>{
-      const d=Math.hypot(s[0]/100*w-x, s[1]/100*w-y);
-      if(d<bd){ bd=d; best=i; }
-    });
-    return bd < Math.max(34, w*0.11) ? best : -1;   // forgiving target
-  },
   tap(i){
-    if(i<0){ this.sel=null; this.draw(); return; }
-    if(this.sel===null){ this.sel=i; Sound.chime(0); this.draw(); return; }
-    if(this.sel===i){ this.sel=null; this.draw(); return; }
-    const e=[this.sel,i];
-    const at=this.edges.findIndex(x=> same(x,e));
-    if(at>=0){ this.edges.splice(at,1); }
-    else { this.edges.push(e); Sound.chime(2); buzz(10); }
-    this.sel=null; this.draw(); this.check();
-  },
-  check(){
-    const P=this.puz;
-    const needed = P.edges;
-    const got = this.edges;
-    const done = needed.every(n=> got.some(g=> same(g,n))) && got.length===needed.length;
-    if(!done){
-      const right = needed.filter(n=> got.some(g=> same(g,n))).length;
-      $("#skyStatus").textContent = right + " of " + needed.length + " lines match. No hurry.";
+    if(this.idx>=this.count()-1) return;
+    if(i !== this.idx+1){
+      // nothing is lost by tapping the wrong one
+      this.say("Number " + (this.idx+2) + " is the glowing one.");
       return;
     }
-    const first = !S.skies[P.id];
+    this.idx = i;
+    Sound.chime(clamp(Math.floor(i/Math.max(1,this.count()-1)*5),0,5));
+    buzz(9);
+    this.draw();
+    if(this.idx>=this.count()-1) this.finish();
+    else this.say((this.idx+1) + " of " + this.count() + " joined.");
+  },
+  finish(){
+    const P=this.puz, first=!S.skies[P.id];
     S.skies[P.id]={done:true};
-    let msg = P.name + " is traced. +" + P.reward + " stardust.";
     S.sd += P.reward;
-    if(first && P.unlock){ S.unlocked[P.unlock]=true; S.seeds[P.unlock]=(S.seeds[P.unlock]||0)+1;
-      msg += " " + SPECIES[P.unlock].name + " seed found."; }
-    Sound.chime(5); buzz(28); paintPurse(); save();
-    $("#skyStatus").textContent = msg;
+    let msg = P.name + " is threaded. +" + P.reward + " stardust.";
+    if(first && P.unlock){
+      S.unlocked[P.unlock]=true; S.seeds[P.unlock]=(S.seeds[P.unlock]||0)+1;
+      msg += " " + SPECIES[P.unlock].name + " seed found.";
+    }
+    Sound.chime(5); buzz(26); paintPurse(); save();
+    this.say(msg);
     toast(msg, 4600);
+    $("#skyNext").textContent = "Thread another";
   },
   bind(){
     $("#skyHint").addEventListener("click", ()=>{
-      const missing = this.puz.edges.filter(n=> !this.edges.some(g=> same(g,n)));
-      if(!missing.length){ $("#skyStatus").textContent="Nothing missing. Remove a line if one is extra."; return; }
-      const e=missing[0]; this.edges.push(e); this.hinted.push(e);
-      Sound.chime(1); this.draw(); this.check();
+      if(this.idx>=this.count()-1){ this.say("This one is finished. Try another."); return; }
+      this.tap(this.idx+1);
     });
-    $("#skyReset").addEventListener("click", ()=>{ this.start(this.puz); });
+    $("#skyNext").addEventListener("click", ()=>{
+      const rest = SKIES.filter(x=>x.id!==this.puz.id);
+      this.start(SKIES.find(x=>!S.skies[x.id]) || pick(rest));
+      $("#skyNext").textContent = "Show me a different one";
+    });
     window.addEventListener("resize", ()=>{ if(SESSION.mgOpen==="mgSky") this.draw(); });
   }
 };
-function same(a,b){ return (a[0]===b[0]&&a[1]===b[1])||(a[0]===b[1]&&a[1]===b[0]); }
-
 /* ============ TRAIL EXPEDITIONS ============ */
 const Trail = {
   t:null, node:null, log:[],
@@ -1699,16 +1985,64 @@ const Trail = {
   },
   art(kind){
     const svg=$("#trailArt");
-    const sky='<rect width="320" height="150" fill="rgba(10,12,26,.35)"/>';
-    let body="";
-    if(kind==="peaks") body='<path d="M0 150 L70 62 L110 106 L170 40 L240 116 L280 88 L320 150Z" fill="var(--land)"/>'+
-      '<path d="M170 40 L196 72 L150 72Z" fill="var(--land-lip)" opacity=".8"/>';
-    if(kind==="pines"){ body='<path d="M0 150 L320 150 L320 120 Q160 104 0 122Z" fill="var(--land)"/>';
-      for(let i=0;i<7;i++){ const x=22+i*44, h=rnd(44,76);
-        body+=`<path d="M${x} ${124-h} L${x+16} 124 L${x-16} 124Z" fill="var(--land-lip)" opacity=".7"/>`;} }
-    if(kind==="river") body='<path d="M0 150 L320 150 L320 108 Q160 92 0 112Z" fill="var(--land)"/>'+
-      '<path d="M10 148 Q90 118 150 132 Q220 148 312 120" stroke="var(--glow)" stroke-width="7" fill="none" opacity=".35" stroke-linecap="round"/>';
-    svg.innerHTML = sky + body;
+    const A=[];
+    A.push(`<defs>
+      <linearGradient id="tsky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--sky-top)"/>
+        <stop offset=".62" stop-color="var(--sky-mid)"/>
+        <stop offset="1" stop-color="var(--sky-low)"/></linearGradient>
+      <linearGradient id="twater" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--water)" stop-opacity=".55"/>
+        <stop offset="1" stop-color="var(--water)" stop-opacity=".18"/></linearGradient>
+      <radialGradient id="tmoon"><stop offset="0" stop-color="var(--glow)" stop-opacity=".55"/>
+        <stop offset="1" stop-color="var(--glow)" stop-opacity="0"/></radialGradient>
+    </defs>`);
+    A.push('<rect width="320" height="180" fill="url(#tsky)"/>');
+    // a low sun sitting in haze
+    A.push('<circle cx="238" cy="52" r="40" fill="url(#tmoon)"/>');
+    A.push('<circle cx="238" cy="52" r="13" fill="var(--glow)" opacity=".8"/>');
+    // birds, small enough to be a suggestion
+    A.push('<path d="M60 40 q5 -4 10 0 q5 -4 10 0 M92 30 q4 -3 8 0 q4 -3 8 0" '+
+           'stroke="var(--ink-faint)" stroke-width="1.6" fill="none" opacity=".6" stroke-linecap="round"/>');
+
+    const tree=(x,base,h,w,fill,op)=>
+      `<g opacity="${op}"><path d="M${x-1.2} ${base} h2.4 v${-h*0.22} h-2.4Z" fill="${fill}"/>`+
+      `<path d="M${x} ${base-h} L${x+w} ${base-h*0.36} L${x-w} ${base-h*0.36}Z" fill="${fill}"/>`+
+      `<path d="M${x} ${base-h*0.74} L${x+w*1.2} ${base-h*0.1} L${x-w*1.2} ${base-h*0.1}Z" fill="${fill}"/></g>`;
+
+    if(kind==="peaks"){
+      A.push('<path d="M0 180 L40 96 L78 126 L120 66 L168 118 L206 92 L252 132 L320 88 L320 180Z" '+
+             'fill="var(--land)" opacity=".45"/>');                      // far range
+      A.push('<path d="M120 66 L142 96 L98 96Z" fill="#fff" opacity=".5"/>');
+      A.push('<path d="M0 180 L56 122 L104 152 L150 108 L206 150 L256 120 L320 158 L320 180Z" '+
+             'fill="var(--land)" opacity=".75"/>');                      // mid range
+      A.push('<path d="M0 180 L70 150 L138 168 L210 146 L280 170 L320 156 L320 180Z" fill="var(--land)"/>');
+      for(let i=0;i<6;i++) A.push(tree(26+i*54, 176-i%2*4, 26+((i*13)%16), 8, "var(--sky-top)", .55));
+      A.push('<path d="M24 178 q64 -22 128 -12 q60 10 148 -14" stroke="var(--land-lip)" '+
+             'stroke-width="3" fill="none" opacity=".35" stroke-linecap="round"/>');
+    }
+    if(kind==="pines"){
+      A.push('<path d="M0 180 L320 180 L320 132 Q160 112 0 138Z" fill="var(--land)" opacity=".5"/>');
+      for(let i=0;i<9;i++) A.push(tree(14+i*38, 140+(i%3)*3, 48+((i*17)%34), 13, "var(--land)", .8));
+      A.push('<path d="M0 180 L320 180 L320 152 Q160 138 0 160Z" fill="var(--grass)" opacity=".7"/>');
+      for(let i=0;i<5;i++) A.push(tree(30+i*70, 178, 64+((i*23)%26), 18, "var(--sky-top)", .85));
+      A.push('<path d="M40 176 q70 -14 130 -6 q54 8 110 -8" stroke="var(--land-lip)" '+
+             'stroke-width="4" fill="none" opacity=".28" stroke-linecap="round"/>');
+    }
+    if(kind==="river"){
+      A.push('<path d="M0 180 L0 110 Q80 96 150 106 Q240 118 320 100 L320 180Z" fill="var(--land)" opacity=".5"/>');
+      for(let i=0;i<7;i++) A.push(tree(18+i*48, 116+(i%2)*4, 22+((i*11)%14), 7, "var(--sky-top)", .5));
+      A.push('<path d="M0 180 L320 180 L320 128 Q210 150 120 134 Q56 122 0 132Z" fill="var(--grass)" opacity=".55"/>');
+      // the water, with the sun broken up on it
+      A.push('<path d="M0 180 L320 180 L320 150 Q230 176 140 158 Q64 144 0 156Z" fill="url(#twater)"/>');
+      A.push('<path d="M196 166 h44 M176 174 h34 M228 158 h26" stroke="var(--glow)" '+
+             'stroke-width="2.5" opacity=".45" stroke-linecap="round"/>');
+      A.push('<path d="M42 170 h30 M88 176 h22" stroke="#fff" stroke-width="2" opacity=".28" stroke-linecap="round"/>');
+      A.push('<ellipse cx="86" cy="150" rx="15" ry="5" fill="var(--land)" opacity=".8"/>');
+      A.push('<ellipse cx="252" cy="142" rx="11" ry="4" fill="var(--land)" opacity=".7"/>');
+    }
+    svg.setAttribute("viewBox","0 0 320 180");
+    svg.innerHTML = A.join("");
   },
   render(){
     const n=this.t.nodes[this.node];
@@ -1976,13 +2310,16 @@ function wire(){
     if(k==="dim") S.comfort.dim=v/100;
     if(k==="warm") S.comfort.warm=v/100;
     if(k==="vol") S.comfort.vol=v/100;
+    if(k==="music") S.comfort.music=v/100;
     if(k==="scale") S.comfort.scale=v/100;
     applyComfort();
     const lab=s.parentElement.querySelector(".lab i");
     if(lab) lab.textContent = k==="dim" ? Math.round((1-S.comfort.dim)*100)+"%"
-      : k==="warm" ? Math.round(S.comfort.warm/.42*100)+"%" : v+"%";
+      : k==="warm" ? Math.round(S.comfort.warm/.42*100)+"%"
+      : (k==="music" && v===0) ? "off" : v+"%";
   });
 
+  $("#revealBtn").addEventListener("click", ()=> Reveal.take());
   $$("[data-close-mg]").forEach(b=> b.addEventListener("click", ()=> hideMg(b.dataset.closeMg)));
 
   // idle tracking for the resting dim
