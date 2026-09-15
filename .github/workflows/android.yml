@@ -16,14 +16,22 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
 
-      - uses: android-actions/setup-android@v3
+      # The ubuntu-latest image already ships the Android SDK, so there is no
+      # setup action here on purpose. android-actions/setup-android tries to
+      # install the retired "tools" package and fails before the build starts.
+      - name: Accept SDK licenses and top up packages
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0" || true
+          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" || true
 
       - name: Install dependencies
         run: npm install
