@@ -1,0 +1,30 @@
+{
+  "name": "lumina-cloud-garden",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lumina: The Cloud Garden — a gentle sky-garden game that adapts to the player's energy.",
+  "author": "Brewster Wickersham Publications LLC",
+  "license": "UNLICENSED",
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "assets": "capacitor-assets generate --android",
+    "sync": "cap sync android",
+    "apk": "cd android && ./gradlew assembleDebug",
+    "apk:release": "cd android && ./gradlew assembleRelease",
+    "open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/core": "8.5.2",
+    "@capacitor/haptics": "8.0.2",
+    "@capacitor/preferences": "8.0.1",
+    "@capacitor/splash-screen": "8.0.2",
+    "@capacitor/status-bar": "8.0.3",
+    "@revenuecat/purchases-capacitor": "13.5.1"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.2"
+  }
+}

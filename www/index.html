@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#141830">
+<meta name="description" content="Lumina: The Cloud Garden — a gentle sky garden that adapts to how you feel.">
+<title>Lumina: The Cloud Garden</title>
+<style>
+/* ============================================================
+   LUMINA: THE CLOUD GARDEN
+   Single-file build. No external assets, no network calls.
+   Sections: 1 tokens  2 base  3 chrome  4 island  5 panels
+             6 minigames  7 comfort
+   ============================================================ */
+
+/* ---------- 1. TOKENS ---------- */
+:root{
+  /* Cloud Garden (default environment) */
+  --sky-top:#141830;
+  --sky-mid:#232a52;
+  --sky-low:#3c3f6b;
+  --land:#5a5f9b;
+  --land-lip:#7f85c4;
+  --ink:#eef0fb;
+  --ink-soft:#b3b9dd;
+  --ink-faint:#7d84b0;
+  --glow:#f2c078;        /* lantern amber */
+  --leaf:#8fd9b6;        /* soft aqua */
+  --petal:#d8a7c4;       /* muted rose */
+  --vapor:rgba(233,236,255,.09);
+  --vapor-line:rgba(233,236,255,.20);
+
+  /* comfort dials, driven from JS */
+  --dim:0;               /* 0..0.72 black veil */
+  --warm:0;              /* 0..0.42 amber veil */
+  --motion:1;            /* 1 on, 0 off */
+  --ui-scale:1;
+
+  --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+
+  --tap:56px;            /* minimum comfortable target */
+  --r-soft:22px;
+  --pad:18px;
+}
+[data-env="alpine"]{
+  --sky-top:#1b2436; --sky-mid:#2c3b53; --sky-low:#48607d;
+  --land:#8fa4bd; --land-lip:#cfdcea;
+  --ink:#f2f6fb; --ink-soft:#c2d1e2; --ink-faint:#8ba0b8;
+  --glow:#ffd9a0; --leaf:#a9cfb4; --petal:#cfd8ea;
+}
+[data-env="tidal"]{
+  --sky-top:#2a3350; --sky-mid:#4a5570; --sky-low:#8a9a9c;
+  --land:#c2b394; --land-lip:#e6dcc2;
+  --ink:#fbf7ee; --ink-soft:#dccfb8; --ink-faint:#a89a83;
+  --glow:#ffd08a; --leaf:#8fd2c4; --petal:#f2cdd4;
+}
+[data-env="springs"]{
+  --sky-top:#232a34; --sky-mid:#3b4a4a; --sky-low:#6f8375;
+  --land:#8e9b8a; --land-lip:#cfd6c2;
+  --ink:#f4f6f0; --ink-soft:#ccd5c6; --ink-faint:#94a08f;
+  --glow:#ffe0a8; --leaf:#a3cfa8; --petal:#f0d4dd;
+}
+[data-env="cavern"]{
+  --sky-top:#0d0f16; --sky-mid:#161a26; --sky-low:#1f2433;
+  --land:#33394d; --land-lip:#4a5270;
+  --ink:#dfe3ef; --ink-soft:#9aa2bb; --ink-faint:#6b7288;
+  --glow:#7fe3d4; --leaf:#93c9a7; --petal:#b9a5d8;
+}
+
+/* ---------- 2. BASE ---------- */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+body{
+  font-family:var(--ui);
+  font-size:calc(16px * var(--ui-scale));
+  color:var(--ink);
+  background:var(--sky-top);
+  -webkit-user-select:none;user-select:none;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--glow);outline-offset:3px;border-radius:12px}
+h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:.01em;margin:0}
+p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+#app{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 52%,var(--sky-low) 100%);
+  transition:background 1.2s ease;
+}
+
+/* comfort veils sit above everything, ignore input */
+#veil-dim,#veil-warm{position:fixed;inset:0;pointer-events:none;z-index:900}
+#veil-dim{background:#000;opacity:var(--dim);transition:opacity .35s ease}
+#veil-warm{background:#ff9b3d;mix-blend-mode:multiply;opacity:var(--warm);transition:opacity .35s ease}
+
+/* soft moving sky */
+.stars{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:var(--ink);opacity:.5;
+  animation:twinkle calc(9s / var(--motion,1)) ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.18}50%{opacity:.7}}
+
+/* ---------- 3. CHROME ---------- */
+.topbar{
+  display:flex;align-items:center;gap:10px;
+  padding:10px var(--pad) 4px;min-height:44px;position:relative;z-index:5;
+}
+.title{font-family:var(--display);font-size:1.05rem;color:var(--ink-soft);flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.purse{display:flex;gap:8px;align-items:center}
+.coin{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:999px;
+  background:var(--vapor);border:1px solid var(--vapor-line);
+  font-variant-numeric:tabular-nums;font-size:.9rem;color:var(--ink);
+}
+.coin b{font-weight:600}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.dot.sd{background:var(--glow);box-shadow:0 0 9px var(--glow)}
+.dot.rp{background:var(--leaf);box-shadow:0 0 9px var(--leaf)}
+
+/* mood ribbon: how the game is currently adapting */
+.ribbon{
+  margin:2px var(--pad) 0;padding:9px 14px;border-radius:999px;
+  background:var(--vapor);border:1px solid var(--vapor-line);
+  display:flex;align-items:center;gap:10px;min-height:44px;
+  font-size:.86rem;color:var(--ink-soft);position:relative;z-index:5;
+}
+.ribbon span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ribbon button{color:var(--ink);text-decoration:underline;text-underline-offset:3px;
+  padding:6px 2px;font-size:.86rem}
+
+/* bottom dock — everything reachable by one thumb */
+.dock{
+  margin-top:auto;display:grid;gap:8px;padding:8px var(--pad) max(10px,env(safe-area-inset-bottom));
+  position:relative;z-index:6;
+}
+.dock-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dock-btn{
+  min-height:var(--tap);border-radius:18px;
+  background:var(--vapor);border:1px solid var(--vapor-line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:.72rem;color:var(--ink-soft);padding:6px 4px;
+  transition:background .18s ease,transform .18s ease;
+}
+.dock-btn:active{background:rgba(233,236,255,.17);transform:scale(.97)}
+.dock-btn .ico{width:24px;height:24px;display:block}
+.dock-btn[aria-pressed="true"]{background:rgba(242,192,120,.16);border-color:var(--glow);color:var(--ink)}
+.dock-btn.hide{display:none}
+#app[data-energy="low"] .dock-row{grid-template-columns:repeat(2,1fr)}
+
+/* ---------- 4. ISLAND ---------- */
+.stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;z-index:2}
+.island-wrap{position:relative;width:min(100%,540px);aspect-ratio:1/1;max-height:100%;
+  animation:float calc(14s / var(--motion,1)) ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(-6px)}50%{transform:translateY(6px)}}
+.island-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+
+.plot{
+  position:absolute;width:66px;height:66px;margin:-33px 0 0 -33px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  border:1px dashed transparent;transition:border-color .25s ease,background .25s ease;
+}
+.plot.empty{border-color:rgba(233,236,255,.16)}
+.plot.empty::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--vapor-line)}
+.plot.armed{border-color:var(--glow);background:rgba(242,192,120,.12)}
+.plot:active{transform:scale(.96)}
+.plot .sprite{position:absolute;bottom:14px;width:100%;height:82px;pointer-events:none}
+.plant-sway{transform-origin:50% 100%;animation:sway calc(7s / var(--motion,1)) ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+
+.ready-pip{
+  position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;
+  background:var(--glow);box-shadow:0 0 12px var(--glow);
+  animation:pulse calc(2.6s / var(--motion,1)) ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(.82);opacity:.75}50%{transform:scale(1.08);opacity:1}}
+
+.wisp{
+  position:absolute;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  animation:drift calc(11s / var(--motion,1)) ease-in-out infinite;
+}
+@keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(13px,-16px)}66%{transform:translate(-11px,9px)}}
+
+/* rain / rest overlay for Sanctuary Mode */
+.rain{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1.6s ease;z-index:3}
+.rain.on{opacity:.5}
+.drop{position:absolute;top:-12%;width:1.5px;height:44px;border-radius:2px;
+  background:linear-gradient(180deg,transparent,rgba(233,236,255,.55));
+  animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(125vh)}}
+
+.breath{
+  position:absolute;left:50%;top:50%;width:190px;height:190px;margin:-95px 0 0 -95px;
+  border-radius:50%;border:1px solid var(--vapor-line);
+  background:radial-gradient(circle,rgba(242,192,120,.16),transparent 68%);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:var(--display);font-size:1.05rem;color:var(--ink-soft);z-index:4;
+  transition:transform 4s cubic-bezier(.4,0,.5,1),opacity .8s ease;
+}
+.breath.hidden{opacity:0;pointer-events:none}
+
+/* floating "+3" feedback */
+.float-num{position:absolute;font-size:1rem;color:var(--glow);pointer-events:none;z-index:8;
+  font-variant-numeric:tabular-nums;animation:rise 1.5s ease-out forwards}
+@keyframes rise{0%{opacity:0;transform:translateY(0) scale(.85)}
+  22%{opacity:1}100%{opacity:0;transform:translateY(-52px) scale(1)}}
+
+/* ---------- 5. PANELS ---------- */
+.scrim{position:fixed;inset:0;background:rgba(10,12,26,.66);z-index:20;
+  opacity:0;pointer-events:none;transition:opacity .3s ease}
+.scrim.on{opacity:1;pointer-events:auto}
+
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:21;
+  max-height:88vh;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,var(--sky-mid),var(--sky-top));
+  border-top:1px solid var(--vapor-line);
+  border-radius:var(--r-soft) var(--r-soft) 0 0;
+  transform:translateY(102%);transition:transform .38s cubic-bezier(.22,.9,.3,1);
+  padding-bottom:max(12px,env(safe-area-inset-bottom));
+}
+.sheet.on{transform:translateY(0)}
+.sheet-head{display:flex;align-items:flex-start;gap:12px;padding:16px var(--pad) 6px}
+.sheet-head h2{font-size:1.4rem;flex:1;line-height:1.25}
+.sheet-head .sub{font-size:.85rem;color:var(--ink-faint);margin-top:4px}
+.grab{width:42px;height:4px;border-radius:2px;background:var(--vapor-line);margin:9px auto 0}
+.sheet-body{padding:8px var(--pad) 14px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.close-x{min-width:var(--tap);min-height:var(--tap);border-radius:50%;background:var(--vapor);
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--ink-soft);flex:none}
+
+.row{
+  display:flex;align-items:center;gap:13px;padding:13px;margin-bottom:9px;
+  border-radius:16px;background:var(--vapor);border:1px solid transparent;width:100%;text-align:left;
+}
+.row.pick{border-color:var(--vapor-line)}
+.row:active{background:rgba(233,236,255,.15)}
+.row .leaf{flex:none;width:44px;height:44px}
+.row .body{flex:1;min-width:0}
+.row .name{color:var(--ink);font-size:.98rem}
+.row .meta{color:var(--ink-faint);font-size:.8rem;margin-top:3px;line-height:1.45}
+.row .cost{font-variant-numeric:tabular-nums;color:var(--glow);font-size:.9rem;flex:none}
+.row[disabled]{opacity:.42}
+
+/* energy check-in */
+.checkin{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:center;
+  padding:26px 22px max(26px,env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,var(--sky-top),var(--sky-mid));
+  transition:opacity .6s ease}
+.checkin.gone{opacity:0;pointer-events:none}
+.checkin .mark{font-family:var(--display);font-size:2.5rem;line-height:1.1;margin-bottom:6px}
+.checkin .ask{font-family:var(--display);font-size:1.45rem;color:var(--ink-soft);margin:26px 0 16px}
+.energy{
+  width:100%;min-height:76px;border-radius:20px;padding:15px 18px;margin-bottom:11px;
+  background:var(--vapor);border:1px solid var(--vapor-line);text-align:left;
+  display:flex;align-items:center;gap:14px;transition:background .2s ease,transform .2s ease;
+}
+.energy:active{transform:scale(.985);background:rgba(233,236,255,.16)}
+.energy .lab{font-size:1.05rem;color:var(--ink)}
+.energy .hint{font-size:.82rem;color:var(--ink-faint);margin-top:4px;line-height:1.45}
+.energy .orb{width:34px;height:34px;border-radius:50%;flex:none}
+.footnote{font-size:.8rem;color:var(--ink-faint);text-align:center;margin-top:14px;line-height:1.6}
+
+/* ---------- 6. MINIGAMES ---------- */
+.mg{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;
+  background:linear-gradient(180deg,var(--sky-top),var(--sky-mid));
+  padding:env(safe-area-inset-top) 0 max(10px,env(safe-area-inset-bottom))}
+.mg.on{display:flex}
+.mg-head{display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
+.mg-head h2{font-size:1.2rem;flex:1}
+.mg-body{flex:1;min-height:0;overflow-y:auto;padding:4px var(--pad) 12px;display:flex;flex-direction:column}
+.mg-foot{padding:8px var(--pad);display:grid;gap:8px}
+
+.btn{
+  min-height:var(--tap);border-radius:18px;padding:0 20px;
+  background:var(--vapor);border:1px solid var(--vapor-line);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;gap:9px;font-size:.95rem;
+  transition:background .18s ease,transform .18s ease;width:100%;
+}
+.btn:active{transform:scale(.98);background:rgba(233,236,255,.16)}
+.btn.warm{background:rgba(242,192,120,.18);border-color:rgba(242,192,120,.5)}
+.btn[disabled]{opacity:.4}
+.btn.quiet{background:none;border-color:transparent;color:var(--ink-faint)}
+
+/* tumbler */
+.tumbler-stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-height:230px}
+#tumblerCanvas{touch-action:none;border-radius:50%}
+.stone-strip{display:flex;gap:9px;overflow-x:auto;padding:8px 2px;-webkit-overflow-scrolling:touch}
+.stone-chip{flex:none;width:62px;height:62px;border-radius:16px;background:var(--vapor);
+  border:1px solid transparent;display:flex;align-items:center;justify-content:center}
+.stone-chip.sel{border-color:var(--glow)}
+
+/* constellation */
+.sky-wrap{position:relative}
+#skyCanvas{touch-action:none;width:100%;border-radius:20px;background:rgba(10,12,26,.5);display:block}
+.sky-star{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;
+  background:transparent;border:0;padding:0}
+.sky-star:active{background:rgba(242,192,120,.14)}
+
+/* trail */
+.trail-art{height:150px;margin-bottom:14px;border-radius:20px;overflow:hidden;background:rgba(10,12,26,.4)}
+.trail-text{font-family:var(--display);font-size:1.08rem;line-height:1.66;color:var(--ink);margin-bottom:16px}
+.trail-log{font-size:.85rem;color:var(--ink-faint);line-height:1.6;margin-bottom:10px}
+
+/* ---------- 7. COMFORT ---------- */
+.slider-block{margin-bottom:18px}
+.slider-block .lab{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:.92rem;color:var(--ink);margin-bottom:9px}
+.slider-block .lab i{font-style:normal;color:var(--ink-faint);font-size:.82rem;font-variant-numeric:tabular-nums}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:var(--tap);background:transparent;margin:0;
+}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--vapor-line)}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--vapor-line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:34px;height:34px;border-radius:50%;
+  background:var(--ink);margin-top:-13px;border:0}
+input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;background:var(--ink);border:0}
+
+.toggle{display:flex;align-items:center;gap:13px;width:100%;min-height:var(--tap);
+  padding:9px 0;text-align:left}
+.toggle .body{flex:1}
+.toggle .name{font-size:.95rem;color:var(--ink)}
+.toggle .meta{font-size:.8rem;color:var(--ink-faint);margin-top:3px;line-height:1.45}
+.switch{width:54px;height:32px;border-radius:999px;background:var(--vapor-line);flex:none;position:relative;
+  transition:background .2s ease}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;
+  background:var(--ink);transition:transform .22s cubic-bezier(.3,.9,.4,1)}
+.toggle[aria-pressed="true"] .switch{background:rgba(242,192,120,.62)}
+.toggle[aria-pressed="true"] .switch::after{transform:translateX(22px)}
+
+.note{font-size:.84rem;color:var(--ink-faint);line-height:1.65;margin:4px 0 16px}
+.divider{height:1px;background:var(--vapor-line);margin:18px 0;opacity:.7}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
+  background:rgba(20,24,48,.95);border:1px solid var(--vapor-line);color:var(--ink);
+  padding:13px 20px;border-radius:999px;font-size:.9rem;z-index:60;
+  opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:86vw;text-align:center;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s !important;transition-duration:.14s !important}
+}
+</style>
+</head>
+<body>
+
+<div id="app" data-env="cloud">
+
+  <!-- top bar -->
+  <div class="topbar">
+    <div class="title" id="envName">The Cloud Garden</div>
+    <div class="purse">
+      <span class="coin" id="purseSd" title="Stardust"><i class="dot sd"></i><b id="sdVal">0</b></span>
+      <span class="coin" id="purseRp" title="Rest"><i class="dot rp"></i><b id="rpVal">0</b></span>
+    </div>
+  </div>
+
+  <!-- mood ribbon -->
+  <div class="ribbon">
+    <span id="moodText">Settling in</span>
+    <button id="btnMood">Change</button>
+  </div>
+
+  <!-- the island -->
+  <div class="stage" id="stage">
+    <div class="stars" id="stars" aria-hidden="true"></div>
+    <div class="island-wrap" id="islandWrap">
+      <svg class="island-art" id="islandArt" viewBox="0 0 400 400" aria-hidden="true"></svg>
+      <div id="plots"></div>
+      <div id="wisps"></div>
+    </div>
+    <div class="rain" id="rain" aria-hidden="true"></div>
+    <div class="breath hidden" id="breath" aria-hidden="true">Breathe in</div>
+  </div>
+
+  <!-- thumb dock -->
+  <div class="dock">
+    <div class="dock-row">
+      <button class="dock-btn" id="dockSeeds">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 21c0-5 3-9 8-10-1 6-4 9-8 10Z"/><path d="M12 21c0-5-3-9-8-10 1 6 4 9 8 10Z"/><path d="M12 21v-5"/></svg>
+        <span>Seeds</span>
+      </button>
+      <button class="dock-btn" id="dockPlay">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v3M16 12h-3M12 16.5v-3M8 12h3"/></svg>
+        <span>Pastimes</span>
+      </button>
+      <button class="dock-btn" id="dockDeeds">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 15c3-5 6-7 9-7s6 2 9 7c-3 3-6 4-9 4s-6-1-9-4Z"/><path d="M8 8.5 12 4l4 4.5"/></svg>
+        <span>Places</span>
+      </button>
+      <button class="dock-btn hide" id="dockRest">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 15h16"/><path d="M6 15v-3a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 15v3M19 15v3"/></svg>
+        <span>Resting</span>
+      </button>
+      <button class="dock-btn" id="dockComfort">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg>
+        <span>Comfort</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- comfort veils -->
+<div id="veil-warm"></div>
+<div id="veil-dim"></div>
+
+<!-- ============ ENERGY CHECK-IN ============ -->
+<div class="checkin" id="checkin">
+  <div class="mark">Lumina</div>
+  <p style="max-width:34ch" id="checkinLede">A small island in the sky, waiting for you. It keeps growing whether or not you show up.</p>
+  <div class="ask" id="askText">How is your energy today?</div>
+
+  <button class="energy" data-energy="high">
+    <span class="orb" style="background:radial-gradient(circle at 34% 34%,#f7d9a0,#e0954a)"></span>
+    <span><span class="lab">I have some energy</span><span class="hint">Puzzles, planting, exploring — all open.</span></span>
+  </button>
+  <button class="energy" data-energy="mid">
+    <span class="orb" style="background:radial-gradient(circle at 34% 34%,#cfd7f5,#7f88c4)"></span>
+    <span><span class="lab">Somewhere in between</span><span class="hint">A lighter island. Hints always on, nothing pressing.</span></span>
+  </button>
+  <button class="energy" data-energy="low">
+    <span class="orb" style="background:radial-gradient(circle at 34% 34%,#b6e6d0,#5f9f88)"></span>
+    <span><span class="lab">Low — be gentle with me</span><span class="hint">Rain falls, the garden tends itself, you rest.</span></span>
+  </button>
+
+  <div class="footnote" id="checkinFoot">You can change this any time. Nothing here is lost by being away.</div>
+</div>
+
+<!-- ============ SHEETS ============ -->
+<div class="scrim" id="scrim"></div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grab"></div>
+  <div class="sheet-head">
+    <div style="flex:1">
+      <h2 id="sheetTitle">—</h2>
+      <div class="sub" id="sheetSub"></div>
+    </div>
+    <button class="close-x" id="sheetClose" aria-label="Close">&#10005;</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<!-- ============ MINIGAMES ============ -->
+<div class="mg" id="mgTumbler" role="dialog" aria-modal="true" aria-label="The Tumbler">
+  <div class="mg-head">
+    <h2>The Tumbler</h2>
+    <button class="close-x" data-close-mg="mgTumbler" aria-label="Close">&#10005;</button>
+  </div>
+  <div class="mg-body">
+    <p id="tumblerHint" style="font-size:.88rem">Swipe across the stone to wear it down. It never breaks.</p>
+    <div class="tumbler-stage"><canvas id="tumblerCanvas" width="300" height="300"></canvas></div>
+    <div style="font-size:.85rem;color:var(--ink-faint);text-align:center;margin:6px 0" id="tumblerStatus">—</div>
+    <div class="stone-strip" id="stoneStrip"></div>
+  </div>
+  <div class="mg-foot">
+    <button class="btn" id="tumblerStep">Polish it a little</button>
+    <button class="btn" id="tumblerAuto">Leave it tumbling while I rest</button>
+  </div>
+</div>
+
+<div class="mg" id="mgSky" role="dialog" aria-modal="true" aria-label="Constellation Grids">
+  <div class="mg-head">
+    <h2 id="skyTitle">Constellations</h2>
+    <button class="close-x" data-close-mg="mgSky" aria-label="Close">&#10005;</button>
+  </div>
+  <div class="mg-body">
+    <p id="skyClue" style="font-size:.9rem"></p>
+    <div class="sky-wrap"><canvas id="skyCanvas" width="340" height="340"></canvas><div id="skyStars"></div></div>
+    <div style="font-size:.85rem;color:var(--ink-faint);text-align:center;margin-top:10px" id="skyStatus"></div>
+  </div>
+  <div class="mg-foot">
+    <button class="btn" id="skyHint">Show me a line</button>
+    <button class="btn quiet" id="skyReset">Start this one over</button>
+  </div>
+</div>
+
+<div class="mg" id="mgTrail" role="dialog" aria-modal="true" aria-label="Trail Expedition">
+  <div class="mg-head">
+    <h2 id="trailTitle">A trail</h2>
+    <button class="close-x" data-close-mg="mgTrail" aria-label="Close">&#10005;</button>
+  </div>
+  <div class="mg-body">
+    <div class="trail-art"><svg id="trailArt" viewBox="0 0 320 150" width="100%" height="100%"></svg></div>
+    <div class="trail-text" id="trailText"></div>
+    <div class="trail-log" id="trailLog"></div>
+  </div>
+  <div class="mg-foot" id="trailChoices"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   LUMINA — part 1: data, state, storage, sound
+   ============================================================ */
+
+const SAVE_KEY = "lumina.save.v2";
+const $  = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+const now = ()=> Date.now();
+const clamp = (v,a,b)=> v<a?a:v>b?b:v;
+const rnd = (a,b)=> a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const fmt = n => Math.floor(n).toLocaleString();
+
+/* ---------- flora ---------- */
+const SPECIES = {
+  moonpetal:  {name:"Moonpetal",   cost:0,   bloom:150000, stem:"#8fd9b6", flower:"#d8a7c4", gift:2,
+               note:"Opens only in the dark. It does not mind being watched."},
+  emberfern:  {name:"Ember Fern",  cost:45,  bloom:240000, stem:"#7fc9a6", flower:"#f2c078", gift:3,
+               note:"Holds yesterday's warmth in its fronds."},
+  tidebell:   {name:"Tide Bell",   cost:70,  bloom:300000, stem:"#8fd9b6", flower:"#9fd6e8", gift:4,
+               note:"Rings when a wisp passes. You will feel it before you hear it."},
+  driftlily:  {name:"Drift Lily",  cost:110, bloom:420000, stem:"#a2d8bd", flower:"#efe3f5", gift:6,
+               note:"Grows sideways, toward whatever light it can find."},
+  lanternvine:{name:"Lantern Vine",cost:160, bloom:540000, stem:"#79c39f", flower:"#ffd08a", gift:8,
+               note:"Keeps a small light on for you."},
+  glasswort:  {name:"Glasswort",   cost:0,   bloom:600000, stem:"#a8c8e8", flower:"#e9f1ff", gift:10, locked:true,
+               note:"Found by the one who traced the Heron. Rings faintly in wind."},
+  frostbloom: {name:"Frostbloom",  cost:240, bloom:720000, stem:"#9ec4d8", flower:"#cfe6f5", gift:12,
+               note:"Cold to the touch, and somehow comforting for it."},
+  starthistle:{name:"Star Thistle",cost:0,   bloom:900000, stem:"#b9a5d8", flower:"#f6e6b8", gift:16, locked:true,
+               note:"Carried down from the high trail in someone's pocket, long ago."},
+
+  /* Rare varieties. One-time purchases, plantable as often as you like once owned.
+     Yields are matched to a free plant of the same bloom time on purpose — these
+     change what your island looks like, not how fast it earns. */
+  sunmantle:   {sku:"plant_sunmantle",   name:"Sunmantle",      bloom:240000, stem:"#8ec49b", flower:"#f7b25c", gift:3,  form:"orb",
+                note:"Holds a whole afternoon of light and gives it back after dark."},
+  nightjasmine:{sku:"plant_nightjasmine",name:"Night Jasmine",  bloom:300000, stem:"#88b6a4", flower:"#d9c7f2", gift:4,  form:"star",
+                note:"You will smell it before you find it."},
+  cinderbell:  {sku:"plant_cinderbell",  name:"Cinder Bell",    bloom:300000, stem:"#9a9a72", flower:"#e07a54", gift:4,  form:"bell",
+                note:"Warm to hold. It rings low, like a woodstove settling."},
+  seaglass:    {sku:"plant_seaglass",    name:"Seaglass Fern",  bloom:420000, stem:"#7fc3bb", flower:"#a9e3dd", gift:6,  form:"fan",
+                note:"Every frond is a slightly different green. Nobody knows why."},
+  copperthistle:{sku:"plant_copperthistle",name:"Copper Thistle",bloom:420000, stem:"#9fb08a", flower:"#d08f5c", gift:6, form:"spire",
+                note:"Prickly, stubborn, and the wisps adore it anyway."},
+  glacierlily: {sku:"plant_glacierlily", name:"Glacier Lily",   bloom:540000, stem:"#9dc7c0", flower:"#f0f6ff", gift:8,  form:"round",
+                note:"Opens on the coldest morning of the year and not before."},
+  foxfire:     {sku:"plant_foxfire",     name:"Foxfire Moss",   bloom:540000, stem:"#6fae86", flower:"#a8f0a0", gift:8,  form:"orb",
+                note:"Faint green light at the base of things. Easy to miss, hard to forget."},
+  bellheather: {sku:"plant_bellheather", name:"Bell Heather",   bloom:720000, stem:"#8cbf9c", flower:"#e3a0c2", gift:12, form:"bell",
+                note:"Grows in drifts. One is never really one."},
+  starwell:    {sku:"plant_starwell",    name:"Starwell Iris",  bloom:720000, stem:"#8ab4c8", flower:"#8ea6f0", gift:12, form:"star",
+                note:"Deep blue, and deeper the longer you look at it."},
+  emberlace:   {sku:"plant_emberlace",   name:"Emberlace",      bloom:900000, stem:"#b0a77f", flower:"#ffcf7a", gift:16, form:"spire",
+                note:"Burns slowly all winter without ever going out."},
+
+  /* Two plants come with each island deed. They are not sold separately, and
+     once the island is yours they can be planted anywhere, as often as you like. */
+  skygentian:  {island:"alpine", name:"Sky Gentian",     bloom:300000, stem:"#9ec2a8", flower:"#5f7fd8", gift:4,  form:"star",
+                note:"The blue nothing else on the mountain is."},
+  krummholz:   {island:"alpine", name:"Krummholz Pine",  bloom:600000, stem:"#7d9c86", flower:"#adc9b4", gift:10, form:"fan",
+                note:"Bent flat by eighty winters of wind, and still here."},
+  geodebloom:  {island:"cavern", name:"Geodebloom",      bloom:420000, stem:"#6e8a96", flower:"#7fe3d4", gift:6,  form:"orb",
+                note:"Opens along a seam, the way the rock it grew in did."},
+  moonmilk:    {island:"cavern", name:"Moonmilk Fern",   bloom:720000, stem:"#8a94aa", flower:"#e6ecf7", gift:12, form:"fan",
+                note:"Pale as the damp stone it drinks from. Cool, and faintly luminous."},
+  sealantern:  {island:"tidal",  name:"Sea Lantern",     bloom:360000, stem:"#77b3a8", flower:"#ffd98f", gift:5,  form:"bell",
+                note:"Hangs low and swings with whatever the water is doing."},
+  saltglass:   {island:"tidal",  name:"Saltglass Kelp",  bloom:660000, stem:"#5f9f9a", flower:"#9fe0d2", gift:11, form:"fan",
+                note:"Rubbery, patient, and older than it looks."},
+  steamlily:   {island:"springs",name:"Steam Lily",      bloom:390000, stem:"#8fc3a2", flower:"#f6dfe8", gift:5,  form:"round",
+                note:"Only opens in the warm air above the pools. Heat is the whole trick."},
+  sintermoss:  {island:"springs",name:"Sinter Moss",     bloom:690000, stem:"#a8b98c", flower:"#e8d9a8", gift:11, form:"spire",
+                note:"Grows a hair's width a year on the mineral terraces. It is in no rush."}
+};
+const RARE = Object.keys(SPECIES).filter(k=>SPECIES[k].sku);
+const ISLAND_PLANTS = Object.keys(SPECIES).filter(k=>SPECIES[k].island);
+
+/* ---------- stones for the tumbler ---------- */
+const STONES = {
+  quartz:  {name:"Milky quartz", rough:"#8d8f9e", polished:"#eef2ff", work:100, worth:18},
+  agate:   {name:"Banded agate", rough:"#8a7663", polished:"#e3b98a", work:140, worth:28},
+  jasper:  {name:"Red jasper",   rough:"#7d5b53", polished:"#c9705f", work:160, worth:34},
+  amethyst:{name:"Amethyst",     rough:"#6f6482", polished:"#b79ade", work:210, worth:52},
+  obsidian:{name:"Obsidian",     rough:"#3a3a44", polished:"#6f7488", work:190, worth:44},
+  aqua:    {name:"Aquamarine",   rough:"#5f7d82", polished:"#a8e0e6", work:260, worth:70}
+};
+
+/* ---------- constellations ---------- */
+/* stars are [x,y] in a 0..100 space; edges are index pairs, order-free */
+const SKIES = [
+  {id:"heron", name:"The Heron", clue:"A long neck, a folded leg, one wing half-open.",
+   stars:[[22,74],[34,52],[46,34],[62,26],[78,34],[50,62],[40,86],[66,54]],
+   edges:[[0,1],[1,2],[2,3],[3,4],[2,5],[5,6],[5,7]], reward:60, unlock:"glasswort"},
+  {id:"lantern", name:"The Lantern", clue:"A box of light with a handle over the top.",
+   stars:[[30,42],[70,42],[70,76],[30,76],[50,20],[50,32]],
+   edges:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[4,5]], reward:45},
+  {id:"river", name:"The Slow River", clue:"It bends four times before it leaves the frame.",
+   stars:[[14,24],[32,40],[26,60],[44,72],[64,62],[58,42],[78,30],[88,50]],
+   edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]], reward:50},
+  {id:"hearth", name:"The Hearth", clue:"Two stones, a flame between them, smoke going up.",
+   stars:[[26,78],[74,78],[50,60],[50,40],[42,24],[58,24],[50,12]],
+   edges:[[0,2],[1,2],[2,3],[3,4],[3,5],[4,6],[5,6]], reward:55}
+];
+
+/* ---------- trail expeditions ---------- */
+const TRAILS = [
+  {id:"scree", title:"The Scree Path", art:"peaks", start:"a",
+   nodes:{
+     a:{text:"The trail forks below a field of loose grey stone. One way climbs; one way follows the water downhill. Neither is wrong.",
+        choices:[{label:"Climb toward the notch", to:"b"},{label:"Follow the water", to:"c"}]},
+     b:{text:"From the notch you can see three valleys at once. Someone has stacked flat stones into a small cairn. Tucked underneath: a papery seed pod, still rattling.",
+        gain:{seed:"starthistle", sd:30}, choices:[{label:"Rest here a while", to:"end"}]},
+     c:{text:"The creek runs under a shelf of rock. In the gravel bed, something has been tumbled smooth by forty years of water.",
+        gain:{stone:"aqua", sd:20}, choices:[{label:"Keep walking", to:"d"},{label:"Turn back, it's enough", to:"end"}]},
+     d:{text:"The water flattens into a pool the colour of weak tea. A heron stands in it, entirely unbothered by you. You stand there too, for a while.",
+        gain:{sd:35}, choices:[{label:"Head home", to:"end"}]},
+     end:{text:"You come back down the way you came. The island is where you left it.", choices:[]}
+   }},
+  {id:"pines", title:"Under the Pines", art:"pines", start:"a",
+   nodes:{
+     a:{text:"The air under the pines is ten degrees cooler and smells like resin and dust. The path is soft with needles — kind to your knees.",
+        choices:[{label:"Follow the deer track", to:"b"},{label:"Sit on the fallen trunk", to:"c"}]},
+     b:{text:"The track ends at a hollow stump packed with rain. Floating on the surface: a clutch of small bright seeds that got there somehow.",
+        gain:{seed:"tidebell", sd:25}, choices:[{label:"Pocket a few and go", to:"end"}]},
+     c:{text:"You sit. Nothing happens for several minutes, which turns out to be the point. A nuthatch works its way down the trunk beside you, upside down, unhurried.",
+        gain:{sd:40, rest:12}, choices:[{label:"Stay a little longer", to:"d"},{label:"Walk back", to:"end"}]},
+     d:{text:"The light goes gold, then blue. You didn't accomplish anything. You feel better anyway.",
+        gain:{sd:25, rest:20}, choices:[{label:"Walk back", to:"end"}]},
+     end:{text:"The pines close behind you. You can come back whenever.", choices:[]}
+   }},
+  {id:"placer", title:"The Old Placer Claim", art:"river", start:"a",
+   nodes:{
+     a:{text:"A century ago someone moved this whole hillside looking for colour. The tailings are still here, sorted into rows by hands long gone.",
+        choices:[{label:"Work the black sand", to:"b"},{label:"Search the old cabin site", to:"c"}]},
+     b:{text:"You swirl the pan down to a thin dark crescent. Sitting in it, obstinate and small: three flakes, and a garnet nobody wanted.",
+        gain:{stone:"jasper", sd:45}, choices:[{label:"One more pan", to:"d"},{label:"Call it a good day", to:"end"}]},
+     c:{text:"Four foundation stones and a rusted stove door. Wedged in the chimney fall, a chunk of quartz someone set aside and never came back for.",
+        gain:{stone:"quartz", sd:30}, choices:[{label:"Head to the creek", to:"b"},{label:"Head home", to:"end"}]},
+     d:{text:"Nothing in this one. That happens. The water is cold and clear over your wrists and the afternoon is entirely yours.",
+        gain:{sd:15, rest:10}, choices:[{label:"Head home", to:"end"}]},
+     end:{text:"You leave the claim tidy, the way you found it.", choices:[]}
+   }}
+];
+
+const WISP_LINES = [
+  "It circles your hand once and leaves a little light behind.",
+  "It seems pleased with the garden. It does not say why.",
+  "It hovers at the tide bells until they ring, then drifts off.",
+  "It rests on your shoulder for a moment. Then it doesn't.",
+  "It brought you something. It is not clear where it was keeping it."
+];
+
+/* ---------- environments (Sanctuary Deeds) ---------- */
+const PLACES = {
+  cloud:  {name:"The Cloud Garden", env:"cloud", sku:null,
+           blurb:"Your first island. Open sky, slow weather, a long way down."},
+  alpine: {name:"The Alpine Retreat", env:"alpine", sku:"deed_alpine",
+           blurb:"A mountain shoulder above treeline. Wind in the pines, snow that never settles hard, a stream you can hear from anywhere on the island."},
+  cavern: {name:"The Crystal Caverns", env:"cavern", sku:"deed_cavern",
+           blurb:"Underground and very dark by design — built for light-sensitive days. Geodes throw a low glow; sound comes back to you a half-second late."},
+  tidal:  {name:"The Tidal Shallows", env:"tidal", sku:"deed_tidal",
+           blurb:"A sandbar at the low end of the afternoon. Warm shallow water on three sides, the tide going out slowly, and nothing on the horizon."},
+  springs:{name:"The Hot Spring Terraces", env:"springs", sku:"deed_springs",
+           blurb:"Mineral pools stepping down a warm hillside, steam standing in the air. Built to feel like heat on a bad joint."}
+};
+
+/* Every real-money product. Fallback prices are shown only until the store
+   answers with the player's own currency; RevenueCat overwrites them at launch. */
+const BUNDLE_SKU = "plants_all";
+const PRICES = {plants_all:"$2.99"};
+Object.keys(PLACES).forEach(k=>{ if(PLACES[k].sku) PRICES[PLACES[k].sku]="$2.99"; });
+RARE.forEach(k=> PRICES[SPECIES[k].sku] = "$0.99");
+function priceOf(sku){ return (S && S.prices && S.prices[sku]) || PRICES[sku] || ""; }
+function owns(sku){ return !!(sku && S.owned[sku]); }
+function ownsPlant(k){
+  const sp=SPECIES[k];
+  if(sp.island) return ownsPlace(sp.island);      // comes with the deed
+  if(!sp.sku) return true;                         // free or found
+  return owns(BUNDLE_SKU) || owns(sp.sku);
+}
+function ownsPlace(k){ const p=PLACES[k]; return !p.sku || owns(p.sku); }
+
+/* ---------- state ---------- */
+const DEFAULT_STATE = {
+  v:2,
+  created:0, lastSeen:0,
+  energy:null,              // "high" | "mid" | "low"
+  sd:35, rest:0, restLifetime:0,
+  env:"cloud",
+  owned:{},                 // keyed by product id, set by the store only
+  prices:{},                // localised prices, refreshed from the store
+  seeds:{moonpetal:2},      // inventory
+  unlocked:{moonpetal:true, emberfern:true, tidebell:true, driftlily:true, lanternvine:true, frostbloom:true},
+  plots:new Array(12).fill(null),   // {sp, growth, stored, lastTick} or {stone, polished}
+  stones:[],                 // {k, work} work counts down to 0
+  polished:[],               // stone keys
+  skies:{},                  // id -> {done:true}
+  trails:{},                 // id -> count completed
+  seen:{},                   // one-time notes
+  comfort:{dim:0, warm:0, motion:1, vol:.55, soften:0, haptics:1, scale:1, breath:0}
+};
+let S = null;
+let SESSION = {mgOpen:null, armedSeed:null, tumblerStone:null, lastTick:now(), restAccum:0, idleSince:now()};
+
+/* ---------- storage (swap this block for Capacitor Preferences if you want) ---------- */
+const Store = {
+  prefs(){ const c=window.Capacitor && window.Capacitor.Plugins; return (c && c.Preferences) || null; },
+  /* Preferences survives an app update and sits outside the webview's data;
+     localStorage is kept in step as a fallback for the browser build. */
+  async read(){
+    const P=this.prefs();
+    if(P){
+      try{ const r = await P.get({key:SAVE_KEY}); if(r && r.value) return r.value; }catch(e){}
+    }
+    try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; }
+  },
+  write(str){
+    try{ localStorage.setItem(SAVE_KEY, str); }catch(e){}
+    const P=this.prefs();
+    if(P){ try{ P.set({key:SAVE_KEY, value:str}); }catch(e){} }
+  }
+};
+async function load(){
+  const raw = await Store.read();
+  S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  if(raw){
+    try{
+      const d = JSON.parse(raw);
+      Object.assign(S, d);
+      S.comfort = Object.assign({}, DEFAULT_STATE.comfort, d.comfort||{});
+      if(!Array.isArray(S.plots) || S.plots.length!==12) S.plots = new Array(12).fill(null);
+    }catch(e){ /* corrupt save: start fresh rather than fail */ }
+  }
+  if(!S.created) S.created = now();
+}
+let saveTimer = null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{ S.lastSeen = now(); Store.write(JSON.stringify(S)); }, 350);
+}
+function saveNow(){ clearTimeout(saveTimer); S.lastSeen = now(); Store.write(JSON.stringify(S)); }
+
+/* ---------- small helpers ---------- */
+let toastTimer=null;
+function toast(msg, ms){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=> t.classList.remove("on"), ms||2400);
+}
+function buzz(ms){
+  if(!S.comfort.haptics) return;
+  const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+  if(H){ try{ H.impact({style:(ms||12)>18?"Medium":"Light"}); return; }catch(e){} }
+  if(navigator.vibrate){ try{ navigator.vibrate(ms||12); }catch(e){} }
+}
+function gainSd(n, el){
+  S.sd += n; paintPurse();
+  if(el) floatNum(el, "+"+n);
+  save();
+}
+function floatNum(el, text){
+  const r = el.getBoundingClientRect();
+  const d = document.createElement("div");
+  d.className="float-num"; d.textContent=text;
+  d.style.left = (r.left + r.width/2 - 12) + "px";
+  d.style.top  = (r.top - 6) + "px";
+  document.body.appendChild(d);
+  setTimeout(()=> d.remove(), 1600);
+}
+
+/* ============================================================
+   SOUND — everything synthesised, no audio files to ship
+   ============================================================ */
+const Sound = {
+  ctx:null, master:null, lp:null, padGain:null, rainGain:null, started:false,
+  init(){
+    if(this.started) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain();
+    this.lp = this.ctx.createBiquadFilter();
+    this.lp.type="lowpass"; this.lp.frequency.value = 11000; this.lp.Q.value=.3;
+    this.lp.connect(this.master); this.master.connect(this.ctx.destination);
+    this.master.gain.value = 0;
+    this.buildPad(); this.buildRain();
+    this.started = true;
+    this.applyComfort();
+    this.env(S.env);
+  },
+  buildPad(){
+    const c=this.ctx;
+    this.padGain=c.createGain(); this.padGain.gain.value=.16; this.padGain.connect(this.lp);
+    // three slow detuned voices, a quiet root fifth
+    [110, 164.81, 220].forEach((f,i)=>{
+      const o=c.createOscillator(); o.type="sine"; o.frequency.value=f;
+      const g=c.createGain(); g.gain.value = [.5,.28,.18][i];
+      const lfo=c.createOscillator(); lfo.frequency.value = .035 + i*.017;
+      const lg=c.createGain(); lg.gain.value=[.22,.14,.1][i];
+      lfo.connect(lg); lg.connect(g.gain);
+      o.connect(g); g.connect(this.padGain);
+      o.start(); lfo.start();
+    });
+  },
+  buildRain(){
+    const c=this.ctx, len=c.sampleRate*3;
+    const buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+    let last=0;
+    for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+.03*w)/1.03; d[i]=last*3.2; }
+    const src=c.createBufferSource(); src.buffer=buf; src.loop=true;
+    const bp=c.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=780; bp.Q.value=.55;
+    this.bedFilter=bp;
+    this.rainGain=c.createGain(); this.rainGain.gain.value=0;
+    src.connect(bp); bp.connect(this.rainGain); this.rainGain.connect(this.lp);
+    src.start();
+  },
+  applyComfort(){
+    if(!this.started) return;
+    const t=this.ctx.currentTime;
+    this.master.gain.linearRampToValueAtTime(clamp(S.comfort.vol,0,1)*.85, t+.6);
+    // "soften" pulls the top end out — the migraine dial
+    this.lp.frequency.linearRampToValueAtTime(S.comfort.soften?1500:11000, t+.5);
+  },
+  rain(on){
+    if(!this.started||!this.rainGain) return;
+    const t=this.ctx.currentTime;
+    this.resting = on;
+    this.rainGain.gain.linearRampToValueAtTime(on?.5:(this.bedLevel||0), t+2.2);
+    if(this.padGain) this.padGain.gain.linearRampToValueAtTime(on?.10:.16, t+2.2);
+  },
+  /* The same filtered-noise source doubles as each island's own bed:
+     wind above treeline, water on the sandbar, steam over the pools. */
+  env(name){
+    const beds = {
+      cloud:  {f:780,  q:.55, g:0},
+      alpine: {f:520,  q:.35, g:.16},   // wind through krummholz
+      cavern: {f:200,  q:1.2, g:.10},   // deep room tone and slow drips
+      tidal:  {f:340,  q:.4,  g:.20},   // water on sand
+      springs:{f:1500, q:.7,  g:.13}    // steam standing in the air
+    };
+    const b = beds[name] || beds.cloud;
+    this.bedLevel = b.g;
+    if(!this.started || !this.rainGain) return;
+    const t=this.ctx.currentTime;
+    if(this.bedFilter){
+      this.bedFilter.frequency.linearRampToValueAtTime(b.f, t+1.6);
+      this.bedFilter.Q.linearRampToValueAtTime(b.q, t+1.6);
+    }
+    if(!this.resting) this.rainGain.gain.linearRampToValueAtTime(b.g, t+2.4);
+  },
+  chime(step){
+    if(!this.started || S.comfort.vol<=0) return;
+    const scale=[329.63,392,440,493.88,587.33,659.25];
+    const f = scale[clamp(step||0,0,scale.length-1)];
+    const c=this.ctx,t=c.currentTime;
+    const o=c.createOscillator(); o.type="sine"; o.frequency.value=f;
+    const g=c.createGain(); g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(.16,t+.04);
+    g.gain.exponentialRampToValueAtTime(.0008,t+2.4);
+    o.connect(g); g.connect(this.lp); o.start(t); o.stop(t+2.5);
+  },
+  resume(){ if(this.ctx && this.ctx.state==="suspended") this.ctx.resume(); }
+};
+/* ============================================================
+   LUMINA — part 2: comfort, energy, island, growth
+   ============================================================ */
+
+/* ---------- comfort ---------- */
+function applyComfort(){
+  const c = S.comfort;
+  const root = document.documentElement.style;
+  root.setProperty("--dim", String(clamp(c.dim,0,.72)));
+  root.setProperty("--warm", String(clamp(c.warm,0,.42)));
+  root.setProperty("--motion", c.motion ? "1" : "0.0001");
+  root.setProperty("--ui-scale", String(c.scale));
+  document.body.style.setProperty("animation-play-state", c.motion?"running":"paused");
+  $$(".stars .star").forEach(s=> s.style.animationPlayState = c.motion?"running":"paused");
+  Sound.applyComfort();
+  save();
+}
+function lowLightPreset(){
+  Object.assign(S.comfort,{dim:.5, warm:.34, motion:0, soften:1, vol:Math.min(S.comfort.vol,.35)});
+  applyComfort(); renderComfort();
+  toast("Low light on. Change it any time.");
+}
+
+/* ---------- energy mode ---------- */
+const MOODS = {
+  high:{label:"Some energy — everything is open", rate:1, rain:false},
+  mid: {label:"In between — lighter, hints always on", rate:1.15, rain:false},
+  low: {label:"Resting — the garden is tending itself", rate:1.5, rain:true}
+};
+function setEnergy(mode, quiet){
+  S.energy = mode;
+  const m = MOODS[mode];
+  $("#moodText").textContent = m.label;
+  const low = mode==="low";
+
+  $("#app").dataset.energy = mode;
+  $("#rain").classList.toggle("on", low);
+  Sound.rain(low);
+  $("#breath").classList.toggle("hidden", !(low && S.comfort.breath));
+
+  // Sanctuary strips the interface back to almost nothing
+  $("#dockSeeds").classList.toggle("hide", low);
+  $("#dockPlay").classList.toggle("hide", low);
+  $("#dockDeeds").classList.toggle("hide", low);
+  $("#dockRest").classList.toggle("hide", !low);
+  $("#purseSd").style.display = low ? "none" : "";
+  $("#purseRp").style.display = low ? "" : (S.rest>0 ? "" : "none");
+
+  if(low){
+    Object.assign(S.comfort,{dim:Math.max(S.comfort.dim,.22)});
+    applyComfort();
+    if(!quiet) toast("Rain's on. Put the phone down if you like.", 4200);
+  }else if(!quiet){
+    if(S.rest>0) cashRest();
+  }
+  SESSION.armedSeed=null;
+  renderPlots(); paintPurse(); save();
+}
+function cashRest(){
+  if(S.rest<=0) return;
+  const n = Math.floor(S.rest);
+  S.sd += n; S.restLifetime += n; S.rest = 0;
+  paintPurse(); save();
+  if(n>2) toast("Your rest became " + fmt(n) + " stardust.", 3600);
+}
+
+/* ---------- island art ---------- */
+const PLOT_POS = [
+  [30,32],[50,25],[70,32],
+  [19,47],[40,45],[60,45],[81,48],
+  [31,62],[50,60],[69,62],
+  [41,77],[59,77]
+];
+function drawIsland(){
+  const env = S.env;
+  const svg = $("#islandArt");
+  const rock = env==="cavern"
+    ? '<path d="M60 250 Q40 200 80 175 Q130 150 200 152 Q272 150 320 176 Q358 200 340 250 Q300 330 200 344 Q100 330 60 250Z" fill="var(--land)"/>'
+    : '<path d="M72 236 Q56 196 96 178 Q150 152 200 154 Q252 152 305 178 Q346 196 330 236 Q296 328 200 352 Q104 328 72 236Z" fill="var(--land)"/>';
+  const lip = '<ellipse cx="200" cy="186" rx="132" ry="46" fill="var(--land-lip)" opacity=".95"/>' +
+              '<ellipse cx="200" cy="182" rx="118" ry="38" fill="var(--land)" opacity=".45"/>';
+  const trail = '<path d="M150 214 Q200 198 252 216" stroke="var(--land-lip)" stroke-width="7" fill="none" opacity=".5" stroke-linecap="round"/>';
+  const halo = '<ellipse cx="200" cy="188" rx="150" ry="60" fill="var(--glow)" opacity=".07"/>';
+  let extra = "";
+  if(env==="tidal"){
+    extra = '<ellipse cx="200" cy="196" rx="146" ry="52" fill="#8fd2c4" opacity=".16"/>' +
+            '<path d="M96 200 q34 -10 66 0 M238 204 q34 -10 66 0" stroke="#e9f6f2" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>';
+  }
+  if(env==="springs"){
+    extra = '<ellipse cx="156" cy="196" rx="42" ry="15" fill="#cfe4de" opacity=".55"/>' +
+            '<ellipse cx="246" cy="206" rx="34" ry="12" fill="#cfe4de" opacity=".45"/>' +
+            '<path d="M152 186 q-8 -18 4 -30 M250 196 q8 -16 -3 -28" stroke="#eef4f0" stroke-width="5" fill="none" opacity=".28" stroke-linecap="round"/>';
+  }
+  if(env==="alpine"){
+    extra = '<path d="M140 176 l16 -34 16 34Z" fill="var(--land-lip)" opacity=".7"/>' +
+            '<path d="M236 178 l13 -27 13 27Z" fill="var(--land-lip)" opacity=".55"/>';
+  }
+  if(env==="cavern"){
+    extra = '<path d="M108 168 l10 -30 10 30Z" fill="var(--glow)" opacity=".28"/>' +
+            '<path d="M276 172 l9 -26 9 26Z" fill="var(--glow)" opacity=".22"/>';
+  }
+  svg.innerHTML = halo + rock + lip + trail + extra;
+  Sound.env(env);
+  $("#envName").textContent = PLACES[env].name;
+  $("#app").dataset.env = env;
+}
+function makeStars(){
+  const box = $("#stars"); box.innerHTML="";
+  const n = 46;
+  for(let i=0;i<n;i++){
+    const d=document.createElement("i"); d.className="star";
+    const sz = rnd(1,2.6);
+    d.style.width=sz+"px"; d.style.height=sz+"px";
+    d.style.left=rnd(0,100)+"%"; d.style.top=rnd(0,72)+"%";
+    d.style.animationDelay = rnd(0,9)+"s";
+    box.appendChild(d);
+  }
+}
+function makeRain(){
+  const box=$("#rain"); box.innerHTML="";
+  for(let i=0;i<34;i++){
+    const d=document.createElement("i"); d.className="drop";
+    d.style.left=rnd(-4,104)+"%";
+    d.style.animationDuration=rnd(1.5,3.1)+"s";
+    d.style.animationDelay=rnd(0,3)+"s";
+    d.style.opacity=rnd(.25,.75);
+    box.appendChild(d);
+  }
+}
+
+/* ---------- plant sprites ---------- */
+function stageOf(p){
+  const sp = SPECIES[p.sp];
+  const r = p.growth / sp.bloom;
+  if(r>=1) return 3;
+  if(r>=.55) return 2;
+  if(r>=.2) return 1;
+  return 0;
+}
+function plantSvg(p){
+  const sp=SPECIES[p.sp], st=stageOf(p);
+  const stem=sp.stem, fl=sp.flower;
+  let inner="";
+  if(st===0){
+    inner = `<circle cx="33" cy="70" r="6" fill="${stem}" opacity=".8"/>
+             <path d="M33 70 q6 -5 11 -2" stroke="${stem}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  }else if(st===1){
+    inner = `<path d="M33 76 V50" stroke="${stem}" stroke-width="3" stroke-linecap="round"/>
+             <path d="M33 62 q-12 -5 -15 -15 q13 1 15 15Z" fill="${stem}" opacity=".85"/>
+             <path d="M33 56 q12 -5 15 -15 q-13 1 -15 15Z" fill="${stem}" opacity=".7"/>`;
+  }else if(st===2){
+    inner = `<path d="M33 78 V34" stroke="${stem}" stroke-width="3.2" stroke-linecap="round"/>
+             <path d="M33 60 q-14 -6 -17 -18 q15 1 17 18Z" fill="${stem}" opacity=".85"/>
+             <path d="M33 52 q14 -6 17 -18 q-15 1 -17 18Z" fill="${stem}" opacity=".7"/>
+             <ellipse cx="33" cy="28" rx="7" ry="10" fill="${fl}" opacity=".62"/>`;
+  }else{
+    const stalk = `<path d="M33 78 V32" stroke="${stem}" stroke-width="3.2" stroke-linecap="round"/>
+             <path d="M33 62 q-15 -6 -18 -19 q16 1 18 19Z" fill="${stem}" opacity=".85"/>
+             <path d="M33 54 q15 -6 18 -19 q-16 1 -18 19Z" fill="${stem}" opacity=".7"/>`;
+    inner = stalk + bloomForm(sp.form||"round", fl, stem);
+  }
+  return `<svg class="sprite ${S.comfort.motion?"plant-sway":""}" viewBox="0 0 66 88">${inner}</svg>`;
+}
+/* Each rare variety blooms into a different shape, not just a different colour. */
+function bloomForm(form, fl, stem){
+  if(form==="bell"){
+    return `<circle cx="33" cy="24" r="12" fill="${fl}" opacity=".14"/>
+      <path d="M26 20 q0 12 -5 15 q9 3 12 -2 q3 5 12 2 q-5 -3 -5 -15Z" fill="${fl}" opacity=".25"/>
+      <path d="M22 22 q0 11 -4 13 q8 2 9 -3Z" fill="${fl}"/>
+      <path d="M44 22 q0 11 4 13 q-8 2 -9 -3Z" fill="${fl}"/>
+      <path d="M33 26 q0 12 -4 14 q8 2 8 -3 q0 5 8 3 q-4 -2 -4 -14Z" fill="${fl}" opacity=".92"/>`;
+  }
+  if(form==="star"){
+    let pts="";
+    for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2-Math.PI/2, r=i%2?5:14;
+      pts += (33+Math.cos(a)*r).toFixed(1)+","+(26+Math.sin(a)*r).toFixed(1)+" "; }
+    return `<circle cx="33" cy="26" r="15" fill="${fl}" opacity=".15"/>
+      <polygon points="${pts}" fill="${fl}"/>
+      <circle cx="33" cy="26" r="3.4" fill="#fff" opacity=".8"/>`;
+  }
+  if(form==="orb"){
+    return `<circle cx="33" cy="25" r="17" fill="${fl}" opacity=".14"/>
+      <circle cx="33" cy="25" r="11" fill="${fl}" opacity=".55"/>
+      <circle cx="33" cy="25" r="7" fill="${fl}"/>
+      <circle cx="29.5" cy="21.5" r="2.6" fill="#fff" opacity=".8"/>`;
+  }
+  if(form==="fan"){
+    let f="";
+    for(let i=-3;i<=3;i++){
+      f += `<path d="M33 44 q${i*7} -14 ${i*10} -26" stroke="${fl}" stroke-width="3" fill="none"
+              stroke-linecap="round" opacity="${(1-Math.abs(i)*0.13).toFixed(2)}"/>`;
+    }
+    return `<g>${f}</g>`;
+  }
+  if(form==="spire"){
+    let f="";
+    for(let i=0;i<6;i++){
+      const y = 14 + i*6, r = 3 + i*0.9;
+      f += `<circle cx="${i%2?33-r*1.1:33+r*1.1}" cy="${y}" r="${r}" fill="${fl}" opacity="${(0.55+i*0.07).toFixed(2)}"/>`;
+    }
+    return `<circle cx="33" cy="28" r="15" fill="${fl}" opacity=".10"/><g>${f}</g>`;
+  }
+  return `<circle cx="33" cy="26" r="13" fill="${fl}" opacity=".18"/>
+    <ellipse cx="33" cy="17" rx="5.5" ry="9" fill="${fl}"/>
+    <ellipse cx="24" cy="26" rx="5.5" ry="9" fill="${fl}" transform="rotate(-62 24 26)"/>
+    <ellipse cx="42" cy="26" rx="5.5" ry="9" fill="${fl}" transform="rotate(62 42 26)"/>
+    <ellipse cx="28" cy="35" rx="5" ry="8" fill="${fl}" opacity=".9" transform="rotate(-24 28 35)"/>
+    <ellipse cx="38" cy="35" rx="5" ry="8" fill="${fl}" opacity=".9" transform="rotate(24 38 35)"/>
+    <circle cx="33" cy="26" r="4" fill="#fff" opacity=".65"/>`;
+}
+function stoneSvg(key, polished){
+  const s=STONES[key], c = polished ? s.polished : s.rough;
+  return `<svg class="sprite" viewBox="0 0 66 88">
+    <path d="M22 74 L16 56 L27 42 L44 44 L52 60 L45 76Z" fill="${c}"/>
+    <path d="M27 42 L44 44 L38 58 L24 56Z" fill="#fff" opacity="${polished?.28:.10}"/>
+  </svg>`;
+}
+
+/* ---------- plots ---------- */
+let plotSig = null;
+function plotsSignature(){
+  return S.plots.map(p=> !p ? "_" : p.stone ? "s"+p.stone
+      : stageOf(p) + (p.stored>=1?"!":"") + p.sp).join("|")
+    + "|" + (SESSION.armedSeed||"") + S.energy + S.comfort.motion;
+}
+function renderPlotsIfChanged(){
+  const sig = plotsSignature();
+  if(sig !== plotSig) renderPlots();
+}
+function renderPlots(){
+  plotSig = plotsSignature();
+  const box=$("#plots"); box.innerHTML="";
+  const low = S.energy==="low";
+  S.plots.forEach((p,i)=>{
+    const b=document.createElement("button");
+    b.className="plot";
+    b.style.left = PLOT_POS[i][0]+"%";
+    b.style.top  = PLOT_POS[i][1]+"%";
+    b.dataset.i = i;
+    if(!p){
+      b.classList.add("empty");
+      if(SESSION.armedSeed) b.classList.add("armed");
+      b.setAttribute("aria-label", "Empty plot " + (i+1));
+    }else if(p.stone){
+      b.innerHTML = stoneSvg(p.stone, true);
+      b.setAttribute("aria-label", STONES[p.stone].name + " on display");
+    }else{
+      const sp=SPECIES[p.sp], st=stageOf(p);
+      b.innerHTML = plantSvg(p);
+      if(st===3 && p.stored>=1 && !low) b.innerHTML += '<i class="ready-pip"></i>';
+      const names=["a seed","a sprout","budding","in bloom"];
+      b.setAttribute("aria-label", sp.name + ", " + names[st]);
+    }
+    box.appendChild(b);
+  });
+}
+function tapPlot(i){
+  const p=S.plots[i];
+  SESSION.idleSince = now();
+  if(S.energy==="low"){
+    // sanctuary: no management, just a kind word
+    if(p && p.sp) toast(SPECIES[p.sp].note, 4200);
+    else toast("The rain is doing the work today.", 3000);
+    return;
+  }
+  if(!p){
+    if(SESSION.armedSeed){
+      const k=SESSION.armedSeed, rare=!!(SPECIES[k].sku || SPECIES[k].island);
+      if(!ownsPlant(k)){ SESSION.armedSeed=null; renderPlots(); return; }
+      if(!rare){
+        if((S.seeds[k]||0)<1){ SESSION.armedSeed=null; renderPlots(); return; }
+        S.seeds[k]--; if(S.seeds[k]<=0) delete S.seeds[k];
+      }
+      S.plots[i]={sp:k, growth:0, stored:0};
+      if(!rare && !S.seeds[SESSION.armedSeed]) SESSION.armedSeed=null;
+      Sound.chime(1); buzz(14);
+      renderPlots(); save();
+      toast(SPECIES[k].name + " planted. It grows on its own from here.", 3200);
+    }else{
+      openSeeds();
+    }
+    return;
+  }
+  if(p.stone){
+    toast(STONES[p.stone].name + " — polished, and catching the light.", 3000);
+    return;
+  }
+  const el=$('.plot[data-i="'+i+'"]');
+  const st=stageOf(p);
+  if(st===3 && p.stored>=1){
+    const n=Math.floor(p.stored); p.stored-=n; p.taken=(p.taken||0)+n;
+    gainSd(n, el); Sound.chime(3); buzz(12);
+    maybeWisp(true);
+  }else{
+    // tending: a tap is worth twenty seconds of weather
+    p.growth += 20000;
+    Sound.chime(0); buzz(8);
+    floatNum(el, "\u2726");
+    renderPlots(); save();
+  }
+}
+
+/* ---------- wisps ---------- */
+function blooms(){ return S.plots.filter(p=>p&&p.sp&&stageOf(p)===3); }
+function maybeWisp(force){
+  const box=$("#wisps");
+  if(box.children.length>=3) return;
+  const b=blooms();
+  if(!b.length) return;
+  if(!force && Math.random()>.45) return;
+  const sp=SPECIES[pick(b).sp];
+  const w=document.createElement("button");
+  w.className="wisp";
+  w.style.left=rnd(18,82)+"%"; w.style.top=rnd(18,66)+"%";
+  w.style.animationDelay = rnd(0,4)+"s";
+  w.setAttribute("aria-label","A wisp. Tap to greet it.");
+  w.innerHTML = `<svg viewBox="0 0 52 52" width="52" height="52">
+      <circle cx="26" cy="26" r="16" fill="${sp.flower}" opacity=".16"/>
+      <circle cx="26" cy="26" r="9" fill="${sp.flower}" opacity=".45"/>
+      <circle cx="26" cy="26" r="4.5" fill="#fff" opacity=".9"/></svg>`;
+  w.addEventListener("click", ()=>{
+    const gift = 6 + Math.floor(Math.random()*14);
+    gainSd(gift, w); Sound.chime(4); buzz(16);
+    toast(pick(WISP_LINES), 3600);
+    if(Math.random()<.18){
+      const k = pick(["quartz","agate","jasper","obsidian","amethyst"]);
+      S.stones.push({k, work:STONES[k].work});
+      toast("It left a rough " + STONES[k].name.toLowerCase() + " behind.", 3600);
+      save();
+    }
+    w.remove();
+  });
+  box.appendChild(w);
+  setTimeout(()=>{ if(w.isConnected) w.remove(); }, 75000);
+}
+
+/* ---------- the clock ---------- */
+function applyGrowth(ms, rate){
+  let bloomed = 0;
+  S.plots.forEach(p=>{
+    if(!p||!p.sp) return;
+    const sp=SPECIES[p.sp], was=stageOf(p);
+    p.growth += ms*rate;
+    if(stageOf(p)===3){
+      if(was<3) bloomed++;
+      const over = p.growth - sp.bloom;
+      const earned = Math.floor(over/20000)*sp.gift;   // light the plant has made, ever
+      const cap = sp.gift*8;                            // it only holds so much
+      if(p.taken===undefined) p.taken = 0;
+      if(earned - p.taken > cap) p.taken = earned - cap; // the rest spills, kindly
+      p.stored = clamp(earned - p.taken, 0, cap);
+    }
+  });
+  return bloomed;
+}
+function tick(){
+  const t=now();
+  let dt = t - SESSION.lastTick;
+  SESSION.lastTick = t;
+  if(dt<0 || dt>60000) dt = 1000;          // tab was backgrounded; offline math handles the rest
+  const mode = MOODS[S.energy||"mid"];
+  const b = applyGrowth(dt, mode.rate);
+  if(b>0){ Sound.chime(5); toast("Something opened.", 2600); }
+  autoPolish(dt);
+
+  if(S.energy==="low"){
+    SESSION.restAccum += dt;
+    while(SESSION.restAccum >= 6000){ SESSION.restAccum -= 6000; S.rest += 1; }
+    // gather light for you, so nothing needs tapping
+    S.plots.forEach(p=>{ if(p&&p.sp&&p.stored>=1){
+      const n=Math.floor(p.stored); S.sd+=n; p.taken=(p.taken||0)+n; p.stored-=n; } });
+    // deepen the dim once the phone has been still a while
+    const idle = t - SESSION.idleSince;
+    document.documentElement.style.setProperty("--dim", String(clamp(Math.max(S.comfort.dim, idle>45000?.42:0),0,.72)));
+  }
+  paintPurse();
+  renderPlotsIfChanged();
+  if(++tickCount % 10 === 0) save();      // storage every ten seconds, not every second
+}
+let tickCount = 0;
+function catchUp(){
+  if(!S.lastSeen) return;
+  const away = clamp(now()-S.lastSeen, 0, 1000*60*60*72);
+  if(away < 60000) return;
+  applyGrowth(away, .85);      // near parity: time away is not time lost
+  autoPolish(away);
+  const mins = Math.round(away/60000);
+  const txt = mins<90 ? mins+" minutes" : mins<2880 ? Math.round(mins/60)+" hours" : Math.round(mins/1440)+" days";
+  setTimeout(()=> toast("The garden kept growing for " + txt + " while you were away.", 4800), 1400);
+}
+function paintPurse(){
+  $("#sdVal").textContent = fmt(S.sd);
+  $("#rpVal").textContent = fmt(S.rest);
+  if(S.energy!=="low") $("#purseRp").style.display = S.rest>0 ? "" : "none";
+}
+
+/* ============================================================
+   SHEETS
+   ============================================================ */
+function openSheet(title, sub, html){
+  $("#sheetTitle").textContent=title;
+  $("#sheetSub").textContent=sub||"";
+  $("#sheetBody").innerHTML=html;
+  $("#sheet").classList.add("on"); $("#scrim").classList.add("on");
+}
+function closeSheet(){ $("#sheet").classList.remove("on"); $("#scrim").classList.remove("on"); }
+
+function openSeeds(){
+  const have = Object.keys(S.seeds).filter(k=>S.seeds[k]>0);
+  let html = "";
+  if(have.length){
+    html += '<div class="note">Tap a seed, then tap any open ground. Nothing is wasted if you change your mind.</div>';
+    have.forEach(k=>{
+      const sp=SPECIES[k];
+      html += `<button class="row pick" data-plantseed="${k}">
+        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V40" stroke="${sp.stem}" stroke-width="3"/><circle cx="33" cy="30" r="9" fill="${sp.flower}"/></svg>
+        <span class="body"><span class="name">${sp.name} &times;${S.seeds[k]}</span>
+        <span class="meta">${sp.note}</span></span></button>`;
+    });
+    html += '<div class="divider"></div>';
+  }
+  html += '<div class="note">The seed hut. Prices never change and nothing here expires.</div>';
+  Object.keys(SPECIES).forEach(k=>{
+    const sp=SPECIES[k];
+    if(sp.locked && !S.unlocked[k]) return;
+    if(!sp.cost) return;
+    const can = S.sd>=sp.cost;
+    html += `<button class="row" data-buyseed="${k}" ${can?"":"disabled"}>
+      <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V40" stroke="${sp.stem}" stroke-width="3"/><circle cx="33" cy="30" r="9" fill="${sp.flower}"/></svg>
+      <span class="body"><span class="name">${sp.name}</span>
+      <span class="meta">Blooms in about ${Math.round(sp.bloom/60000)} min of weather &middot; gives ${sp.gift} light</span></span>
+      <span class="cost">${sp.cost}</span></button>`;
+  });
+  // rare varieties — bought once with money, then planted as often as you like
+  const anyRare = RARE.some(ownsPlant);
+  html += '<div class="divider"></div>';
+  html += '<div class="note">Rare varieties. Each is a single purchase that never expires, and once it is yours you can plant it as often as you like without spending stardust. They yield exactly what a free plant of the same bloom time yields — what you are buying is how your island looks. The ten-pack costs less than three of them bought singly.</div>';
+  if(!owns(BUNDLE_SKU)){
+    const got = RARE.filter(ownsPlant).length;
+    html += `<button class="btn warm" data-buysku="${BUNDLE_SKU}" style="margin-bottom:14px">
+      ${got?"All ten, "+priceOf(BUNDLE_SKU)+" (yours already counted)":"All ten varieties &middot; "+priceOf(BUNDLE_SKU)}</button>`;
+  }
+  RARE.forEach(k=>{
+    const sp=SPECIES[k], mine=ownsPlant(k);
+    html += `<button class="row ${mine?"pick":""}" data-${mine?"plantseed":"buysku"}="${mine?k:sp.sku}">
+      <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V44" stroke="${sp.stem}" stroke-width="3"/>
+        <g transform="translate(0,14) scale(0.78) translate(9,0)">${bloomForm(sp.form,sp.flower,sp.stem)}</g></svg>
+      <span class="body"><span class="name">${sp.name}</span>
+      <span class="meta">${sp.note}</span></span>
+      <span class="cost">${mine?"plant":priceOf(sp.sku)}</span></button>`;
+  });
+  if(anyRare) html += '<div class="note">Rare varieties cost no stardust to plant. Plant them as often as you like.</div>';
+
+  // plants that came with an island deed
+  const mineByIsland = ISLAND_PLANTS.filter(ownsPlant);
+  if(mineByIsland.length){
+    html += '<div class="divider"></div><div class="note">These came with your islands. Free to plant, anywhere, as often as you like.</div>';
+    mineByIsland.forEach(k=>{
+      const sp=SPECIES[k];
+      html += `<button class="row pick" data-plantseed="${k}">
+        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V44" stroke="${sp.stem}" stroke-width="3"/>
+          <g transform="translate(0,14) scale(0.78) translate(9,0)">${bloomForm(sp.form,sp.flower,sp.stem)}</g></svg>
+        <span class="body"><span class="name">${sp.name}</span>
+        <span class="meta">${sp.note}</span></span>
+        <span class="cost">plant</span></button>`;
+    });
+  }
+
+  const gifted = Object.keys(SPECIES).filter(k=>SPECIES[k].locked && S.unlocked[k]);
+  if(gifted.length){
+    html += '<div class="divider"></div><div class="note">Found, not bought:</div>';
+    gifted.forEach(k=>{
+      const sp=SPECIES[k];
+      html += `<button class="row" data-freeseed="${k}">
+        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V40" stroke="${sp.stem}" stroke-width="3"/><circle cx="33" cy="30" r="9" fill="${sp.flower}"/></svg>
+        <span class="body"><span class="name">${sp.name}</span><span class="meta">${sp.note}</span></span>
+        <span class="cost">free</span></button>`;
+    });
+  }
+  openSheet("Seeds", "You have " + fmt(S.sd) + " stardust", html);
+}
+function openPastimes(){
+  const rough = S.stones.filter(s=>s.work>0).length;
+  const solved = Object.keys(S.skies).length;
+  const html = `
+    <div class="note">None of these can be failed, timed, or lost. Leave in the middle of one and it waits.</div>
+    <button class="row pick" data-open="tumbler">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><circle cx="22" cy="22" r="15"/><path d="M15 26l5-8 6 5 4-6"/></svg>
+      <span class="body"><span class="name">The Tumbler</span>
+      <span class="meta">${rough?rough+" rough stone"+(rough>1?"s":"")+" waiting":"No stones yet — wisps and trails bring them"} &middot; swipe to polish, or let it run</span></span></button>
+    <button class="row pick" data-open="sky">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--leaf)" stroke-width="1.5"><path d="M10 30l7-12 8 6 9-12"/><circle cx="10" cy="30" r="2"/><circle cx="34" cy="12" r="2"/></svg>
+      <span class="body"><span class="name">Constellation Grids</span>
+      <span class="meta">${solved} of ${SKIES.length} traced &middot; the hint button is always there</span></span></button>
+    <button class="row pick" data-open="trail">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--petal)" stroke-width="1.5"><path d="M8 34l8-6 6 4 6-10 8 6"/></svg>
+      <span class="body"><span class="name">Trail Expeditions</span>
+      <span class="meta">Reading and two choices at a time &middot; brings back seeds and stones</span></span></button>`;
+  openSheet("Pastimes", "Only if you feel like it", html);
+}
+function islandPlantNote(key){
+  const mine = ISLAND_PLANTS.filter(k=>SPECIES[k].island===key);
+  if(!mine.length) return "";
+  const names = mine.map(k=>SPECIES[k].name);
+  return "<br>Comes with " + names.join(" and ") + ", yours to plant on any island.";
+}
+function openResting(){
+  const rough = S.stones.filter(s=>s.work>0);
+  const running = rough.filter(s=>s.auto).length;
+  let html = '<div class="note">Nothing here needs you. The rain is watering, the plants are growing, and the light is being gathered for you.</div>';
+  html += '<div class="row" style="pointer-events:none"><span class="body"><span class="name">Rest gathered: ' +
+          fmt(S.rest) + '</span><span class="meta">It becomes stardust when you tell me your energy has come back.</span></span></div>';
+  if(rough.length){
+    html += `<button class="row pick" data-tumbleall="1">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><circle cx="22" cy="22" r="15"/><path d="M15 26l5-8 6 5 4-6"/></svg>
+      <span class="body"><span class="name">${running?"The barrel is turning":"Set the barrel turning"}</span>
+      <span class="meta">${rough.length} rough stone${rough.length>1?"s":""} &middot; they polish themselves, open or closed, and you can listen to them go.</span></span></button>`;
+  }
+  html += `<button class="toggle" data-toggle="breath" aria-pressed="${S.comfort.breath?"true":"false"}">
+      <span class="body"><span class="name">Breathing circle</span><span class="meta">A slow circle to follow, if you want one. In four, hold two, out six.</span></span>
+      <span class="switch"></span></button>`;
+  html += '<div class="divider"></div><div class="note">There is no streak to protect and no day to catch up on. Close this and put the phone face down; the island does not mind.</div>';
+  openSheet("Resting", "Everything else is put away", html);
+}
+function openPlaces(){
+  let html = '<div class="note">One-time purchases. No subscription, no timed offers, and every accessibility feature is in the free game.</div>';
+  Object.keys(PLACES).forEach(k=>{
+    const p=PLACES[k], owned = ownsPlace(k);
+    const here = S.env===k;
+    html += `<button class="row ${here?"pick":""}" data-place="${k}">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--ink-soft)" stroke-width="1.4"><path d="M6 30c6-10 11-14 16-14s10 4 16 14c-6 6-11 8-16 8s-10-2-16-8Z"/></svg>
+      <span class="body"><span class="name">${p.name}${here?" &middot; you are here":""}</span>
+      <span class="meta">${p.blurb}${islandPlantNote(k)}</span></span>
+      <span class="cost">${owned ? (here?"":"visit") : priceOf(p.sku)}</span></button>`;
+  });
+  html += '<div class="divider"></div>';
+  html += '<button class="btn quiet" data-restorebuys="1" style="margin-bottom:14px">Restore my purchases</button>';
+  html += '<div class="note">Your garden lives on this device. If you are about to reinstall, keep a copy of the code below and paste it back afterwards.</div>';
+  html += '<button class="btn" data-backup="1" style="margin-bottom:10px">Copy my garden code</button>';
+  html += '<button class="btn quiet" data-restore="1">Paste a garden code</button>';
+  openSheet("Places", "Where your island sits", html);
+}
+/* ============================================================
+   LUMINA — part 3: comfort panel, pastimes, purchases, wiring
+   ============================================================ */
+
+function renderComfort(){
+  const c=S.comfort;
+  const tog=(id,on,name,meta)=>`<button class="toggle" data-toggle="${id}" aria-pressed="${on?"true":"false"}">
+      <span class="body"><span class="name">${name}</span><span class="meta">${meta}</span></span>
+      <span class="switch"></span></button>`;
+  const html = `
+    <button class="btn warm" data-lowlight="1" style="margin-bottom:16px">Low light, right now</button>
+    <div class="slider-block">
+      <div class="lab"><span>Screen brightness</span><i>${Math.round((1-c.dim)*100)}%</i></div>
+      <input type="range" min="0" max="72" value="${Math.round(c.dim*100)}" data-slider="dim" aria-label="Screen brightness">
+    </div>
+    <div class="slider-block">
+      <div class="lab"><span>Warmth over the screen</span><i>${Math.round(c.warm/.42*100)}%</i></div>
+      <input type="range" min="0" max="42" value="${Math.round(c.warm*100)}" data-slider="warm" aria-label="Screen warmth">
+    </div>
+    <div class="slider-block">
+      <div class="lab"><span>Sound</span><i>${Math.round(c.vol*100)}%</i></div>
+      <input type="range" min="0" max="100" value="${Math.round(c.vol*100)}" data-slider="vol" aria-label="Sound volume">
+    </div>
+    <div class="slider-block">
+      <div class="lab"><span>Text size</span><i>${Math.round(c.scale*100)}%</i></div>
+      <input type="range" min="90" max="140" value="${Math.round(c.scale*100)}" data-slider="scale" aria-label="Text size">
+    </div>
+    <div class="divider"></div>
+    ${tog("soften", c.soften, "Soften high sounds", "Takes the top edge off everything. Helps on migraine days.")}
+    ${tog("motion", c.motion, "Movement", "Turn off and the island holds still.")}
+    ${tog("haptics", c.haptics, "Vibration", "Small buzz when something happens.")}
+    ${tog("breath", c.breath, "Breathing circle while resting", "A slow circle to follow, only in resting mode.")}
+    <div class="divider"></div>
+    <div class="note">There are no streaks, no daily goals and no timers anywhere in Lumina. Being away costs you nothing, and the garden keeps growing while you are gone.</div>`;
+  openSheet("Comfort", "Set it however your body wants it", html);
+}
+
+/* ============ THE TUMBLER ============ */
+const Tumbler = {
+  open(){
+    if(!S.stones.length && !S.polished.length){
+      toast("No stones yet. Wisps and trails bring them back.", 3600); return;
+    }
+    SESSION.tumblerStone = S.stones.findIndex(s=>s.work>0);
+    if(SESSION.tumblerStone<0) SESSION.tumblerStone = 0;
+    $("#tumblerHint").textContent = S.energy==="low"
+      ? "No swiping needed. Set it turning and listen."
+      : "Swipe across the stone to wear it down. It never breaks, and it never has to be finished today.";
+    showMg("mgTumbler"); this.strip(); this.draw(); this.status();
+    if(!this.bound){ this.bind(); this.bound=true; }
+  },
+  strip(){
+    const box=$("#stoneStrip"); box.innerHTML="";
+    S.stones.forEach((s,i)=>{
+      const b=document.createElement("button");
+      b.className="stone-chip"+(i===SESSION.tumblerStone?" sel":"");
+      b.innerHTML = `<svg viewBox="0 0 66 88" width="40" height="52">${stoneSvg(s.k, false).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg>`;
+      b.setAttribute("aria-label", STONES[s.k].name);
+      b.addEventListener("click", ()=>{ SESSION.tumblerStone=i; this.strip(); this.draw(); this.status(); });
+      box.appendChild(b);
+    });
+    if(!S.stones.length) box.innerHTML = '<div class="note" style="padding:8px">The bin is empty. That is a fine state for it to be in.</div>';
+  },
+  status(){
+    const s=S.stones[SESSION.tumblerStone];
+    $("#tumblerStatus").textContent = s
+      ? STONES[s.k].name + " — " + Math.max(0,Math.round((1-s.work/STONES[s.k].work)*100)) + "% smooth"
+      : "Nothing in the barrel.";
+    $("#tumblerAuto").textContent = (s && s.auto) ? "It is tumbling. You can close this."
+      : "Leave it tumbling while I rest";
+    $("#tumblerStep").disabled = !s || s.work<=0;
+  },
+  draw(){
+    const cv=$("#tumblerCanvas"), g=cv.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
+    if(cv.width !== 300*dpr){ cv.width=300*dpr; cv.height=300*dpr; cv.style.width="300px"; cv.style.height="300px"; }
+    g.setTransform(dpr,0,0,dpr,0,0);
+    g.clearRect(0,0,300,300);
+    const s=S.stones[SESSION.tumblerStone];
+    if(!s){ return; }
+    const st=STONES[s.k], p = 1 - s.work/st.work;   // 0 rough -> 1 polished
+    // barrel
+    g.beginPath(); g.arc(150,150,126,0,Math.PI*2);
+    g.strokeStyle="rgba(233,236,255,.16)"; g.lineWidth=2; g.stroke();
+    // stone body: jagged verts that relax toward a smooth oval
+    const N=16; g.beginPath();
+    for(let i=0;i<N;i++){
+      const a=i/N*Math.PI*2;
+      const jag = (Math.sin(i*4.7)*0.5+Math.cos(i*2.3)*0.5)*22*(1-p);
+      const r = 74 + jag;
+      const x=150+Math.cos(a)*r, y=150+Math.sin(a)*r*0.86;
+      i?g.lineTo(x,y):g.moveTo(x,y);
+    }
+    g.closePath();
+    const grad=g.createRadialGradient(120,118,10,150,150,104);
+    const col = p>.999 ? st.polished : mixHex(st.rough, st.polished, p);
+    grad.addColorStop(0, lighten(col, .22)); grad.addColorStop(1, col);
+    g.fillStyle=grad; g.fill();
+    if(p>.4){ g.globalAlpha=(p-.4)*1.3; g.beginPath(); g.ellipse(124,120,30,18,-.5,0,Math.PI*2);
+      g.fillStyle="#fff"; g.fill(); g.globalAlpha=1; }
+  },
+  bind(){
+    const cv=$("#tumblerCanvas");
+    let last=null;
+    const move=(x,y)=>{
+      const s=S.stones[SESSION.tumblerStone]; if(!s||s.work<=0) return;
+      if(last){
+        const d=Math.hypot(x-last.x,y-last.y);
+        if(d>2){
+          s.work = Math.max(0, s.work - d*0.12);
+          if(s.work<=0) Tumbler.finish();
+          else { Tumbler.draw(); Tumbler.status(); save(); }
+        }
+      }
+      last={x,y};
+    };
+    const pos=e=>{ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e;
+      return {x:t.clientX-r.left, y:t.clientY-r.top}; };
+    cv.addEventListener("pointerdown", e=>{ last=pos(e); cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener("pointermove", e=>{ if(last){ const p=pos(e); move(p.x,p.y); } });
+    cv.addEventListener("pointerup", ()=> last=null);
+    cv.addEventListener("pointercancel", ()=> last=null);
+    $("#tumblerStep").addEventListener("click", ()=>{
+      const s=S.stones[SESSION.tumblerStone]; if(!s||s.work<=0) return;
+      s.work = Math.max(0, s.work - 24); Sound.chime(1); buzz(10);
+      if(s.work<=0) Tumbler.finish(); else { Tumbler.draw(); Tumbler.status(); save(); }
+    });
+    $("#tumblerAuto").addEventListener("click", ()=>{
+      const s=S.stones[SESSION.tumblerStone]; if(!s) return;
+      s.auto=true; save(); Tumbler.status();
+      toast("It'll keep turning whether the app is open or not.", 3800);
+    });
+  },
+  finish(){
+    const s=S.stones[SESSION.tumblerStone]; if(!s) return;
+    const st=STONES[s.k];
+    S.polished.push(s.k);
+    S.stones.splice(SESSION.tumblerStone,1);
+    S.sd += st.worth;
+    // a polished stone can sit on the island if there is room
+    const free = S.plots.indexOf(null);
+    if(free>=0){ S.plots[free]={stone:s.k}; }
+    Sound.chime(5); buzz(24);
+    toast(st.name + " came out beautiful. +" + st.worth + " stardust.", 4200);
+    SESSION.tumblerStone = S.stones.findIndex(x=>x.work>0);
+    if(SESSION.tumblerStone<0) SESSION.tumblerStone=0;
+    paintPurse(); renderPlots(); save();
+    this.strip(); this.draw(); this.status();
+  }
+};
+function autoPolish(dt){
+  let done=false;
+  S.stones.forEach((s,i)=>{
+    if(s.auto && s.work>0){
+      s.work -= dt/900;
+      if(s.work<=0){ s.work=0; const keep=SESSION.tumblerStone; SESSION.tumblerStone=i; Tumbler.finish(); SESSION.tumblerStone=keep; done=true; }
+    }
+  });
+  if(done) save();
+}
+function mixHex(a,b,t){
+  const pa=hex(a), pb=hex(b);
+  return "#"+[0,1,2].map(i=>Math.round(pa[i]+(pb[i]-pa[i])*t).toString(16).padStart(2,"0")).join("");
+}
+function lighten(c,t){ const p=hex(c); return "rgb("+p.map(v=>Math.round(v+(255-v)*t)).join(",")+")"; }
+function hex(c){ const h=c.replace("#",""); return [0,2,4].map(i=>parseInt(h.substr(i,2),16)); }
+
+/* ============ CONSTELLATION GRIDS ============ */
+const Sky = {
+  puz:null, edges:[], sel:null, hinted:[],
+  open(){
+    const next = SKIES.find(s=>!S.skies[s.id]) || SKIES[0];
+    this.start(next);
+    showMg("mgSky");
+    if(!this.bound){ this.bind(); this.bound=true; }
+  },
+  start(p){
+    this.puz=p; this.edges=[]; this.sel=null; this.hinted=[];
+    $("#skyTitle").textContent = p.name;
+    $("#skyClue").textContent = p.clue + (S.skies[p.id] ? " (You have traced this one before — trace it again any time.)" : "");
+    $("#skyStatus").textContent = "Tap one star, then another, to draw a line. Tap the same line to remove it.";
+    this.buttons(); this.draw();
+  },
+  size(){ const cv=$("#skyCanvas"); return cv.getBoundingClientRect().width || 340; },
+  /* A transparent button over every star. Touch, keyboard and screen readers
+     all go through these; the canvas only ever draws. */
+  buttons(){
+    const box=$("#skyStars"); box.innerHTML="";
+    this.puz.stars.forEach((p,i)=>{
+      const b=document.createElement("button");
+      b.className="sky-star"; b.dataset.i=i;
+      b.style.left=p[0]+"%"; b.style.top=p[1]+"%";
+      b.setAttribute("aria-label","Star "+(i+1)+" of "+this.puz.stars.length);
+      b.addEventListener("click", ()=> this.tap(i));
+      box.appendChild(b);
+    });
+  },
+  label(){
+    $$("#skyStars .sky-star").forEach(b=>{
+      const i=+b.dataset.i;
+      const links=this.edges.filter(e=>e[0]===i||e[1]===i).length;
+      b.setAttribute("aria-pressed", this.sel===i ? "true":"false");
+      b.setAttribute("aria-label","Star "+(i+1)+", "+links+" line"+(links===1?"":"s")+
+        (this.sel===i?", chosen":this.sel===null?"":", tap to join to star "+(this.sel+1)));
+    });
+  },
+  draw(){
+    const cv=$("#skyCanvas"), g=cv.getContext("2d");
+    const w = Math.min(this.size()||320, 420);
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=w*dpr; cv.height=w*dpr; cv.style.height=w+"px";
+    g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,w);
+    const P=this.puz, pt=i=>({x:P.stars[i][0]/100*w, y:P.stars[i][1]/100*w});
+    // drawn lines
+    this.edges.forEach(e=>{
+      const a=pt(e[0]), b=pt(e[1]);
+      const isHint = this.hinted.some(h=> same(h,e));
+      g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y);
+      g.strokeStyle = isHint ? "rgba(242,192,120,.55)" : "rgba(233,236,255,.72)";
+      g.lineWidth=2.4; g.stroke();
+    });
+    // stars
+    P.stars.forEach((s,i)=>{
+      const p=pt(i), on = this.sel===i;
+      g.beginPath(); g.arc(p.x,p.y, on?15:11, 0, Math.PI*2);
+      g.fillStyle = on ? "rgba(242,192,120,.30)" : "rgba(233,236,255,.12)"; g.fill();
+      g.beginPath(); g.arc(p.x,p.y,5,0,Math.PI*2);
+      g.fillStyle = on ? "#f2c078" : "#eef0fb"; g.fill();
+    });
+    this.label();
+  },
+  hit(x,y){
+    const w=this.size(), P=this.puz;
+    let best=-1, bd=1e9;
+    P.stars.forEach((s,i)=>{
+      const d=Math.hypot(s[0]/100*w-x, s[1]/100*w-y);
+      if(d<bd){ bd=d; best=i; }
+    });
+    return bd < Math.max(34, w*0.11) ? best : -1;   // forgiving target
+  },
+  tap(i){
+    if(i<0){ this.sel=null; this.draw(); return; }
+    if(this.sel===null){ this.sel=i; Sound.chime(0); this.draw(); return; }
+    if(this.sel===i){ this.sel=null; this.draw(); return; }
+    const e=[this.sel,i];
+    const at=this.edges.findIndex(x=> same(x,e));
+    if(at>=0){ this.edges.splice(at,1); }
+    else { this.edges.push(e); Sound.chime(2); buzz(10); }
+    this.sel=null; this.draw(); this.check();
+  },
+  check(){
+    const P=this.puz;
+    const needed = P.edges;
+    const got = this.edges;
+    const done = needed.every(n=> got.some(g=> same(g,n))) && got.length===needed.length;
+    if(!done){
+      const right = needed.filter(n=> got.some(g=> same(g,n))).length;
+      $("#skyStatus").textContent = right + " of " + needed.length + " lines match. No hurry.";
+      return;
+    }
+    const first = !S.skies[P.id];
+    S.skies[P.id]={done:true};
+    let msg = P.name + " is traced. +" + P.reward + " stardust.";
+    S.sd += P.reward;
+    if(first && P.unlock){ S.unlocked[P.unlock]=true; S.seeds[P.unlock]=(S.seeds[P.unlock]||0)+1;
+      msg += " " + SPECIES[P.unlock].name + " seed found."; }
+    Sound.chime(5); buzz(28); paintPurse(); save();
+    $("#skyStatus").textContent = msg;
+    toast(msg, 4600);
+  },
+  bind(){
+    $("#skyHint").addEventListener("click", ()=>{
+      const missing = this.puz.edges.filter(n=> !this.edges.some(g=> same(g,n)));
+      if(!missing.length){ $("#skyStatus").textContent="Nothing missing. Remove a line if one is extra."; return; }
+      const e=missing[0]; this.edges.push(e); this.hinted.push(e);
+      Sound.chime(1); this.draw(); this.check();
+    });
+    $("#skyReset").addEventListener("click", ()=>{ this.start(this.puz); });
+    window.addEventListener("resize", ()=>{ if(SESSION.mgOpen==="mgSky") this.draw(); });
+  }
+};
+function same(a,b){ return (a[0]===b[0]&&a[1]===b[1])||(a[0]===b[1]&&a[1]===b[0]); }
+
+/* ============ TRAIL EXPEDITIONS ============ */
+const Trail = {
+  t:null, node:null, log:[],
+  open(){
+    const t = pick(TRAILS);
+    this.t=t; this.node=t.start; this.log=[];
+    $("#trailTitle").textContent=t.title;
+    this.art(t.art); this.render(); showMg("mgTrail");
+  },
+  art(kind){
+    const svg=$("#trailArt");
+    const sky='<rect width="320" height="150" fill="rgba(10,12,26,.35)"/>';
+    let body="";
+    if(kind==="peaks") body='<path d="M0 150 L70 62 L110 106 L170 40 L240 116 L280 88 L320 150Z" fill="var(--land)"/>'+
+      '<path d="M170 40 L196 72 L150 72Z" fill="var(--land-lip)" opacity=".8"/>';
+    if(kind==="pines"){ body='<path d="M0 150 L320 150 L320 120 Q160 104 0 122Z" fill="var(--land)"/>';
+      for(let i=0;i<7;i++){ const x=22+i*44, h=rnd(44,76);
+        body+=`<path d="M${x} ${124-h} L${x+16} 124 L${x-16} 124Z" fill="var(--land-lip)" opacity=".7"/>`;} }
+    if(kind==="river") body='<path d="M0 150 L320 150 L320 108 Q160 92 0 112Z" fill="var(--land)"/>'+
+      '<path d="M10 148 Q90 118 150 132 Q220 148 312 120" stroke="var(--glow)" stroke-width="7" fill="none" opacity=".35" stroke-linecap="round"/>';
+    svg.innerHTML = sky + body;
+  },
+  render(){
+    const n=this.t.nodes[this.node];
+    $("#trailText").textContent=n.text;
+    $("#trailLog").innerHTML = this.log.join("<br>");
+    const foot=$("#trailChoices"); foot.innerHTML="";
+    if(!n.choices.length){
+      const b=document.createElement("button"); b.className="btn warm"; b.textContent="Come home";
+      b.addEventListener("click", ()=>{
+        hideMg("mgTrail"); S.trails[this.t.id]=(S.trails[this.t.id]||0)+1; save();
+        foot.innerHTML=""; });
+      foot.appendChild(b); return;
+    }
+    n.choices.forEach(c=>{
+      const b=document.createElement("button"); b.className="btn"; b.textContent=c.label;
+      b.addEventListener("click", ()=> this.go(c.to));
+      foot.appendChild(b);
+    });
+  },
+  go(to){
+    this.node=to;
+    const n=this.t.nodes[to];
+    if(n.gain){
+      const g=n.gain, bits=[];
+      if(g.sd){ S.sd+=g.sd; bits.push("+"+g.sd+" stardust"); }
+      if(g.rest){ S.rest+=g.rest; bits.push("+"+g.rest+" rest"); }
+      if(g.stone){ S.stones.push({k:g.stone, work:STONES[g.stone].work}); bits.push("a rough "+STONES[g.stone].name.toLowerCase()); }
+      if(g.seed){ S.unlocked[g.seed]=true; S.seeds[g.seed]=(S.seeds[g.seed]||0)+1; bits.push(SPECIES[g.seed].name+" seed"); }
+      if(bits.length) this.log.push("You brought back " + bits.join(", ") + ".");
+      Sound.chime(3); buzz(14); paintPurse(); save();
+    }
+    this.render();
+  }
+};
+
+/* ============ PURCHASES (RevenueCat) ============ */
+/* Put your RevenueCat public SDK key here, or leave it and set it from the
+   native side. Left as the placeholder, the game simply never asks to be paid. */
+let RC_KEY = window.LUMINA_RC_KEY || "REVENUECAT_PUBLIC_SDK_KEY";
+
+const Billing = {
+  ready:false,
+  plugin(){
+    const cap = window.Capacitor && window.Capacitor.Plugins;
+    return (cap && cap.Purchases) || window.Purchases || null;
+  },
+  async init(){
+    const P=this.plugin();
+    if(!P || RC_KEY.indexOf("REVENUECAT")===0) return;
+    try{
+      await P.configure({apiKey:RC_KEY});
+      this.ready=true;
+      await this.refreshPrices();
+      await this.syncOwned(await P.getCustomerInfo());
+    }catch(e){ /* offline, or the store is having a day. Play on. */ }
+  },
+  /* every package the store will sell us, flattened by product id */
+  async packages(){
+    const P=this.plugin(); if(!P) return {};
+    const offerings = await P.getOfferings();
+    const out={};
+    Object.values((offerings && offerings.all) || {}).forEach(o=>{
+      (o.availablePackages||[]).forEach(p=>{
+        const id=(p.product && p.product.identifier) || p.identifier;
+        out[id]={pkg:p, price:(p.product && (p.product.priceString || p.product.price_string)) || null};
+      });
+    });
+    return out;
+  },
+  async refreshPrices(){
+    try{
+      const all = await this.packages();
+      let hit=false;
+      Object.keys(all).forEach(id=>{ if(all[id].price){ S.prices[id]=all[id].price; hit=true; } });
+      if(hit) save();
+    }catch(e){}
+  },
+  async syncOwned(info){
+    const ci = (info && info.customerInfo) || info || {};
+    const active = (ci.entitlements && ci.entitlements.active) || {};
+    let changed=false;
+    Object.keys(active).forEach(id=>{ if(!S.owned[id]){ S.owned[id]=true; changed=true; } });
+    // some setups grant by product rather than entitlement
+    ((ci.allPurchasedProductIdentifiers)||[]).forEach(id=>{
+      if(!S.owned[id]){ S.owned[id]=true; changed=true; }
+    });
+    if(changed){ save(); drawIsland(); }
+    return changed;
+  },
+  async purchase(sku){
+    const P=this.plugin();
+    if(!P || !this.ready){
+      toast("Purchases aren't available in this build yet.", 3600);
+      return false;
+    }
+    try{
+      const all = await this.packages();
+      const entry = all[sku];
+      if(!entry){ toast("That one isn't in the store right now. Nothing was charged.", 3800); return false; }
+      const res = await P.purchasePackage({aPackage:entry.pkg});
+      S.owned[sku]=true;
+      await this.syncOwned(res);
+      save(); Sound.chime(5); buzz(20);
+      return true;
+    }catch(e){
+      const m=(e && (e.message||e.code)||"")+"";
+      if(/cancel/i.test(m)) return false;               // backing out is not an error
+      toast("The store didn't answer. Nothing was charged.", 3800);
+      return false;
+    }
+  },
+  async restore(){
+    const P=this.plugin();
+    if(!P || !this.ready){ toast("Nothing to restore in this build.", 3000); return; }
+    try{
+      const info = await P.restorePurchases();
+      const found = await this.syncOwned(info);
+      toast(found ? "Restored. Everything you bought is back." : "Nothing further to restore.", 3600);
+    }catch(e){ toast("Couldn't reach the store just now.", 3200); }
+  }
+};
+
+/* what a completed purchase actually unlocks */
+function buySku(sku){
+  Billing.purchase(sku).then(ok=>{
+    if(!ok) return;
+    if(sku===BUNDLE_SKU){ toast("All ten rare varieties are yours. Plant them freely.", 4600); openSeeds(); return; }
+    const place = Object.keys(PLACES).find(k=>PLACES[k].sku===sku);
+    if(place){ goPlace(place); closeSheet(); return; }
+    const plant = RARE.find(k=>SPECIES[k].sku===sku);
+    if(plant){ toast(SPECIES[plant].name + " is yours. Plant it as often as you like.", 4200); openSeeds(); }
+  });
+}
+
+function goPlace(key){
+  if(!ownsPlace(key)){ buySku(PLACES[key].sku); return; }
+  S.env=key; drawIsland(); save(); closeSheet();
+  toast("You're at " + PLACES[key].name + ".", 3000);
+}
+
+/* ============ BACKUP ============ */
+function backup(){
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(
+      ()=> toast("Garden code copied. Paste it somewhere safe.", 4200),
+      ()=> showCode(code));
+  } else showCode(code);
+}
+function showCode(code){
+  openSheet("Your garden code","Select it all and copy",
+    '<textarea readonly style="width:100%;height:190px;background:var(--vapor);color:var(--ink);border:1px solid var(--vapor-line);border-radius:14px;padding:12px;font-size:.75rem">'+code+'</textarea>');
+}
+function restore(){
+  const code = prompt("Paste your garden code:");
+  if(!code) return;
+  try{
+    const d = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+    if(!d || !Array.isArray(d.plots)) throw new Error("bad");
+    S = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), d);
+    S.comfort = Object.assign({}, DEFAULT_STATE.comfort, d.comfort||{});
+    saveNow(); applyComfort(); drawIsland(); renderPlots(); paintPurse(); closeSheet();
+    toast("Garden restored.", 3200);
+  }catch(e){ toast("That code didn't read cleanly. Nothing was changed.", 4000); }
+}
+
+/* ============ MINIGAME SHELL ============ */
+function showMg(id){ closeSheet(); SESSION.mgOpen=id; $("#"+id).classList.add("on"); }
+function hideMg(id){ SESSION.mgOpen=null; $("#"+id).classList.remove("on"); }
+
+/* ============ BREATHING ============ */
+let breathTimer=null;
+function runBreath(){
+  clearInterval(breathTimer);
+  const el=$("#breath");
+  const steps=[["Breathe in",1.30,4000],["Hold",1.30,2200],["Let it out",0.86,6000],["",0.86,1400]];
+  let i=0;
+  const step=()=>{
+    if(S.energy!=="low" || !S.comfort.breath){ el.classList.add("hidden"); clearInterval(breathTimer); breathTimer=null; return; }
+    const s=steps[i%steps.length]; i++;
+    el.textContent=s[0]; el.style.transform="scale("+s[1]+")";
+    el.style.transitionDuration=(s[2]/1000)+"s";
+    breathTimer=setTimeout(step, s[2]);
+  };
+  el.classList.remove("hidden"); step();
+}
+
+/* ============ WIRING ============ */
+function wire(){
+  // energy check-in
+  $$(".energy").forEach(b=> b.addEventListener("click", ()=>{
+    Sound.init(); Sound.resume();
+    $("#checkin").classList.add("gone");
+    setTimeout(()=> $("#checkin").style.display="none", 700);
+    setEnergy(b.dataset.energy);
+    if(b.dataset.energy==="low" && S.comfort.breath) runBreath();
+  }));
+
+  $("#btnMood").addEventListener("click", ()=>{
+    $("#checkin").style.display="";
+    requestAnimationFrame(()=> $("#checkin").classList.remove("gone"));
+    $("#askText").textContent = "How is your energy now?";
+    $("#checkinFoot").textContent = "Switching costs you nothing. Rest you have banked comes with you.";
+  });
+
+  // island taps
+  $("#plots").addEventListener("click", e=>{
+    const b=e.target.closest(".plot"); if(!b) return;
+    tapPlot(parseInt(b.dataset.i,10));
+  });
+
+  // dock
+  $("#dockSeeds").addEventListener("click", openSeeds);
+  $("#dockPlay").addEventListener("click", openPastimes);
+  $("#dockDeeds").addEventListener("click", openPlaces);
+  $("#dockRest").addEventListener("click", openResting);
+  $("#dockComfort").addEventListener("click", renderComfort);
+
+  // sheet
+  $("#sheetClose").addEventListener("click", closeSheet);
+  $("#scrim").addEventListener("click", closeSheet);
+  $("#sheetBody").addEventListener("click", e=>{
+    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys]");
+    if(!t) return;
+    if(t.dataset.buyseed){
+      const k=t.dataset.buyseed, sp=SPECIES[k];
+      if(S.sd<sp.cost) return;
+      S.sd-=sp.cost; S.seeds[k]=(S.seeds[k]||0)+1;
+      Sound.chime(2); buzz(12); paintPurse(); save(); openSeeds();
+      toast(sp.name+" seed is in your hand. Tap open ground to plant it.", 3600);
+    }
+    if(t.dataset.plantseed || t.dataset.freeseed){
+      const k = t.dataset.plantseed || t.dataset.freeseed;
+      if(t.dataset.freeseed && !(S.seeds[k]>0)) S.seeds[k]=1;
+      if(!ownsPlant(k)) return;
+      SESSION.armedSeed=k; closeSheet(); renderPlots();
+      toast("Tap any open ground to plant it.", 3200);
+    }
+    if(t.dataset.buysku) buySku(t.dataset.buysku);
+    if(t.dataset.restorebuys) Billing.restore().then(()=> openPlaces());
+    if(t.dataset.open==="tumbler") Tumbler.open();
+    if(t.dataset.open==="sky") Sky.open();
+    if(t.dataset.open==="trail") Trail.open();
+    if(t.dataset.place) goPlace(t.dataset.place);
+    if(t.dataset.tumbleall){
+      S.stones.forEach(x=>{ if(x.work>0) x.auto=true; });
+      save(); openResting();
+      toast("The barrel is turning. It keeps going whether you watch or not.", 4200);
+    }
+    if(t.dataset.lowlight) lowLightPreset();
+    if(t.dataset.backup) backup();
+    if(t.dataset.restore) restore();
+    if(t.dataset.toggle){
+      const k=t.dataset.toggle;
+      S.comfort[k] = S.comfort[k] ? 0 : 1;
+      applyComfort();
+      if($("#sheetTitle").textContent==="Resting") openResting(); else renderComfort();
+      if(k==="breath"){ if(S.comfort.breath && S.energy==="low") runBreath(); else $("#breath").classList.add("hidden"); }
+      if(k==="motion"){ makeStars(); renderPlots(); }
+    }
+  });
+  $("#sheetBody").addEventListener("input", e=>{
+    const s=e.target.closest("[data-slider]"); if(!s) return;
+    const k=s.dataset.slider, v=parseInt(s.value,10);
+    if(k==="dim") S.comfort.dim=v/100;
+    if(k==="warm") S.comfort.warm=v/100;
+    if(k==="vol") S.comfort.vol=v/100;
+    if(k==="scale") S.comfort.scale=v/100;
+    applyComfort();
+    const lab=s.parentElement.querySelector(".lab i");
+    if(lab) lab.textContent = k==="dim" ? Math.round((1-S.comfort.dim)*100)+"%"
+      : k==="warm" ? Math.round(S.comfort.warm/.42*100)+"%" : v+"%";
+  });
+
+  $$("[data-close-mg]").forEach(b=> b.addEventListener("click", ()=> hideMg(b.dataset.closeMg)));
+
+  // idle tracking for the resting dim
+  ["pointerdown","keydown"].forEach(ev=> document.addEventListener(ev, ()=>{
+    SESSION.idleSince=now();
+    if(S.energy==="low") document.documentElement.style.setProperty("--dim", String(S.comfort.dim));
+    Sound.resume();
+  }, {passive:true}));
+
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){ saveNow(); }
+    else { catchUp(); SESSION.lastTick=now(); SESSION.idleSince=now(); renderPlots(); paintPurse(); }
+  });
+  window.addEventListener("pagehide", saveNow);
+  // no accidental zoom / pull-to-refresh fighting the one-thumb layout
+  document.addEventListener("gesturestart", e=> e.preventDefault());
+}
+
+/* ============ NATIVE SHELL ============ */
+function native(){
+  const C = window.Capacitor, P = (C && C.Plugins) || {};
+  if(!C || !C.isNativePlatform || !C.isNativePlatform()) return;
+  try{ P.StatusBar && P.StatusBar.setStyle({style:"DARK"}); }catch(e){}
+  try{ P.StatusBar && P.StatusBar.setBackgroundColor({color:"#141830"}); }catch(e){}
+  try{ P.SplashScreen && P.SplashScreen.hide(); }catch(e){}
+  if(P.App && P.App.addListener){
+    P.App.addListener("appStateChange", st=>{
+      if(!st.isActive){ saveNow(); }
+      else{ catchUp(); SESSION.lastTick=now(); SESSION.idleSince=now(); renderPlots(); paintPurse(); Sound.resume(); }
+    });
+  }
+  Billing.init();
+}
+
+/* ============ START ============ */
+async function boot(){
+  await load();
+  applyComfort();
+  drawIsland(); makeStars(); makeRain(); renderPlots(); paintPurse();
+  // first visit gets a seed in hand and two already growing, so the island is never empty
+  if(S.seen.first){
+    $("#checkinLede").textContent = "Your island is where you left it. Nothing there has wilted, and nothing is owed.";
+  }
+  if(!S.seen.first){
+    S.seen.first=true;
+    S.plots[4]={sp:"moonpetal", growth:90000, stored:0};
+    S.plots[8]={sp:"moonpetal", growth:30000, stored:0};
+    save();
+    renderPlots();
+  }
+  catchUp();
+  wire();
+  native();
+  SESSION.lastTick=now();
+  setInterval(()=>{ tick(); }, 1000);
+  setInterval(()=>{ if(S.energy!=="low") maybeWisp(false); }, 22000);
+}
+/* Debug handle. Useful from a device console while wiring RevenueCat,
+   e.g. Lumina.state().sd = 500; Lumina.billing.restore(); */
+window.Lumina = {
+  state:()=>S, session:()=>SESSION, billing:Billing, buy:buySku, prices:PRICES,
+  configure:(k)=>{ RC_KEY=k; return Billing.init(); },
+  sky:Sky, tumbler:Tumbler, trail:Trail, sound:Sound,
+  species:SPECIES, stones:STONES, places:PLACES,
+  tick, maybeWisp, setEnergy, save:saveNow, backup, restore
+};
+document.addEventListener("DOMContentLoaded", boot);
+
+</script>
+</body>
+</html>

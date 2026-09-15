@@ -1,0 +1,20 @@
+{
+  "appId": "com.wickersham.lumina",
+  "appName": "Lumina",
+  "webDir": "www",
+  "backgroundColor": "#141830",
+  "android": {
+    "backgroundColor": "#141830",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#141830",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    }
+  }
+}
