@@ -86,6 +86,12 @@
   --ink:#fff6ea; --ink-soft:#e8d6bf; --ink-faint:#b09a82;
   --glow:#ffd27a; --leaf:#b6c98a; --petal:#f2bcb0;
 }
+[data-env="moon"]{
+  --sky-top:#0c0f22; --sky-mid:#1a1f44; --sky-low:#3a3f6e;
+  --land:#3c4066; --land-lip:#b8bce6; --grass:#8a90c4; --grass-lit:#cdd2f4; --water:#c6d6ff;
+  --ink:#f2f4ff; --ink-soft:#c9cdee; --ink-faint:#8b90b8;
+  --glow:#e8ecff; --leaf:#a6c4d8; --petal:#e4d6f8;
+}
 [data-env="cavern"]{
   --sky-top:#0d0f16; --sky-mid:#161a26; --sky-low:#1f2433;
   --land:#242938; --land-lip:#5a6486;
@@ -161,7 +167,8 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .star{position:absolute;border-radius:50%;background:var(--ink);opacity:.5;
   animation:twinkle calc(9s / var(--motion,1)) ease-in-out infinite}
 @keyframes twinkle{0%,100%{opacity:.18}50%{opacity:.7}}
-.moon{position:absolute;right:8%;top:5%;width:64px;height:64px;opacity:.9}
+.aurora{animation:aurora calc(40s / var(--motion,1)) ease-in-out infinite alternate;transform-origin:50% 50%}
+@keyframes aurora{from{transform:translateY(-14px) scaleY(.94);opacity:.8}to{transform:translateY(16px) scaleY(1.06);opacity:1}}
 .cloud{position:absolute;left:-40%;height:22px;border-radius:999px;background:var(--ink);
   box-shadow:38px -8px 0 -2px var(--ink),-30px 4px 0 -4px var(--ink);
   animation:cloudDrift linear infinite;animation-play-state:running}
@@ -238,10 +245,14 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 #app[data-energy="low"] .dock-row{grid-template-columns:repeat(2,1fr)}
 
 /* ---------- 4. ISLAND ---------- */
-.stage{position:relative;flex:1;min-height:0;overflow:hidden;z-index:2;touch-action:none;
-  cursor:grab;user-select:none}
+.stage-outer{position:relative;flex:1;min-height:0;z-index:2}
+.stage{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;cursor:grab;user-select:none}
+.stage::-webkit-scrollbar{display:none}
 .stage.dragging{cursor:grabbing}
-.world{position:absolute;left:0;top:0;width:1400px;height:1400px;will-change:transform}
+.world{position:relative;width:1400px;height:1400px}
+.skybg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.skybg svg{position:absolute;inset:0;width:100%;height:100%}
 .island-wrap{position:absolute;left:250px;top:380px;width:900px;height:900px;
   animation:float calc(14s / var(--motion,1)) ease-in-out infinite}
 .edge-hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:5;pointer-events:none;
@@ -304,6 +315,11 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 @keyframes arrive{from{opacity:0;transform:translateY(-14px) scale(.6)}to{opacity:1;transform:none}}
 @keyframes leave{to{opacity:0;transform:translateY(-22px) scale(.7)}}
 @keyframes hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.resident{position:absolute;width:88px;height:88px;margin:-44px 0 0 -44px;border-radius:50%;padding:0;background:none;border:0;z-index:8;
+  animation:drift calc(9s / var(--motion,1)) ease-in-out infinite}
+.resident svg{width:100%;height:100%}
+.resident .tag{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);font-size:.72rem;color:var(--ink);
+  background:rgba(10,12,26,.55);padding:3px 9px;border-radius:999px;white-space:nowrap}
 .wisp{
   position:absolute;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -312,8 +328,21 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 @keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(13px,-16px)}66%{transform:translate(-11px,9px)}}
 
 /* rain / rest overlay for Sanctuary Mode */
-.rain{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1.6s ease;z-index:3}
+.rain{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1.6s ease;z-index:3;overflow:hidden}
 .rain.on{opacity:.5}
+.weather{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s ease;z-index:3;overflow:hidden}
+.weather.on{opacity:1}
+.weather i{position:absolute;top:-6%;display:block;animation:fall linear infinite}
+.weather.snow i{width:6px;height:6px;border-radius:50%;background:#fff;animation-name:snowfall}
+.weather.warmrain i{width:1.5px;height:38px;border-radius:2px;background:linear-gradient(180deg,transparent,rgba(255,225,190,.55))}
+.weather.petals i{width:9px;height:7px;border-radius:60% 40% 60% 40%;background:var(--petal);animation-name:snowfall}
+.weather.leaves i{width:12px;height:8px;border-radius:60% 0 60% 0;background:var(--glow);animation-name:snowfall}
+@keyframes snowfall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(var(--sway,14px),60vh) rotate(180deg)}100%{transform:translate(0,125vh) rotate(360deg)}}
+.timeveil{position:absolute;inset:0;pointer-events:none;z-index:2;transition:background 3s ease,opacity 3s ease;mix-blend-mode:soft-light}
+#app[data-part="dawn"] .timeveil{background:linear-gradient(180deg,rgba(255,180,150,.35),rgba(255,220,180,.15))}
+#app[data-part="day"] .timeveil{background:rgba(255,245,225,.32)}
+#app[data-part="dusk"] .timeveil{background:linear-gradient(180deg,rgba(120,70,120,.15),rgba(255,150,90,.32))}
+#app[data-part="night"] .timeveil{background:transparent}
 .drop{position:absolute;top:-12%;width:1.5px;height:44px;border-radius:2px;
   background:linear-gradient(180deg,transparent,rgba(233,236,255,.55));
   animation:fall linear infinite}
@@ -476,6 +505,46 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 @keyframes nudge{0%,100%{box-shadow:0 0 0 0 rgba(242,192,120,0)}50%{box-shadow:0 0 0 8px rgba(242,192,120,.22)}}
 .lamps.solved .lamp{animation:pulse 2s ease-in-out infinite}
 
+/* tide pools */
+.pools{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.rock{aspect-ratio:1/1;border-radius:18px;border:0;padding:0;background:none;position:relative;perspective:600px}
+.rock .face{position:absolute;inset:0;border-radius:18px;display:flex;align-items:center;justify-content:center;
+  backface-visibility:hidden;transition:transform .5s cubic-bezier(.3,.8,.3,1)}
+.rock .face svg{width:78%;height:78%}
+.rock .top{background:linear-gradient(160deg,var(--land-lip),var(--land));box-shadow:inset 0 -6px 0 rgba(0,0,0,.18)}
+.rock .under{background:rgba(127,201,192,.18);border:1px solid var(--vapor-line);transform:rotateY(180deg)}
+.rock.up .top{transform:rotateY(180deg)}.rock.up .under{transform:rotateY(0)}
+.rock.done .under{background:rgba(242,192,120,.16);border-color:var(--glow)}
+
+/* stream stones */
+.stream{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px auto 0;max-width:360px}
+.stone-t{aspect-ratio:1/1;border-radius:16px;border:1px solid var(--vapor-line);background:var(--vapor);padding:0;position:relative}
+.stone-t svg{width:100%;height:100%;display:block;transition:transform .35s cubic-bezier(.3,.8,.3,1)}
+.stone-t.wet{background:rgba(127,201,192,.14);border-color:var(--water)}
+.stone-t.nudge{animation:nudge 1.2s ease-in-out infinite}
+.stream.done .stone-t.wet{box-shadow:0 0 16px rgba(127,201,192,.35)}
+
+/* firefly jar */
+.meadow{position:relative;height:320px;border-radius:22px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 120%,rgba(143,217,182,.18),transparent 60%),rgba(10,12,26,.45);border:1px solid var(--vapor-line)}
+.fly{position:absolute;width:56px;height:56px;margin:-28px 0 0 -28px;border:0;background:none;padding:0;
+  animation:flyDrift linear infinite alternate;border-radius:50%}
+.fly i{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ffd98f;
+  box-shadow:0 0 14px 5px rgba(255,217,143,.5);animation:blink ease-in-out infinite}
+@keyframes flyDrift{to{transform:translate(var(--dx),var(--dy))}}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.fly.caught{animation:caughtFly .6s ease forwards}
+@keyframes caughtFly{to{transform:translate(0,140px) scale(.3);opacity:0}}
+.jar{position:absolute;left:50%;bottom:8px;width:70px;height:90px;margin-left:-35px;pointer-events:none}
+
+/* mosaic */
+.mosaic{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin:8px auto 0;max-width:380px;padding:10px;border-radius:18px;
+  background:var(--vapor);border:1px solid var(--vapor-line)}
+.tile{aspect-ratio:1/1;border-radius:4px;border:0;padding:0;background:rgba(233,236,255,.06)}
+.tile.laid{animation:tileIn .5s ease both}
+.tile.next{outline:1px dashed var(--glow);outline-offset:-1px}
+@keyframes tileIn{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+
 /* cloud shapes */
 .cloud-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 @media (min-width:480px){.cloud-grid{grid-template-columns:1fr 1fr 1fr}}
@@ -514,6 +583,9 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 .cell{background:var(--vapor);border-radius:16px;padding:10px 6px 8px;text-align:center;font-size:.76rem;color:var(--ink-soft)}
 .cell svg{width:54px;height:54px;display:block;margin:0 auto 4px}
 .cell.dim{opacity:.35}.cell.dim svg{filter:grayscale(1) brightness(.6)}
+.letter{background:var(--vapor);border-radius:18px;padding:14px 16px;margin-bottom:10px;font-family:var(--display);line-height:1.6}
+.letter .meta{font-family:var(--ui);font-size:.78rem;color:var(--ink-faint);margin-bottom:8px}
+.letter p{color:var(--ink);margin:0 0 .7em;font-size:.98rem}
 .tally{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--vapor-line);font-size:.9rem;color:var(--ink-soft)}
 .tally b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
 .note{font-size:.84rem;color:var(--ink-faint);line-height:1.65;margin:4px 0 16px}
@@ -546,22 +618,28 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 @keyframes sparkle{0%,100%{opacity:0;transform:scale(.3)}45%{opacity:.95;transform:scale(1)}}
 
 .toast{
-  position:fixed;left:50%;top:calc(112px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-18px) scale(.96);
+  position:fixed;left:0;right:0;margin:0 auto;top:calc(112px + env(safe-area-inset-top));
+  width:min(92vw,440px);box-sizing:border-box;
   background:rgba(22,26,52,.97);border:1px solid var(--vapor-line);color:var(--ink);
   padding:16px 20px 16px 16px;border-radius:22px;font-size:1.02rem;line-height:1.45;z-index:60;
-  opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s cubic-bezier(.2,.9,.3,1);
-  width:min(92vw,440px);display:flex;gap:14px;align-items:flex-start;text-align:left;
+  opacity:0;pointer-events:none;transition:opacity .35s ease,translate .35s cubic-bezier(.2,.9,.3,1);
+  translate:0 -18px;display:flex;gap:14px;align-items:flex-start;text-align:left;
   box-shadow:0 12px 40px rgba(0,0,0,.45);
 }
-.toast.on{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+.toast.on{opacity:1;translate:0 0}
 .toast .ti{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:rgba(242,192,120,.16)}
 .toast .ti svg{width:20px;height:20px}
 .toast.visitor .ti{background:rgba(143,217,182,.18)}
 .toast.star .ti{background:rgba(233,236,255,.16)}
 
-.plot{width:70px;height:70px;margin:-35px 0 0 -35px}
-.plot .sprite{height:92px}
+.plot{width:calc(70px * var(--touch,1));height:calc(70px * var(--touch,1));margin:calc(-35px * var(--touch,1)) 0 0 calc(-35px * var(--touch,1))}
+.plot .sprite{height:calc(92px * var(--touch,1))}
+.visitor{width:calc(104px * var(--touch,1));height:calc(104px * var(--touch,1));margin:calc(-52px * var(--touch,1)) 0 0 calc(-52px * var(--touch,1))}
+.dock-btn{min-height:calc(var(--tap) * var(--touch,1))}
+.btn{min-height:calc(var(--tap) * var(--touch,1))}
+#app.lefty .dock-row{direction:rtl}
+#app.lefty .topbar{flex-direction:row-reverse}
 /* polished stones sit on the front rim, well clear of the beds */
 .gem{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none}
 .gem svg{width:100%;height:100%;display:block}
@@ -595,8 +673,10 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
   </div>
 
   <!-- the island -->
+  <div class="stage-outer">
   <div class="stage" id="stage">
     <div class="world" id="world">
+      <div class="skybg" id="skybg" aria-hidden="true"></div>
       <div class="stars" id="stars" aria-hidden="true"></div>
       <div id="skyThings"></div>
       <div class="island-wrap" id="islandWrap">
@@ -606,10 +686,14 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
         <div id="plots"></div>
         <div id="wisps"></div>
         <div id="visitors"></div>
+        <div id="resident"></div>
       </div>
     </div>
+  </div>
     <div class="edge-hint" id="edgeHint">Drag to look around</div>
     <div class="rain" id="rain" aria-hidden="true"></div>
+    <div class="weather" id="weather" aria-hidden="true"></div>
+    <div class="timeveil" id="timeveil" aria-hidden="true"></div>
     <div class="breath hidden" id="breath" aria-hidden="true">Breathe in</div>
   </div>
 
@@ -779,6 +863,49 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
   </div>
 </div>
 
+<div class="mg" id="mgPools" role="dialog" aria-modal="true" aria-label="Tide Pools">
+  <div class="mg-head"><h2>Tide Pools</h2><button class="close-x" data-close-mg="mgPools" aria-label="Close">&#10005;</button></div>
+  <div class="mg-body">
+    <p style="font-size:.9rem">Turn over rocks. Everything under them comes in pairs. Find the pairs; nothing minds how long it takes.</p>
+    <div class="pools" id="pools"></div>
+    <div style="font-size:.85rem;color:var(--ink-faint);text-align:center;margin-top:10px" id="poolsStatus"></div>
+  </div>
+  <div class="mg-foot"><button class="btn" id="poolsNew">A new stretch of shore</button></div>
+</div>
+
+<div class="mg" id="mgStream" role="dialog" aria-modal="true" aria-label="Stream Stones">
+  <div class="mg-head"><h2>Stream Stones</h2><button class="close-x" data-close-mg="mgStream" aria-label="Close">&#10005;</button></div>
+  <div class="mg-body">
+    <p style="font-size:.9rem">The channel is in pieces. Tap a stone to turn it, and get the water from the left bank to the right.</p>
+    <div class="stream" id="stream"></div>
+    <div style="font-size:.85rem;color:var(--ink-faint);text-align:center;margin-top:10px" id="streamStatus"></div>
+  </div>
+  <div class="mg-foot">
+    <button class="btn" id="streamHint">Turn one for me</button>
+    <button class="btn quiet" id="streamNew">A different channel</button>
+  </div>
+</div>
+
+<div class="mg" id="mgJar" role="dialog" aria-modal="true" aria-label="Firefly Jar">
+  <div class="mg-head"><h2>Firefly Jar</h2><button class="close-x" data-close-mg="mgJar" aria-label="Close">&#10005;</button></div>
+  <div class="mg-body">
+    <p style="font-size:.9rem" id="jarHint">Tap the fireflies. They are slow, and they do not hold it against you.</p>
+    <div class="meadow" id="meadow"></div>
+    <div style="font-size:.85rem;color:var(--ink-faint);text-align:center;margin-top:10px" id="jarStatus"></div>
+  </div>
+  <div class="mg-foot"><button class="btn warm" id="jarRelease" style="display:none">Let them go</button></div>
+</div>
+
+<div class="mg" id="mgMosaic" role="dialog" aria-modal="true" aria-label="The Mosaic">
+  <div class="mg-head"><h2>The Mosaic</h2><button class="close-x" data-close-mg="mgMosaic" aria-label="Close">&#10005;</button></div>
+  <div class="mg-body">
+    <p style="font-size:.9rem" id="mosaicHint">A picture, laid one stone at a time. Six stones a day; the rest is patience. It will be framed on the island when it is done.</p>
+    <div class="mosaic" id="mosaic"></div>
+    <div style="font-size:.85rem;color:var(--ink-faint);text-align:center;margin-top:10px" id="mosaicStatus"></div>
+  </div>
+  <div class="mg-foot"></div>
+</div>
+
 <div class="mg" id="mgClouds" role="dialog" aria-modal="true" aria-label="Cloud Shapes">
   <div class="mg-head"><h2>Cloud Shapes</h2>
     <button class="close-x" data-close-mg="mgClouds" aria-label="Close">&#10005;</button></div>
@@ -908,11 +1035,57 @@ const SPECIES = {
                 note:"Rings when the frogs stop, which is how you know something has changed."},
   wheatlight:  {island:"mill",   name:"Wheatlight",      bloom:600000, stem:"#b7b07a", flower:"#ffe2a0", gift:10, form:"spire",
                 note:"Catches the last of the sun and holds it until the sails come round again."},
+  /* the rest shelf: only ever bought with Rest */
+  moonveil:    {rest:40,  name:"Moonveil",        bloom:360000, stem:"#9aa8c8", flower:"#e9edff", gift:6,  form:"round",
+                note:"Silver, and only open when the day has been let go of."},
+  duskbell:    {rest:70,  name:"Dusk Bell",       bloom:480000, stem:"#8a94b8", flower:"#c9b8e8", gift:8,  form:"bell",
+                note:"Rings once at dusk. If you missed it you were probably resting, which is the point."},
+  sleeperpoppy:{rest:110, name:"Sleeper's Poppy", bloom:600000, stem:"#8f9bb0", flower:"#f0c8d8", gift:11, form:"orb",
+                note:"Grown by people who know how to lie still. It is not a small skill."},
+  nightwell:   {island:"moon", name:"Nightwell",  bloom:540000, stem:"#8aa0c0", flower:"#d6e6ff", gift:9,  form:"star",
+                note:"A little well of light that fills up while you sleep."},
   sintermoss:  {island:"springs",name:"Sinter Moss",     bloom:690000, stem:"#a8b98c", flower:"#e8d9a8", gift:11, form:"spire",
                 note:"Grows a hair's width a year on the mineral terraces. It is in no rush."}
 };
 const RARE = Object.keys(SPECIES).filter(k=>SPECIES[k].sku);
 const ISLAND_PLANTS = Object.keys(SPECIES).filter(k=>SPECIES[k].island);
+const REST_PLANTS = Object.keys(SPECIES).filter(k=>SPECIES[k].rest);
+
+/* ---------- hybrids: two blooms side by side, and once in a while a seed nobody sold you ---------- */
+const HYBRIDS = [
+  {id:"emberpetal", parents:["moonpetal","emberfern"],  name:"Emberpetal",  stem:"#8fc9a6", flower:"#f2a882", form:"round", gift:4,  bloom:300000, note:"Its mother opens at night, its father holds warmth. It does both, quietly."},
+  {id:"moonbell",   parents:["moonpetal","tidebell"],   name:"Moon Bell",   stem:"#8fd9c4", flower:"#c9d4f0", form:"bell",  gift:5,  bloom:330000, note:"Rings only in moonlight. You will have to be up."},
+  {id:"tideflame",  parents:["emberfern","tidebell"],   name:"Tideflame",   stem:"#7fc9b0", flower:"#ffb27a", form:"spire", gift:6,  bloom:390000, note:"Warm and wet and not the least bit confused about it."},
+  {id:"lanternlily",parents:["driftlily","lanternvine"],name:"Lantern Lily",stem:"#88cfaa", flower:"#ffe0a8", form:"orb",   gift:9,  bloom:540000, note:"Lights the way sideways."},
+  {id:"driftmoon",  parents:["moonpetal","driftlily"],  name:"Driftmoon",   stem:"#a0d4bc", flower:"#e6dcf5", form:"fan",   gift:6,  bloom:420000, note:"Leans toward the moon. The moon has not noticed."},
+  {id:"frostbell",  parents:["tidebell","frostbloom"],  name:"Frost Bell",  stem:"#9ec8d4", flower:"#d8f0f8", form:"bell",  gift:11, bloom:660000, note:"Rings like glass. Do not drop it."},
+  {id:"hearthvine", parents:["lanternvine","emberfern"],name:"Hearthvine",  stem:"#7fbf9a", flower:"#ff9c66", form:"spire", gift:10, bloom:600000, note:"Warm to stand near. Warmer to sit."},
+  {id:"glassmoon",  parents:["glasswort","moonpetal"],  name:"Glassmoon",   stem:"#a6c6e6", flower:"#f4f6ff", form:"star",  gift:12, bloom:720000, note:"Nearly clear. Holds the moon like water does."},
+  {id:"starlantern",parents:["starthistle","lanternvine"],name:"Star Lantern",stem:"#a9b0d8", flower:"#fff0b8", form:"orb", gift:14, bloom:780000, note:"A light that came a long way down to be here."},
+  {id:"snowlily",   parents:["driftlily","frostbloom"], name:"Snow Lily",   stem:"#a4cfd8", flower:"#ffffff", form:"round", gift:12, bloom:720000, note:"Opens in the cold and closes in company."}
+];
+HYBRIDS.forEach(h=>{ SPECIES[h.id]={hybrid:true, cost:0, locked:true, name:h.name, bloom:h.bloom, stem:h.stem, flower:h.flower, gift:h.gift, form:h.form, note:h.note}; });
+function bedsAdjacent(a,b){ const A=PLOT_POS[a], B=PLOT_POS[b]; return Math.hypot(A[0]-B[0], (A[1]-B[1])*1.4) < 19; }
+function crossPollinate(hours){
+  // called with hours of elapsed time; each adjacent pair of different blooms has a small chance
+  const found=[];
+  Object.keys(S.islands).forEach(ik=>{
+    const P=S.islands[ik].plots;
+    for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){
+      const a=P[i], b=P[j]; if(!a||!b||!a.sp||!b.sp||a.sp===b.sp) continue;
+      if(stageOf(a)!==3||stageOf(b)!==3||!bedsAdjacent(i,j)) continue;
+      const h=HYBRIDS.find(h=>(h.parents[0]===a.sp&&h.parents[1]===b.sp)||(h.parents[0]===b.sp&&h.parents[1]===a.sp));
+      if(!h) continue;
+      const chance = 1-Math.pow(0.88, hours);           // ~12% per hour of two blooms side by side
+      if(Math.random()<chance){
+        S.unlocked[h.id]=true; S.seeds[h.id]=(S.seeds[h.id]||0)+1;
+        S.journal.hybrids=S.journal.hybrids||{}; S.journal.hybrids[h.id]=(S.journal.hybrids[h.id]||0)+1;
+        found.push(h);
+      }
+    }
+  });
+  return found;
+}
 
 /* ---------- stones for the tumbler ---------- */
 const STONES = {
@@ -1033,7 +1206,9 @@ const PLACES = {
   tidal:  {name:"The Tidal Shallows", env:"tidal", pack:"pack_warmwaters", legacy:"deed_tidal", beds:6,
            blurb:"A sandbar at the low end of the afternoon. Warm shallow water on three sides and nothing on the horizon."},
   springs:{name:"The Hot Spring Terraces", env:"springs", pack:"pack_warmwaters", legacy:"deed_springs", beds:6,
-           blurb:"Mineral pools stepping down a warm hillside, steam standing in the air. Built to feel like heat on a bad joint."}
+           blurb:"Mineral pools stepping down a warm hillside, steam standing in the air. Built to feel like heat on a bad joint."},
+  moon:   {name:"The Moon Garden", env:"moon", restCost:300, beds:6,
+           blurb:"An island that only opens to people who have rested. Silver grass, a well of light, and an owl who keeps her own hours."}
 };
 const PACKS = {
   pack_farsky:    {name:"The Far Sky pack",     islands:["alpine","cavern"],
@@ -1052,13 +1227,14 @@ function owns(sku){ return !!(sku && S.owned[sku]); }
 function ownsPlant(k){
   const sp=SPECIES[k];
   if(sp.island) return ownsPlace(sp.island);      // comes with the deed
+  if(sp.rest) return !!(S.restOwned && S.restOwned[k]);
   if(!sp.sku) return true;                         // free or found
   return owns(BUNDLE_SKU) || owns(sp.sku);
 }
 function ownsPlace(k){
   const p=PLACES[k];
   if(p.free) return true;
-  if(p.cost!==undefined) return !!S.islands[k] && S.islands[k].unlocked;
+  if(p.cost!==undefined || p.restCost!==undefined) return !!S.islands[k] && S.islands[k].unlocked;
   return owns(p.pack) || owns(p.legacy);
 }
 function island(k){ return S.islands[k||S.env]; }
@@ -1079,6 +1255,7 @@ const DEFAULT_STATE = {
   unlocked:{moonpetal:true, emberfern:true, tidebell:true, driftlily:true, lanternvine:true, frostbloom:true},
   islands:{},               // per island: {plots, beds, decor, unlocked}
   upgrades:{},              // permanent stardust upgrades
+  restOwned:{},             // the rest shelf
   stones:[],                 // {k, work} work counts down to 0
   polished:[],               // stone keys
   skies:{},                  // id -> {done:true}
@@ -1139,6 +1316,9 @@ async function load(){
     isl.plots.forEach((p,i)=>{ if(p && p.stone){ S.polished.push(p.stone); isl.plots[i]=null; } });
   });
   if(!S.upgrades) S.upgrades={};
+  if(!S.restOwned) S.restOwned={};
+  if(!S.since) S.since={blooms:0, hybrids:[], stones:0, letters:0};
+  if(!S.letters) S.letters=[];
   if(!ownsPlace(S.env)) S.env="cloud";
 }
 let saveTimer = null;
@@ -1204,6 +1384,7 @@ const Sound = {
     this.applyComfort();
     this.env(S.env);
     this.music(true);
+    this.loadLoops();
   },
   buildPad(){
     const c=this.ctx;
@@ -1271,6 +1452,27 @@ const Sound = {
     clearTimeout(this.mTimer);
     if(on && S.comfort.music>0) this.mTimer=setTimeout(()=>this.musicStep(), 1200);
   },
+  /* Drop licensed loops into www/audio/ with these names and they replace the
+     synthesised beds for that island. Missing files are silently skipped. */
+  LOOPS:{cloud:"audio/wind-soft.mp3", alpine:"audio/wind-pines.mp3", cavern:"audio/cave-drips.mp3",
+         tidal:"audio/shore.mp3", springs:"audio/springs.mp3", orchard:"audio/orchard-evening.mp3",
+         reeds:"audio/marsh.mp3", mill:"audio/meadow-wind.mp3", moon:"audio/night-quiet.mp3", rain:"audio/rain.mp3"},
+  loops:{},
+  async loadLoops(){
+    const c=this.ctx; if(!c) return;
+    this.loopGain=c.createGain(); this.loopGain.gain.value=0; this.loopGain.connect(this.lp);
+    for(const k of Object.keys(this.LOOPS)){
+      try{ const r=await fetch(this.LOOPS[k]); if(!r.ok) continue;
+        this.loops[k]=await c.decodeAudioData(await r.arrayBuffer()); }catch(e){}
+    }
+    if(this.loops[S.env]) this.env(S.env);
+  },
+  playLoop(name){
+    if(this.loopSrc){ try{ this.loopSrc.stop(); }catch(e){} this.loopSrc=null; }
+    const buf=this.loops[name]; if(!buf||!this.loopGain) return false;
+    const src=this.ctx.createBufferSource(); src.buffer=buf; src.loop=true; src.connect(this.loopGain); src.start();
+    this.loopSrc=src; return true;
+  },
   buildRain(){
     const c=this.ctx, len=c.sampleRate*3;
     const buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
@@ -1322,6 +1524,13 @@ const Sound = {
       this.bedFilter.frequency.linearRampToValueAtTime(b.f, t+1.6);
       this.bedFilter.Q.linearRampToValueAtTime(b.q, t+1.6);
     }
+    // a recorded loop, if one was shipped for this island, replaces the noise bed
+    if(this.playLoop(name)){
+      this.loopGain.gain.linearRampToValueAtTime(clamp(S.comfort.ambience,0,1)*.6, t+2.4);
+      if(!this.resting) this.rainGain.gain.linearRampToValueAtTime(0, t+2.4);
+      return;
+    }
+    if(this.loopGain) this.loopGain.gain.linearRampToValueAtTime(0, t+1.5);
     if(!this.resting) this.rainGain.gain.linearRampToValueAtTime(this.bedLevel, t+2.4);
   },
   chime(step){
@@ -1349,6 +1558,8 @@ function applyComfort(){
   root.setProperty("--warm", String(clamp(c.warm,0,.42)));
   root.setProperty("--motion", c.motion ? "1" : "0.0001");
   root.setProperty("--ui-scale", String(c.scale));
+  root.setProperty("--touch", c.bigtouch ? "1.32" : "1");
+  $("#app").classList.toggle("lefty", !!c.lefthand);
   if(c.palette && c.palette!=="twilight") $("#app").dataset.palette=c.palette;
   else delete $("#app").dataset.palette;
   document.body.style.setProperty("animation-play-state", c.motion?"running":"paused");
@@ -1386,14 +1597,12 @@ function setEnergy(mode, quiet){
   $("#dockDeeds").classList.toggle("hide", low);
   $("#dockRest").classList.toggle("hide", !low);
   $("#purseSd").style.display = low ? "none" : "";
-  $("#purseRp").style.display = low ? "" : (S.rest>0 ? "" : "none");
+  $("#purseRp").style.display = (low || S.rest>0 || S.restLifetime>0) ? "" : "none";
 
   if(low){
     Object.assign(S.comfort,{dim:Math.max(S.comfort.dim,.22)});
     applyComfort();
     if(!quiet) toast("Rain's on. Put the phone down if you like.", 4200);
-  }else if(!quiet){
-    if(S.rest>0) cashRest();
   }
   SESSION.armedSeed=null;
   renderPlots(); paintPurse(); save();
@@ -1450,9 +1659,10 @@ function islet(cx,cy,rx,ry){
       L${cx+rx*0.55} ${cy+ry*1.9} L${cx} ${cy+ry*2.7} L${cx-rx*0.55} ${cy+ry*1.9} Z" fill="var(--land)"/>`;
 }
 function lantern(x,y,s){
+  const c = (S && island() && island().lamp) || "var(--glow)";
   return `<g><path d="M${x} ${y} V${y-22*s}" stroke="var(--land)" stroke-width="${3*s}" stroke-linecap="round"/>
-    <circle cx="${x}" cy="${y-26*s}" r="${11*s}" fill="var(--glow)" opacity=".18"/>
-    <circle cx="${x}" cy="${y-26*s}" r="${5.5*s}" fill="var(--glow)"/>
+    <circle cx="${x}" cy="${y-26*s}" r="${11*s}" fill="${c}" opacity=".18"/>
+    <circle cx="${x}" cy="${y-26*s}" r="${5.5*s}" fill="${c}"/>
     <circle cx="${x}" cy="${y-26*s}" r="${2.4*s}" fill="#fff" opacity=".85"/></g>`;
 }
 function boulder(x,y,r,o){
@@ -1465,8 +1675,18 @@ function drawIsland(){
   const A = [];
   const CX=200, CY=184, RX=170, RY=74;          // the ground slab, in perspective
 
+  A.push(`<defs>
+    <radialGradient id="grassGrad" cx=".42" cy=".28" r=".75"><stop offset="0" stop-color="var(--grass-lit)"/><stop offset=".55" stop-color="var(--grass)"/><stop offset="1" stop-color="var(--land)"/></radialGradient>
+    <linearGradient id="rockGrad" x1="0" y1="0" x2=".25" y2="1"><stop offset="0" stop-color="var(--land)"/><stop offset="1" stop-color="var(--sky-top)"/></linearGradient>
+    <linearGradient id="rimGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="waterGrad" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="var(--water)" stop-opacity=".6"/></radialGradient>
+    <filter id="blur18" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="blur6" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>`);
   // — a soft halo behind everything, so the island sits in light
-  A.push(`<ellipse cx="${CX}" cy="${CY+6}" rx="${RX+34}" ry="${RY+30}" fill="var(--glow)" opacity=".05"/>`);
+  A.push(`<ellipse cx="${CX}" cy="${CY+6}" rx="${RX+34}" ry="${RY+30}" fill="var(--glow)" opacity=".06" filter="url(#blur18)"/>`);
+  // — its shadow on the air below
+  A.push(`<ellipse cx="${CX+14}" cy="386" rx="150" ry="16" fill="#000" opacity=".28" filter="url(#blur18)"/>`);
 
   // — far weather
   A.push('<ellipse cx="74" cy="92" rx="62" ry="16" fill="var(--land-lip)" opacity=".09"/>'+
@@ -1479,7 +1699,7 @@ function drawIsland(){
 
   // — the rock beneath: its top edge IS the front of the slab, so they read as one mass
   A.push(`<path d="M${CX-RX} ${CY} A${RX} ${RY} 0 0 0 ${CX+RX} ${CY}
-      L344 250 L300 316 L246 368 L${CX} 392 L152 370 L100 320 L58 252 Z" fill="var(--land)"/>`);
+      L344 250 L300 316 L246 368 L${CX} 392 L152 370 L100 320 L58 252 Z" fill="url(#rockGrad)"/>`);
   A.push(`<path d="M${CX} 392 L246 368 L300 316 L344 250 L${CX+RX} ${CY}
       A${RX} ${RY} 0 0 1 ${CX} ${CY+RY} Q${CX+20} 322 ${CX} 392 Z" fill="#000" opacity=".16"/>`);
   A.push('<path d="M58 252 L104 240 L128 306 L100 320Z" fill="#fff" opacity=".05"/>');
@@ -1492,8 +1712,14 @@ function drawIsland(){
 
   // — the ground, sitting on that rock
   A.push(`<ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="var(--land)"/>`);
-  A.push(`<ellipse cx="${CX}" cy="${CY-4}" rx="${RX-7}" ry="${RY-6}" fill="var(--grass)"/>`);
-  A.push(`<ellipse cx="${CX}" cy="${CY-24}" rx="${RX-46}" ry="${RY-32}" fill="var(--grass-lit)" opacity=".26"/>`);
+  A.push(`<ellipse cx="${CX}" cy="${CY-4}" rx="${RX-7}" ry="${RY-6}" fill="url(#grassGrad)"/>`);
+  A.push(`<ellipse cx="${CX}" cy="${CY-4}" rx="${RX-7}" ry="${RY-6}" fill="none" stroke="url(#rimGrad)" stroke-width="3"/>`);
+  // grass, in tufts
+  { let t=""; for(let i=0;i<70;i++){
+      const a=rnd(0,Math.PI*2), rr=Math.sqrt(rnd(0,1));
+      const x=CX+Math.cos(a)*(RX-24)*rr, y=CY-4+Math.sin(a)*(RY-14)*rr;
+      t+=`<path d="M${x-3} ${y} q3 -7 6 0" stroke="var(--grass-lit)" stroke-width="1.3" fill="none" opacity="${rnd(.25,.6).toFixed(2)}"/>`; }
+    A.push(t); }
   A.push(`<path d="M${CX-RX+16} ${CY+18} A${RX-16} ${RY-10} 0 0 0 ${CX+RX-16} ${CY+18}"
       stroke="var(--land-lip)" stroke-width="3" fill="none" opacity=".30"/>`);
 
@@ -1529,6 +1755,10 @@ function drawIsland(){
 
   A.push('<g data-poi="lantern" data-i="0">'+lantern(322,216,1)+'</g><g data-poi="lantern" data-i="1">'+lantern(80,176,.8)+'</g>');
   A.push(decorArt());
+  if(S.mosaic && S.mosaic.done){
+    A.push('<g transform="translate(150 118)"><rect x="-22" y="-16" width="44" height="32" rx="3" fill="var(--land-lip)"/>'+
+      Mosaic.PIC.map((row,r)=>row.split("").map((c,x)=> c==="0"?"":`<rect x="${-20+x*3.33}" y="${-14+r*2.8}" width="3.2" height="2.7" fill="${Mosaic.COL[c]}"/>`).join("")).join("")+'</g>');
+  }
 
   // — what makes each island its own place
   if(env==="alpine"){
@@ -1545,21 +1775,26 @@ function drawIsland(){
            '<path d="M62 46 v36 M338 34 v30 M196 28 v24" stroke="var(--land-lip)" '+
            'stroke-width="7" opacity=".28" stroke-linecap="round"/>');
   }
+  if(env==="moon"){
+    A.push('<circle cx="200" cy="196" r="26" fill="var(--water)" opacity=".25"/><circle cx="200" cy="196" r="16" fill="#fff" opacity=".35" filter="url(#blur6)"/>'+
+           '<circle cx="200" cy="196" r="20" fill="none" stroke="var(--land-lip)" stroke-width="3"/>'+
+           [...Array(14)].map((_,i)=>`<circle cx="${60+i*20}" cy="${150+(i%3)*8}" r="1.6" fill="#fff" opacity=".6"/>`).join(""));
+  }
   if(env==="tidal"){
     A.push(`<ellipse cx="${CX}" cy="${CY+14}" rx="${RX+24}" ry="${RY+10}" fill="var(--water)" opacity=".15"/>`+
            '<path d="M48 208 q38 -12 74 0 M266 220 q40 -12 76 0 M120 240 q36 -10 70 0" '+
            'stroke="#fff" stroke-width="3" fill="none" opacity=".38" stroke-linecap="round"/>');
   }
   if(env==="springs"){
-    A.push('<ellipse cx="292" cy="196" rx="40" ry="15" fill="var(--water)" opacity=".5"/>'+
-           '<ellipse cx="292" cy="194" rx="32" ry="11" fill="#fff" opacity=".2"/>'+
+    A.push('<ellipse cx="292" cy="196" rx="40" ry="15" fill="url(#waterGrad)"/>'+
+           '<ellipse cx="292" cy="190" rx="30" ry="8" fill="#fff" opacity=".18" filter="url(#blur6)"/>'+
            '<path d="M280 178 q-12 -26 6 -44 M306 182 q12 -22 -4 -40 M150 200 q-10 -20 5 -34" '+
            'stroke="#fff" stroke-width="6" fill="none" opacity=".15" stroke-linecap="round"/>');
   }
 
   $("#islandArt").innerHTML = A.join("");
   Sound.env(env);
-  $("#envName").textContent = PLACES[env].name;
+  $("#envName").textContent = island(env).name || PLACES[env].name;
   $("#app").dataset.env = env;
   renderGems();
 }
@@ -1583,7 +1818,44 @@ function renderGems(){
     box.appendChild(d);
   });
 }
+function makeSky(){
+  // painted once per palette change: nebula, a river of stars, an aurora,
+  // distant ranges at the bottom of the world and a glow where the sun went
+  const b=$("#skybg");
+  let big="";
+  for(let i=0;i<26;i++){
+    const x=rnd(0,1400), y=rnd(0,820), r=rnd(1.6,3.2), o=rnd(.5,.95);
+    big+=`<g opacity="${o.toFixed(2)}"><circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>
+      <path d="M${x-r*4} ${y} h${r*8} M${x} ${y-r*4} v${r*8}" stroke="#fff" stroke-width=".8" opacity=".55"/></g>`;
+  }
+  let dust="";
+  for(let i=0;i<220;i++){ dust+=`<circle cx="${rnd(0,1400)}" cy="${rnd(0,900)}" r="${rnd(.5,1.3)}" fill="#fff" opacity="${rnd(.15,.5).toFixed(2)}"/>`; }
+  b.innerHTML = `<svg viewBox="0 0 1400 1400" preserveAspectRatio="none">
+    <defs>
+      <radialGradient id="neb1" cx=".3" cy=".25" r=".45"><stop offset="0" stop-color="var(--petal)" stop-opacity=".22"/><stop offset="1" stop-color="var(--petal)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="neb2" cx=".78" cy=".18" r=".4"><stop offset="0" stop-color="var(--water)" stop-opacity=".20"/><stop offset="1" stop-color="var(--water)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="neb3" cx=".55" cy=".55" r=".5"><stop offset="0" stop-color="var(--glow)" stop-opacity=".10"/><stop offset="1" stop-color="var(--glow)" stop-opacity="0"/></radialGradient>
+      <linearGradient id="milky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".09"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="aur" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--leaf)" stop-opacity="0"/><stop offset=".3" stop-color="var(--leaf)" stop-opacity=".28"/><stop offset=".6" stop-color="var(--water)" stop-opacity=".22"/><stop offset="1" stop-color="var(--petal)" stop-opacity="0"/></linearGradient>
+      <linearGradient id="horizon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--glow)" stop-opacity="0"/><stop offset="1" stop-color="var(--glow)" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="range1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky-low)" stop-opacity=".9"/><stop offset="1" stop-color="var(--sky-top)" stop-opacity=".95"/></linearGradient>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="28"/></filter>
+      <filter id="softer" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="46"/></filter>
+    </defs>
+    <rect width="1400" height="1400" fill="url(#neb1)"/>
+    <rect width="1400" height="1400" fill="url(#neb2)"/>
+    <rect width="1400" height="1400" fill="url(#neb3)"/>
+    <path d="M-100 620 Q 500 360 900 300 T 1500 120 L1500 320 Q 900 480 500 620 T -100 780Z" fill="url(#milky)" filter="url(#soft)"/>
+    <g class="aurora"><path d="M-50 260 C 250 180, 450 330, 750 250 S 1250 170, 1450 260 L1450 420 C 1250 340, 1050 470, 750 400 S 250 350, -50 420Z" fill="url(#aur)" filter="url(#softer)"/></g>
+    <g>${dust}</g><g>${big}</g>
+    <rect y="1000" width="1400" height="400" fill="url(#horizon)"/>
+    <path d="M0 1400 L0 1250 L120 1190 L230 1230 L340 1150 L470 1210 L600 1120 L720 1200 L860 1140 L980 1210 L1120 1150 L1260 1220 L1400 1170 L1400 1400Z" fill="url(#range1)" opacity=".55"/>
+    <path d="M0 1400 L0 1310 L160 1270 L300 1320 L440 1250 L600 1310 L760 1260 L920 1330 L1080 1270 L1240 1320 L1400 1280 L1400 1400Z" fill="var(--sky-top)" opacity=".85"/>
+    <ellipse cx="700" cy="1400" rx="900" ry="120" fill="var(--sky-top)" opacity=".6" filter="url(#soft)"/>
+  </svg>`;
+}
 function makeStars(){
+  makeSky();
   const box = $("#stars"); box.innerHTML="";
   // three bands of cloud on very slow clocks
   [[8,110,.06],[34,150,.05],[58,130,.04]].forEach(([top,w,op],i)=>{
@@ -1629,8 +1901,12 @@ function leaf(x,y,ang,len,fill,op){
 }
 function plantSvg(p){
   const sp=SPECIES[p.sp], st=stageOf(p);
-  const stem=sp.stem, fl=sp.flower;
-  const shadow = `<ellipse cx="33" cy="80" rx="15" ry="4" fill="#000" opacity=".16"/>`;
+  const stem=sp.stem, fl=`url(#pg-${p.sp})`;
+  const defs = `<defs><radialGradient id="pg-${p.sp}" cx=".4" cy=".35" r=".75">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".28" stop-color="${sp.flower}"/>
+      <stop offset="1" stop-color="${sp.flower}" stop-opacity=".82"/></radialGradient>
+    <linearGradient id="sg-${p.sp}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${stem}"/><stop offset="1" stop-color="${stem}" stop-opacity=".7"/></linearGradient></defs>`;
+  const shadow = defs + `<ellipse cx="33" cy="81" rx="16" ry="4.5" fill="#000" opacity=".2"/>`;
   let inner="";
   if(st===0){
     inner = `<ellipse cx="33" cy="76" rx="8" ry="3.5" fill="${stem}" opacity=".35"/>
@@ -1646,23 +1922,24 @@ function plantSvg(p){
              <ellipse cx="33" cy="27" rx="6.5" ry="9.5" fill="${fl}" opacity=".55"/>
              <ellipse cx="33" cy="30" rx="4" ry="6" fill="${fl}" opacity=".8"/>`;
   }else{
-    const glow = `<circle cx="33" cy="26" r="22" fill="${fl}" opacity=".10"/>
-                  <circle cx="33" cy="26" r="15" fill="${fl}" opacity=".10"/>`;
+    const glow = `<circle cx="33" cy="26" r="22" fill="${sp.flower}" opacity=".12"/>
+                  <circle cx="33" cy="26" r="15" fill="${sp.flower}" opacity=".12"/>`;
     inner = glow +
             `<path d="M33 78 q-3 -22 0 -48" stroke="${stem}" stroke-width="3.2" fill="none" stroke-linecap="round"/>
              ${leaf(32,68,205,19,stem,.9)}${leaf(33,60,-25,18,stem,.85)}${leaf(31,52,215,14,stem,.7)}${leaf(33,45,-30,11,stem,.6)}` +
-            bloomForm(sp.form||"round", fl, stem);
+            bloomForm(sp.form||"round", fl, stem, sp.flower);
   }
   return `<svg class="sprite ${S.comfort.motion?"plant-sway":""}" viewBox="0 0 66 88">${shadow}${inner}</svg>`;
 }
 /* Each rare variety blooms into a different shape, not just a different colour. */
-function bloomForm(form, fl, stem){
+function bloomForm(form, fl, stem, flatColor){
+  const flat = flatColor || fl;    // halos want a plain colour even when petals use a gradient
   if(form==="bell"){
     const bell=(x,y,sc,op)=>`<g transform="translate(${x} ${y}) scale(${sc})" opacity="${op}">
       <path d="M-9 -12 q9 -8 18 0 q0 12 5 18 q-14 5 -28 0 q5 -6 5 -18Z" fill="${fl}"/>
       <path d="M-6 -10 q6 -5 12 0 q0 8 2 12 q-8 2 -16 0 q2 -4 2 -12Z" fill="#fff" opacity=".18"/>
       <circle cx="0" cy="8" r="2.4" fill="#fff" opacity=".8"/></g>`;
-    return `<circle cx="33" cy="24" r="15" fill="${fl}" opacity=".14"/>
+    return `<circle cx="33" cy="24" r="15" fill="${flat}" opacity=".14"/>
       <path d="M33 14 q-10 2 -14 10 M33 14 q10 2 14 10" stroke="${stem}" stroke-width="2" fill="none" stroke-linecap="round"/>
       ${bell(19,28,.8,.9)}${bell(47,28,.8,.9)}${bell(33,22,1,1)}`;
   }
@@ -1670,13 +1947,13 @@ function bloomForm(form, fl, stem){
     let pts="";
     for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2-Math.PI/2, r=i%2?5:14;
       pts += (33+Math.cos(a)*r).toFixed(1)+","+(26+Math.sin(a)*r).toFixed(1)+" "; }
-    return `<circle cx="33" cy="26" r="15" fill="${fl}" opacity=".15"/>
+    return `<circle cx="33" cy="26" r="15" fill="${flat}" opacity=".15"/>
       <polygon points="${pts}" fill="${fl}"/>
       <circle cx="33" cy="26" r="3.4" fill="#fff" opacity=".8"/>`;
   }
   if(form==="orb"){
-    return `<circle cx="33" cy="25" r="17" fill="${fl}" opacity=".14"/>
-      <circle cx="33" cy="25" r="11" fill="${fl}" opacity=".55"/>
+    return `<circle cx="33" cy="25" r="17" fill="${flat}" opacity=".14"/>
+      <circle cx="33" cy="25" r="11" fill="${flat}" opacity=".55"/>
       <circle cx="33" cy="25" r="7" fill="${fl}"/>
       <circle cx="29.5" cy="21.5" r="2.6" fill="#fff" opacity=".8"/>`;
   }
@@ -1688,7 +1965,7 @@ function bloomForm(form, fl, stem){
         <path d="M0 0 q-4 ${-len*0.45} 0 ${-len} q4 ${len*0.55} 0 ${len}Z" fill="${fl}" opacity="${(0.95-Math.abs(i)*0.1).toFixed(2)}"/>
         <path d="M0 -3 V${-len+4}" stroke="#fff" stroke-width=".8" opacity=".3"/></g>`;
     }
-    return `<circle cx="33" cy="26" r="16" fill="${fl}" opacity=".10"/><g>${f}</g>`;
+    return `<circle cx="33" cy="26" r="16" fill="${flat}" opacity=".10"/><g>${f}</g>`;
   }
   if(form==="spire"){
     let f="";
@@ -1696,9 +1973,9 @@ function bloomForm(form, fl, stem){
       const y = 14 + i*6, r = 3 + i*0.9;
       f += `<circle cx="${i%2?33-r*1.1:33+r*1.1}" cy="${y}" r="${r}" fill="${fl}" opacity="${(0.55+i*0.07).toFixed(2)}"/>`;
     }
-    return `<circle cx="33" cy="28" r="15" fill="${fl}" opacity=".10"/><g>${f}</g>`;
+    return `<circle cx="33" cy="28" r="15" fill="${flat}" opacity=".10"/><g>${f}</g>`;
   }
-  return `<circle cx="33" cy="26" r="13" fill="${fl}" opacity=".18"/>
+  return `<circle cx="33" cy="26" r="13" fill="${flat}" opacity=".18"/>
     <ellipse cx="33" cy="17" rx="5.5" ry="9" fill="${fl}"/>
     <ellipse cx="24" cy="26" rx="5.5" ry="9" fill="${fl}" transform="rotate(-62 24 26)"/>
     <ellipse cx="42" cy="26" rx="5.5" ry="9" fill="${fl}" transform="rotate(62 42 26)"/>
@@ -1781,13 +2058,13 @@ function tapPlot(i){
   }
   if(!p){
     if(SESSION.armedSeed){
-      const k=SESSION.armedSeed, rare=!!(SPECIES[k].sku || SPECIES[k].island);
+      const k=SESSION.armedSeed, rare=!!(SPECIES[k].sku || SPECIES[k].island || SPECIES[k].rest);
       if(!ownsPlant(k)){ SESSION.armedSeed=null; renderPlots(); return; }
       if(!rare){
         if((S.seeds[k]||0)<1){ SESSION.armedSeed=null; renderPlots(); return; }
         S.seeds[k]--; if(S.seeds[k]<=0) delete S.seeds[k];
       }
-      PL()[i]={sp:k, growth:0, stored:0};
+      PL()[i]={sp:k, growth:0, stored:0}; noteActivity("planting "+SPECIES[k].name.toLowerCase());
       if(!rare && !S.seeds[SESSION.armedSeed]) SESSION.armedSeed=null;
       Sound.chime(1); buzz(14);
       renderPlots(); save();
@@ -1810,6 +2087,7 @@ function tapPlot(i){
   }else{
     // tending: a tap is worth twenty seconds of weather
     p.growth += 20000;
+    if(seasonRate(p.sp)<1 && Math.random()<.3) toast(SPECIES[p.sp].name+" is waiting for "+SEASON_OF[p.sp]+". It grows slowly out of season, and then all at once.", 4200, "bloom");
     Sound.chime(0); buzz(8);
     floatNum(el, "\u2726");
     renderPlots(); save();
@@ -2055,6 +2333,14 @@ const VISITORS = {
          <path d="M44 26 l12 1" stroke="#141830" stroke-width="1.8" stroke-linecap="round"/>
          <path d="M28 26 q-6 -14 4 -16 q2 10 -4 16 M30 26 q6 -14 -4 -16" fill="#d8a7c4" opacity=".85"/>
          <path d="M20 32 q-8 4 -10 10 q8 -2 10 -6" fill="#6fae86"/>`},
+  owl:{name:"An owl", at:[68,30], gift:[18,26], rare:.5,
+    when:x=> x.night && S.restLifetime>=100,
+    lines:["She has been watching for some time. She approves of how little you have been doing.",
+           "One slow blink. That is the whole conversation, and it is enough."],
+    art:`<ellipse cx="30" cy="36" rx="14" ry="16" fill="#9a8a78"/><circle cx="30" cy="22" r="11" fill="#b0a08c"/>
+         <circle cx="25" cy="21" r="4.5" fill="#fff"/><circle cx="35" cy="21" r="4.5" fill="#fff"/><circle cx="25" cy="21" r="2" fill="#141830"/><circle cx="35" cy="21" r="2" fill="#141830"/>
+         <path d="M30 24 l-2 4 4 0Z" fill="#f2c078"/><path d="M20 14 l3 -7 3 6 M40 14 l-3 -7 -3 6" fill="#b0a08c"/>
+         <path d="M18 34 q0 14 8 16 M42 34 q0 14 -8 16" stroke="#7a6a58" stroke-width="2" fill="none"/>`},
   fox:{name:"A fox", at:[22,58], gift:[14,22], rare:.35,
     when:x=> x.blooms>=5,
     lines:["It came to see what all the light was about. It has decided the answer is nothing to worry over.",
@@ -2116,6 +2402,158 @@ function maybeVisitor(force){
   setTimeout(()=>{ if(b.isConnected){ b.classList.add("leaving"); setTimeout(()=>b.remove(),900);} }, 90000);
 }
 
+/* ---------- letters: the story, in the order it turns up ---------- */
+const LETTERS = [
+  {id:"first", where:"tucked under the lantern post", when:()=> Object.keys(S.journal.bloomed||{}).length>=1,
+   text:"If you are reading this, something has opened, and so you are a gardener now whether you meant to be or not.\n\nI kept these islands for a long time. I was not always well enough to do much, and I want you to know that it did not matter. The islands do not need much. They need someone to notice them, now and then, and to rest on them the rest of the time.\n\nThe wisps will come. Let them. — M."},
+  {id:"stone", where:"in the tumbler, under the grit", when:()=> S.polished.length>=1,
+   text:"I found the tumbler in the old placer claim and carried it home in pieces. It took most of a summer to make it turn again.\n\nHere is what I learned from it: you can wear anything smooth if you are patient and do not mind that it takes forty times longer than you thought. This applies to stones. It applies to other things. — M."},
+  {id:"rest", where:"folded into the resting panel", when:()=> S.restLifetime>=60,
+   text:"You have been resting here. Good.\n\nThere was a year I could not lift a watering can. I sat on the bench most days and watched the wisps do the work, and I felt like a fraud. Then the moonpetals opened anyway. Then the tide bells. Nothing I grew that year was less mine for having been grown lying down. I want that written somewhere in case nobody has said it to you. — M."},
+  {id:"fox", where:"left by the pond, weighted with a pebble", when:()=> !!(S.journal.visitors||{}).fox,
+   text:"So the fox has been. She came to me the first winter, when there were more blooms than I could tend and I had stopped trying. I think that is what she likes: a garden that has been let go of a little. She never stays long. She always comes back. — M."},
+  {id:"islands", where:"pinned to the deed of the new island", when:()=> Object.keys(PLACES).filter(k=>PLACES[k].cost!==undefined && ownsPlace(k)).length>=1,
+   text:"You have found the second island. There are more, drifting, and they come closer when there is enough light on the first one to be seen by.\n\nI made the Orchard Shelf from a hillside I loved as a girl and could no longer climb. The Reed Bank is a marsh I used to walk to. The mill is invented. Some things you can only have by making them. — M."},
+  {id:"hybrid", where:"in the seed hut, in a different hand", when:()=> Object.keys(S.journal.hybrids||{}).length>=1,
+   text:"Two flowers side by side long enough will sometimes make a third. I never learned the rule, only that it happens, and that it happens more when I am not watching for it.\n\nKeep the seed. Plant it somewhere the parents can see. I do not know if that matters. I do it anyway. — M."},
+  {id:"owl", where:"under the owl's tree, smelling of pine", when:()=> !!(S.journal.visitors||{}).owl,
+   text:"The owl came to me late, after the worst years, when I had learned how to lie still. I think she only comes to people who have. I am telling you this so that you know: she is not a reward for getting better. She is a reward for resting well while you were not. — M."},
+  {id:"last", where:"in the Moon Garden, where the light is", when:()=> ownsPlace("moon"),
+   text:"This is the last one. I am not going anywhere in particular; I am simply tired in the good way now, and the islands are yours.\n\nYou did not earn them by working. You earned them by keeping something alive on the days you could, and by resting on the days you could not, and by never once being told off for either. That was the whole design. — M."}
+];
+function checkLetters(){
+  LETTERS.forEach(L=>{
+    if(S.letters.includes(L.id)) return;
+    try{ if(!L.when()) return; }catch(e){ return; }
+    S.letters.push(L.id); S.since.letters++; save();
+    Sound.chime(3);
+    toast("A letter, "+L.where+". It is in your Field Notes.", 5600, "star");
+  });
+}
+
+/* ---------- living time: the hour, the season, the weather ---------- */
+const Clock = {
+  acc:0, weather:null,
+  hour(){ return new Date().getHours(); },
+  part(){ const h=this.hour(); return h<5?"night":h<8?"dawn":h<17?"day":h<20?"dusk":"night"; },
+  season(){ const m=new Date().getMonth(); return m<=1||m===11?"winter":m<=4?"spring":m<=7?"summer":"autumn"; },
+  apply(){
+    const app=$("#app");
+    if(app.dataset.part!==this.part()){ app.dataset.part=this.part(); }
+    if(app.dataset.season!==this.season()){ app.dataset.season=this.season(); }
+  },
+  tick(dt){
+    this.acc+=dt;
+    if(this.acc<30000) return;
+    this.acc=0; this.apply(); checkLetters(); Resident.tick();
+    // a spell of weather now and then, in season
+    if(!this.weather && S.energy!=="low" && Math.random()<.08){
+      const w={winter:"snow", spring:"petals", summer:"warmrain", autumn:"leaves"}[this.season()];
+      this.start(w);
+    }
+  },
+  start(kind){
+    this.weather=kind;
+    const box=$("#weather"); box.className="weather "+kind; box.innerHTML="";
+    const n= kind==="warmrain"?40:26;
+    for(let i=0;i<n;i++){
+      const d=document.createElement("i");
+      d.style.left=rnd(-4,104)+"%"; d.style.animationDuration=rnd(kind==="warmrain"?1.6:6, kind==="warmrain"?3:12)+"s";
+      d.style.animationDelay=rnd(0,8)+"s"; d.style.opacity=rnd(.35,.85);
+      if(kind==="leaves"||kind==="petals") d.style.setProperty("--sway", rnd(-40,40)+"px");
+      box.appendChild(d);
+    }
+    box.classList.add("on");
+    const lines={snow:"Snow. It will not settle; it never does up here.", petals:"Blossom on the wind from somewhere upwind of you.",
+      warmrain:"Warm rain, the kind you can sit out in.", leaves:"Leaves coming down from trees that are not on this island."};
+    toast(lines[kind], 4200, "info");
+    if(kind==="warmrain"){ Sound.rain(true); }
+    setTimeout(()=> this.stop(), rnd(90000,180000));
+  },
+  stop(){
+    const box=$("#weather"); box.classList.remove("on");
+    if(this.weather==="warmrain" && S.energy!=="low") Sound.rain(false);
+    setTimeout(()=>{ box.innerHTML=""; }, 2000);
+    this.weather=null;
+  }
+};
+/* a plant out of its season grows at a quarter pace and says so */
+const SEASON_OF = {frostbloom:"winter", glacierlily:"winter", snowlily:"winter", frostbell:"winter",
+                   sunmantle:"summer", emberlace:"summer", windfall:"autumn", copperthistle:"autumn",
+                   skygentian:"spring", moonpetal:null};
+function seasonRate(sp){ const sn=SEASON_OF[sp]; return (!sn || sn===Clock.season()) ? 1 : .25; }
+
+/* ---------- while you were away ---------- */
+function noteActivity(what){ S.last={what, t:now()}; }
+function returnCard(){
+  const away = S.lastSeen ? now()-S.lastSeen : 0;
+  const z=S.since;
+  if(away < 2*3600000 && !z.hybrids.length) return;
+  const bits=[];
+  if(S.last && S.last.what) bits.push("You were "+S.last.what+".");
+  if(z.blooms) bits.push(z.blooms+(z.blooms===1?" flower opened.":" flowers opened."));
+  if(z.hybrids.length) bits.push("A new seed appeared: "+z.hybrids.map(h=>SPECIES[h].name).join(", ")+".");
+  if(z.stones) bits.push(z.stones+(z.stones===1?" stone finished polishing.":" stones finished polishing."));
+  if(z.letters) bits.push("A letter turned up.");
+  if(S.resident && S.resident.name) bits.push(S.resident.name+" kept the lanterns lit.");
+  if(!bits.length) return;
+  const hrs=Math.round(away/3600000);
+  const when = hrs<48 ? hrs+" hours" : Math.round(hrs/24)+" days";
+  openSheet("While you were away", when+", give or take",
+    '<div class="note">Nothing needed you. Here is what happened anyway.</div>'+
+    bits.map(b=>`<div class="tally" style="justify-content:flex-start"><span>${b}</span></div>`).join("")+
+    '<button class="btn warm" data-close="1" style="margin-top:16px">Carry on</button>');
+  S.since={blooms:0, hybrids:[], stones:0, letters:0}; save();
+}
+
+/* ---------- the resident wisp: lives here, has a name, keeps no score ---------- */
+const Resident = {
+  LINES_BACK:{
+    0:["Back already. Good. Nothing has happened, in the best way.","It was just thinking about you. Now it does not have to."],
+    1:["A day. The tide bells rang twice and it saved you the second one.","It kept a leaf for you. Here."],
+    3:["A few days. It did not count, exactly. It noticed.","The lanterns stayed lit. It saw to that."],
+    7:["A week or more. It is not a complaint; it is a welcome.","It has stories. None of them are urgent."]
+  },
+  LINES_TIME:{dawn:"The light is coming up. It likes this part.", day:"It is dozing in the warm. It will not mind.",
+              dusk:"This is its favourite hour and it would like you to know.", night:"It is brightest now. So are you, it says."},
+  tick(){
+    if(!S.resident && Object.keys(S.journal.bloomed||{}).length>=1){
+      S.resident={name:null, born:now(), seen:now()}; save();
+      this.render();
+      toast("A wisp has decided to stay. Tap it to give it a name.", 5600, "visitor");
+    }
+    this.render();
+  },
+  render(){
+    const box=$("#resident"); if(!box) return;
+    if(!S.resident){ box.innerHTML=""; return; }
+    if(box.children.length) return;
+    const b=document.createElement("button");
+    b.className="resident"; b.style.left="84%"; b.style.top="40%";
+    b.setAttribute("aria-label", (S.resident.name||"Your wisp")+". Tap to talk.");
+    b.innerHTML=`<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="var(--glow)" opacity=".14"/>
+      <circle cx="30" cy="30" r="12" fill="var(--glow)" opacity=".5"/><circle cx="30" cy="30" r="6" fill="#fff" opacity=".95"/>
+      <path d="M30 42 q-4 8 0 14 q4 -6 0 -14" fill="var(--glow)" opacity=".45"/></svg><span class="tag">${S.resident.name||"?"}</span>`;
+    b.addEventListener("click", ()=> this.talk());
+    box.appendChild(b);
+  },
+  talk(){
+    if(!S.resident.name){ this.nameIt(); return; }
+    const days=Math.floor((now()-S.resident.seen)/86400000);
+    const key = days>=7?7:days>=3?3:days>=1?1:0;
+    const line = pick(this.LINES_BACK[key]) + " " + this.LINES_TIME[Clock.part()];
+    S.resident.seen=now(); gainSd(1,null); save(); Sound.chime(2); buzz(6);
+    toast(S.resident.name+": "+line, 5200, "visitor");
+  },
+  nameIt(){
+    openSheet("A name for your wisp", "It will keep it",
+      `<div class="note">It has been here since the first flower opened. It would like something to be called.</div>
+       <input id="wispName" type="text" maxlength="18" placeholder="Something short" style="width:100%;min-height:56px;border-radius:16px;border:1px solid var(--vapor-line);background:var(--vapor);color:var(--ink);padding:0 16px;font:inherit;font-size:1.05rem;margin-bottom:12px">
+       <button class="btn warm" data-wispname="1">That is its name</button>`);
+    setTimeout(()=>{ const i=$("#wispName"); i&&i.focus(); }, 400);
+  }
+};
+
 /* ---------- the clock ---------- */
 function applyGrowth(ms, rate){
   let bloomed = 0;
@@ -2124,7 +2562,7 @@ function applyGrowth(ms, rate){
   all.forEach(p=>{
     if(!p||!p.sp) return;
     const sp=SPECIES[p.sp], was=stageOf(p);
-    p.growth += ms*rate;
+    p.growth += ms*rate*seasonRate(p.sp);
     if(stageOf(p)===3){
       if(was<3){ bloomed++; S.journal.bloomed[p.sp]=true; }
       const over = p.growth - sp.bloom;
@@ -2144,12 +2582,22 @@ function tick(){
   if(dt<0 || dt>60000) dt = 1000;          // tab was backgrounded; offline math handles the rest
   const mode = MOODS[S.energy||"mid"];
   const b = applyGrowth(dt, mode.rate);
-  if(b>0){ Sound.chime(5); toast("Something opened.", 2600); }
+  if(b>0){ Sound.chime(5); toast("Something opened.", 2600, "bloom"); }
   autoPolish(dt);
+  SESSION.pollen=(SESSION.pollen||0)+dt;
+  if(SESSION.pollen>=60000){
+    const hrs=SESSION.pollen/3600000; SESSION.pollen=0;
+    crossPollinate(hrs).forEach(h=>{
+      Sound.chime(5); buzz(20);
+      toast("Something new: a "+h.name+" seed, from the "+SPECIES[h.parents[0]].name+" and the "+SPECIES[h.parents[1]].name+" growing side by side.", 6000, "bloom");
+    });
+  }
+  Clock.tick(dt);
 
   if(S.energy==="low"){
     SESSION.restAccum += dt;
-    while(SESSION.restAccum >= 6000){ SESSION.restAccum -= 6000; S.rest += (island().decor.sundial!==undefined ? 1.5 : 1); }
+    while(SESSION.restAccum >= 6000){ SESSION.restAccum -= 6000;
+      const r=(island().decor.sundial!==undefined ? 1.5 : 1); S.rest += r; S.restLifetime += r; }
     // gather light for you, so nothing needs tapping
     Object.keys(S.islands).forEach(k=> S.islands[k].plots.forEach(p=>{ if(p&&p.sp&&p.stored>=1){
       const n=Math.floor(p.stored); S.sd+=n; p.taken=(p.taken||0)+n; p.stored-=n; } }));
@@ -2166,8 +2614,10 @@ function catchUp(){
   if(!S.lastSeen) return;
   const away = clamp(now()-S.lastSeen, 0, 1000*60*60*72);
   if(away < 60000) return;
-  applyGrowth(away, S.upgrades.barrel?1:.85);   // time away is not time lost
+  const bloomedAway = applyGrowth(away, S.upgrades.barrel?1:.85);   // time away is not time lost
   autoPolish(away);
+  S.since.blooms += bloomedAway;
+  crossPollinate(Math.min(away/3600000, 48)).forEach(h=> S.since.hybrids.push(h.id));
   const mins = Math.round(away/60000);
   const txt = mins<90 ? mins+" minutes" : mins<2880 ? Math.round(mins/60)+" hours" : Math.round(mins/1440)+" days";
   setTimeout(()=> toast("The garden kept growing for " + txt + " while you were away.", 4800), 1400);
@@ -2175,7 +2625,7 @@ function catchUp(){
 function paintPurse(){
   $("#sdVal").textContent = fmt(S.sd);
   $("#rpVal").textContent = fmt(S.rest);
-  if(S.energy!=="low") $("#purseRp").style.display = S.rest>0 ? "" : "none";
+  if(S.energy!=="low") $("#purseRp").style.display = (S.rest>0||S.restLifetime>0) ? "" : "none";
 }
 
 /* ============================================================
@@ -2198,11 +2648,21 @@ function decorArt(){
   });
   return out.join("");
 }
-function buyDecor(k){
+function buyDecor(k, spot){
   const it=DECOR[k], d=island().decor;
   if(d[k]!==undefined){ toast(it.name+" is already here.", 2800, "info"); return; }
-  const used=Object.values(d), spot=[0,1,2].find(i=>!used.includes(i));
-  if(spot===undefined){ toast("No room on this island. Each has three places, and they are all taken.", 4000, "info"); return; }
+  const used=Object.values(d), free=[0,1,2].filter(i=>!used.includes(i));
+  if(!free.length){ toast("No room on this island. Each has three places, and they are all taken.", 4000, "info"); return; }
+  if(spot===undefined){
+    if(free.length===1) spot=free[0];
+    else{
+      const names=["the left rim","the right rim","the back, by the trees"];
+      openSheet("Where should it go?", it.name,
+        '<div class="note">'+it.note+'</div>'+
+        free.map(i=>`<button class="btn" data-spot="${i}" data-decorkey="${k}" style="margin-bottom:10px">On ${names[i]}</button>`).join(""));
+      return;
+    }
+  }
   if(S.sd<it.cost){ toast(it.name+" is "+it.cost+" stardust. You have "+fmt(S.sd)+".", 3600, "info"); return; }
   S.sd-=it.cost; d[k]=spot; paintPurse(); save();
   Sound.chime(4); buzz(16); drawIsland(); openHut("decor");
@@ -2218,7 +2678,7 @@ function buyUpgrade(k){
 }
 function hutTabs(cur){
   return `<div class="pills" style="margin-top:0">
-    ${[["seeds","Seeds"],["decor","Decor"],["upgrades","Upgrades"]].map(([k,n])=>
+    ${[["seeds","Seeds"],["decor","Decor"],["upgrades","Upgrades"],["rest","Rest"]].map(([k,n])=>
       `<button class="pill" data-hut="${k}" aria-pressed="${cur===k?"true":"false"}">${n}</button>`).join("")}</div>`;
 }
 function openHut(tab){
@@ -2227,7 +2687,10 @@ function openHut(tab){
   let html=hutTabs(tab);
   if(tab==="decor"){
     const d=island().decor, used=Object.keys(d).length;
-    html+=`<div class="note">Things for ${PLACES[S.env].name}. ${used} of 3 places used. Each brings a particular visitor closer.</div>`;
+    html+=`<div class="note">Things for ${island().name||PLACES[S.env].name}. ${used} of 3 places used. Each brings a particular visitor closer.</div>`;
+    html+='<div class="lab" style="font-size:.9rem;color:var(--ink);margin-bottom:6px">Lantern light on this island</div><div class="pills">'+
+      [["default","As it comes","var(--glow)"],["#f0a8a0","Rose","#f0a8a0"],["#9fdcf0","Aqua","#9fdcf0"],["#c8b0e8","Violet","#c8b0e8"],["#a8f0a0","Green","#a8f0a0"]].map(([v,n,c])=>
+        `<button class="pill" data-lamp="${v}" aria-pressed="${(island().lamp||"default")===v?"true":"false"}"><span class="sw" style="background:${c}"></span>${n}</button>`).join("")+'</div>';
     Object.keys(DECOR).forEach(k=>{
       const it=DECOR[k], have=d[k]!==undefined, can=S.sd>=it.cost;
       html+=`<button class="row ${have?"pick":""}" data-decor="${k}" ${have||!can?"disabled":""}>
@@ -2235,6 +2698,23 @@ function openHut(tab){
         <span class="body"><span class="name">${it.name}</span><span class="meta">${it.note}</span></span>
         <span class="cost">${have?"here":it.cost}</span></button>`;
     });
+  }
+  if(tab==="rest"){
+    html+=`<div class="note">Paid for only with rest — ${fmt(S.rest)} of it, at the moment. Stardust does not work here, and nothing here can be bought any faster than by resting.</div>`;
+    REST_PLANTS.forEach(k=>{
+      const sp=SPECIES[k], have=ownsPlant(k), can=S.rest>=sp.rest;
+      html+=`<button class="row ${have?"pick":""}" data-${have?"plantseed":"restbuy"}="${k}" ${(!have&&!can)?"disabled":""}>
+        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V44" stroke="${sp.stem}" stroke-width="3"/>
+          <g transform="translate(0,14) scale(0.78) translate(9,0)">${bloomForm(sp.form,sp.flower,sp.stem)}</g></svg>
+        <span class="body"><span class="name">${sp.name}</span><span class="meta">${sp.note}</span></span>
+        <span class="cost">${have?"plant":sp.rest+" rest"}</span></button>`;
+    });
+    const mp=PLACES.moon, haveMoon=ownsPlace("moon");
+    html+=`<button class="row ${haveMoon?"pick":""}" data-place="moon" ${haveMoon?"":""}>
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--ink-soft)" stroke-width="1.4"><circle cx="22" cy="22" r="12"/><path d="M26 12a10 10 0 1 0 6 16"/></svg>
+      <span class="body"><span class="name">${mp.name}</span><span class="meta">${mp.blurb}</span></span>
+      <span class="cost">${haveMoon?"visit":mp.restCost+" rest"}</span></button>`;
+    html+=`<div class="note" style="margin-top:14px">The owl comes to gardens where at least a hundred rest has been gathered, and only after dark. ${S.restLifetime>=100?"Yours qualifies.":"Yours has "+fmt(S.restLifetime)+" so far."}</div>`;
   }
   if(tab==="upgrades"){
     html+='<div class="note">Permanent, and they follow you to every island.</div>';
@@ -2249,6 +2729,7 @@ function openHut(tab){
   openSheet("The Hut", "You have " + fmt(S.sd) + " stardust", html);
 }
 function openSeeds(){
+  noteActivity("in the seed hut");
   const have = Object.keys(S.seeds).filter(k=>S.seeds[k]>0);
   let html = hutTabs("seeds");
   if(have.length){
@@ -2271,7 +2752,7 @@ function openSeeds(){
     html += `<button class="row" data-buyseed="${k}" ${can?"":"disabled"}>
       <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V40" stroke="${sp.stem}" stroke-width="3"/><circle cx="33" cy="30" r="9" fill="${sp.flower}"/></svg>
       <span class="body"><span class="name">${sp.name}</span>
-      <span class="meta">Blooms in about ${Math.round(sp.bloom/60000)} min of weather &middot; gives ${sp.gift} light</span></span>
+      <span class="meta">Blooms in about ${Math.round(sp.bloom/60000)} min of weather &middot; gives ${sp.gift} light${SEASON_OF[k]?" &middot; a "+SEASON_OF[k]+" plant":""}</span></span>
       <span class="cost">${sp.cost}</span></button>`;
   });
   // rare varieties — bought once with money, then planted as often as you like
@@ -2327,6 +2808,9 @@ function openPastimes(){
   const solved = Object.keys(S.skies).length;
   const html = `
     <div class="note">None of these can be failed, timed, or lost. Leave in the middle of one and it waits.</div>
+    <div class="lab" style="font-size:.9rem;color:var(--ink);margin-bottom:6px">How much thinking today?</div>
+    <div class="pills">${[["gentle","Gentle"],["curious","Curious"],["absorbing","Absorbing"]].map(([k,n])=>
+      `<button class="pill" data-mind="${k}" aria-pressed="${(S.comfort.mind||"curious")===k?"true":"false"}">${n}</button>`).join("")}</div>
     <button class="row" data-open-journal="1" style="border-color:var(--vapor-line)">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><path d="M10 6h20l6 6v26H10Z"/><path d="M16 20h14M16 27h14M16 34h9"/></svg>
       <span class="body"><span class="name">Field Notes</span>
@@ -2351,10 +2835,26 @@ function openPastimes(){
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><path d="M16 12h12l4 20q-10 5-20 0Z"/><path d="M18 10h8M22 6v4"/></svg>
       <span class="body"><span class="name">Lighting the Lanterns</span>
       <span class="meta">${S.journal.lamps||0} rows lit &middot; tap one, its neighbours change &middot; the only pastime with a wrong move, and a nudge to undo it</span></span></button>
+    <button class="row pick" data-open="pools">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--water)" stroke-width="1.5"><path d="M8 30q14-8 28 0M10 22q12-6 24 0"/><circle cx="18" cy="14" r="3"/><circle cx="28" cy="15" r="3"/></svg>
+      <span class="body"><span class="name">Tide Pools</span>
+      <span class="meta">${S.journal.pools||0} shores cleared &middot; turn over rocks, find the pairs</span></span></button>
+    <button class="row pick" data-open="stream">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--water)" stroke-width="1.5"><path d="M6 22h10v-10h10v20h10"/></svg>
+      <span class="body"><span class="name">Stream Stones</span>
+      <span class="meta">${S.journal.streams||0} channels run &middot; turn the stones, bring the water across</span></span></button>
+    <button class="row pick" data-open="jar">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><path d="M16 10h12v4q6 4 6 12v10q0 4-4 4H14q-4 0-4-4V26q0-8 6-12Z"/><circle cx="22" cy="28" r="2" fill="var(--glow)"/></svg>
+      <span class="body"><span class="name">Firefly Jar</span>
+      <span class="meta">Slow fireflies, a jar, and then letting them go</span></span></button>
     <button class="row pick" data-open="clouds">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--ink-soft)" stroke-width="1.5"><path d="M12 30a6 6 0 0 1 2-11 8 8 0 0 1 15-2 6 6 0 0 1 4 13H12Z"/></svg>
       <span class="body"><span class="name">Cloud Shapes</span>
       <span class="meta">Six clouds, every one of them something &middot; find the one that is the thing</span></span></button>
+    <button class="row pick" data-open="mosaic">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--petal)" stroke-width="1.5"><path d="M8 8h10v10H8ZM26 8h10v10H26ZM8 26h10v10H8ZM26 26h10v10H26Z"/></svg>
+      <span class="body"><span class="name">The Mosaic</span>
+      <span class="meta">${S.mosaic?(S.mosaic.done?"finished":S.mosaic.laid.length+" of 120 stones"):"not started"} &middot; six a day &middot; the one thing here meant to take weeks</span></span></button>
     <button class="row pick" data-open="trail">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--petal)" stroke-width="1.5"><path d="M8 34l8-6 6 4 6-10 8 6"/></svg>
       <span class="body"><span class="name">Trail Expeditions</span>
@@ -2387,10 +2887,18 @@ function openJournal(){
     ["Cloud shapes found", j.clouds||0],
     ["Echoes played back", j.echoes||0],
     ["Lantern rows lit", j.lamps||0],
+    ["Tide pools cleared", j.pools||0],
+    ["Channels run", j.streams||0],
+    ["Fireflies let go", j.fireflies||0],
     ["Moon looked at", j.moon||0],
     ["Lanterns read in the sky", j.lanterns||0],
     ["Rest turned to stardust", fmt(S.restLifetime)]
   ];
+  if(S.letters.length){
+    html+='<div class="lab" style="color:var(--ink);margin:16px 0 8px">Letters</div>';
+    S.letters.forEach(id=>{ const L=LETTERS.find(x=>x.id===id); if(!L) return;
+      html+=`<div class="letter"><div class="meta">Found ${L.where}</div>${L.text.split("\\n\\n").map(p=>"<p>"+p+"</p>").join("")}</div>`; });
+  }else html+='<div class="note" style="margin-top:14px">Letters turn up in the garden now and then. None yet.</div>';
   html+='<div class="lab" style="color:var(--ink);margin:16px 0 8px">Tally</div>';
   html+=rows.map(r=>`<div class="tally"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("");
   openSheet("Field Notes", "Seen, grown and made", html);
@@ -2406,7 +2914,7 @@ function openResting(){
   const running = rough.filter(s=>s.auto).length;
   let html = '<div class="note">Nothing here needs you. The rain is watering, the plants are growing, and the light is being gathered for you.</div>';
   html += '<div class="row" style="pointer-events:none"><span class="body"><span class="name">Rest gathered: ' +
-          fmt(S.rest) + '</span><span class="meta">It becomes stardust when you tell me your energy has come back.</span></span></div>';
+          fmt(S.rest) + '</span><span class="meta">Rest buys what stardust cannot: the night plants, the Moon Garden, and the owl. See the Rest shelf in the Hut.</span></span></div>';
   if(rough.length){
     html += `<button class="row pick" data-tumbleall="1">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><circle cx="22" cy="22" r="15"/><path d="M15 26l5-8 6 5 4-6"/></svg>
@@ -2426,10 +2934,11 @@ function openResting(){
 function openPlaces(){
   let html = '<div class="note">Islands you own can be visited any time, and everything keeps growing on the ones you are not looking at.</div>';
   Object.keys(PLACES).forEach(k=>{
-    const p=PLACES[k], owned=ownsPlace(k), here=S.env===k;
+    const p=Object.assign({}, PLACES[k], island(k).name?{name:island(k).name}:{}), owned=ownsPlace(k), here=S.env===k;
     let cost="";
     if(owned) cost = here ? "" : "visit";
     else if(p.cost!==undefined) cost = p.cost+" &#10022;";
+    else if(p.restCost!==undefined) cost = p.restCost+" rest";
     else cost = "in a pack";
     html += `<button class="row ${here?"pick":""}" data-place="${k}" ${(!owned && p.pack)?"disabled":""}>
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--ink-soft)" stroke-width="1.4"><path d="M6 30c6-10 11-14 16-14s10 4 16 14c-6 6-11 8-16 8s-10-2-16-8Z"/></svg>
@@ -2437,6 +2946,8 @@ function openPlaces(){
       <span class="meta">${p.blurb}${islandPlantNote(k)}</span></span>
       <span class="cost">${cost}</span></button>`;
   });
+  html += `<button class="btn quiet" data-rename="1">Rename ${island().name||PLACES[S.env].name}</button>
+    <button class="btn" data-postcard="1" style="margin:10px 0 4px">Make a postcard of this island</button>`;
   html += '<div class="divider"></div><div class="note">Two packs, one purchase each, never expiring. Every accessibility feature is in the free game.</div>';
   Object.keys(PACKS).forEach(sku=>{
     const pk=PACKS[sku], have=owns(sku) || pk.islands.every(ownsPlace);
@@ -2491,6 +3002,8 @@ function renderComfort(){
       <input type="range" min="90" max="140" value="${Math.round(c.scale*100)}" data-slider="scale" aria-label="Text size">
     </div>
     <div class="divider"></div>
+    ${tog("bigtouch", c.bigtouch, "Bigger things to tap", "Beds, buttons and visitors about a third larger.")}
+    ${tog("lefthand", c.lefthand, "Left-handed", "Mirrors the bottom row so the busy buttons sit under a left thumb.")}
     ${tog("chimes", c.chimes, "Little chimes", "The small notes when something happens. Off leaves the music and weather alone.")}
     ${tog("soften", c.soften, "Soften high sounds", "Takes the top edge off everything. Helps on migraine days.")}
     ${tog("motion", c.motion, "Movement", "Turn off and the island holds still.")}
@@ -2661,7 +3174,7 @@ function autoPolish(dt){
   S.stones.forEach((s,i)=>{
     if(s.auto && s.work>0){
       s.work -= dt/900;
-      if(s.work<=0){ s.work=0; const keep=SESSION.tumblerStone; SESSION.tumblerStone=i; Tumbler.finish(); SESSION.tumblerStone=keep; done=true; }
+      if(s.work<=0){ s.work=0; const keep=SESSION.tumblerStone; SESSION.tumblerStone=i; Tumbler.finish(); SESSION.tumblerStone=keep; done=true; S.since.stones++; }
     }
   });
   if(done) save();
@@ -2798,6 +3311,7 @@ const Sky = {
 const Trail = {
   t:null, node:null, log:[],
   open(){
+    noteActivity("out on a trail");
     const t = pick(TRAILS);
     this.t=t; this.node=t.start; this.log=[];
     $("#trailTitle").textContent=t.title;
@@ -2902,6 +3416,7 @@ const Trail = {
 const Chimes = {
   NOTES:[261.6,293.7,329.6,392,440,523.3,587.3],
   open(){
+    noteActivity("playing the wind chimes");
     showMg("mgChimes");
     if(!this.bound){ this.build(); this.bound=true; }
     this.echo=null; this.status();
@@ -2929,7 +3444,7 @@ const Chimes = {
      a wrong note replays the phrase; nothing else happens. */
   echoStart(){
     if(this.wind){ clearTimeout(this.wind); this.wind=null; $("#chimesWind").textContent="Let the wind play them"; }
-    this.echo={len:3, seq:[], pos:0, listening:false};
+    this.echo={len:byMind(2,3,4), seq:[], pos:0, listening:false};
     this.echoNew();
   },
   echoNew(){
@@ -2979,17 +3494,19 @@ const Sorter = {
   KINDS:[["rose","#d8a7c4"],["amber","#f2c078"],["aqua","#8fd9b6"],["sky","#9fd6e8"],["moon","#efe3f5"]],
   bowls:[], tray:[], sel:null, left:0, done:0,
   open(){
+    noteActivity("sorting seeds");
     showMg("mgSort");
     if(!this.bound){ this.bind(); this.bound=true; }
     this.round();
   },
   round(){
-    const ks=this.KINDS.slice().sort(()=>Math.random()-.5).slice(0,3);
+    const ks=this.KINDS.slice().sort(()=>Math.random()-.5).slice(0,byMind(2,3,4));
     this.bowls=ks.map(k=>({kind:k[0], color:k[1], n:0}));
-    this.left=12; this.done=0; this.tray=[]; this.sel=null;
+    this.total=byMind(8,12,16); this.left=this.total; this.done=0; this.tray=[]; this.sel=null;
+    $("#bowls").style.gridTemplateColumns="repeat("+ks.length+",1fr)";
     this.refill(); this.render();
     $("#sortMore").style.display="none";
-    $("#sortStatus").textContent="Twelve seeds, three bowls, all the time in the world.";
+    $("#sortStatus").textContent=this.total+" seeds, "+ks.length+" bowls, all the time in the world.";
   },
   refill(){ while(this.tray.length<6 && this.left>0){ const b=pick(this.bowls);
       this.tray.push({kind:b.kind, color:b.color, r:rnd(.7,1), tilt:rnd(-30,30)}); this.left--; } },
@@ -3030,7 +3547,7 @@ const Sorter = {
         Sound.chime(1+Math.floor(this.done/4)); buzz(8);
         this.refill(); this.render();
         if(this.tray.length===0) this.finish();
-        else $("#sortStatus").textContent = this.done+" of 12 in their bowls.";
+        else $("#sortStatus").textContent = this.done+" of "+this.total+" in their bowls.";
       }else{
         const el=$$("#tray .seed")[this.sel];
         el.classList.add("wrong"); setTimeout(()=>el.classList.remove("wrong"),500);
@@ -3044,7 +3561,7 @@ const Sorter = {
     const k=pick(Object.keys(SPECIES).filter(x=>SPECIES[x].cost>0));
     S.seeds[k]=(S.seeds[k]||0)+1;
     paintPurse(); save(); Sound.chime(5); buzz(20);
-    $("#sortStatus").textContent="All twelve home. +15 stardust, and a "+SPECIES[k].name+" seed fell out of the tray.";
+    $("#sortStatus").textContent="All home. +15 stardust, and a "+SPECIES[k].name+" seed fell out of the tray.";
     $("#sortMore").style.display="";
   }
 };
@@ -3052,13 +3569,13 @@ const Sorter = {
 /* ============ LIGHTING THE LANTERNS ============ */
 const Lamps = {
   n:3, grid:[], solution:new Set(), solved:0,
-  open(){ showMg("mgLamps"); if(!this.bound){ this.bind(); this.bound=true; } this.fresh(); },
+  open(){ noteActivity("lighting lanterns"); showMg("mgLamps"); if(!this.bound){ this.bind(); this.bound=true; } this.fresh(); },
   fresh(){
-    this.n = this.solved>=3 ? 4 : 3;
+    this.n = byMind(3, this.solved>=3?4:3, this.solved>=2?5:4);
     const N=this.n*this.n;
     this.grid=new Array(N).fill(true); this.solution=new Set();
     // scramble by tapping: every scramble is solvable by undoing the taps
-    const taps = this.n===3 ? 3+Math.floor(Math.random()*3) : 4+Math.floor(Math.random()*4);
+    const taps = this.n===3 ? 3+Math.floor(Math.random()*3) : this.n===4 ? 4+Math.floor(Math.random()*4) : 6+Math.floor(Math.random()*5);
     while(this.solution.size<taps){ const i=Math.floor(Math.random()*N); if(this.solution.has(i)) continue; this.solution.add(i); this.flip(i); }
     this.render();
     $("#lampsStatus").textContent = "";
@@ -3093,7 +3610,7 @@ const Lamps = {
   },
   win(){
     this.solved++;
-    const g = this.n===3 ? 12 : 20;
+    const g = this.n===3 ? 12 : this.n===4 ? 20 : 32;
     S.sd+=g; S.journal.lamps=(S.journal.lamps||0)+1; paintPurse(); save();
     Sound.chime(5); buzz(22); $("#lamps").classList.add("solved");
     $("#lampsStatus").textContent = "All lit. +"+g+" stardust."+(this.solved===3?" The next row is wider.":"");
@@ -3111,6 +3628,291 @@ const Lamps = {
   }
 };
 
+function mind(){ return S.comfort.mind||"curious"; }
+function byMind(g,c,a){ return {gentle:g, curious:c, absorbing:a}[mind()]; }
+
+/* ============ TIDE POOLS ============ */
+const Pools = {
+  LIFE:{
+    crab:`<path d="M20 34 q10 -14 20 0 q-10 14 -20 0Z" fill="#e0954a"/><path d="M14 30 l-6 -8 M14 38 l-7 4 M46 30 l6 -8 M46 38 l7 4 M22 24 l-3 -8 M38 24 l3 -8" stroke="#e0954a" stroke-width="2.4" stroke-linecap="round"/><circle cx="26" cy="30" r="1.6" fill="#141830"/><circle cx="34" cy="30" r="1.6" fill="#141830"/>`,
+    starfish:`<path d="M30 8 L35 24 L52 24 L38 34 L44 50 L30 40 L16 50 L22 34 L8 24 L25 24Z" fill="#f0a8a0"/><circle cx="30" cy="30" r="3" fill="#fff" opacity=".5"/>`,
+    anemone:`${[...Array(9)].map((_,i)=>{const a=i/9*Math.PI*2;return `<path d="M30 34 L${30+Math.cos(a)*16} ${34+Math.sin(a)*14}" stroke="#d8a7c4" stroke-width="3.5" stroke-linecap="round"/>`;}).join("")}<circle cx="30" cy="34" r="7" fill="#c48ab0"/>`,
+    shell:`<path d="M12 40 q18 -32 36 0Z" fill="#f2e6cc"/><path d="M30 40 L18 22 M30 40 L30 12 M30 40 L42 22" stroke="#d8c6a0" stroke-width="1.5"/>`,
+    urchin:`<circle cx="30" cy="32" r="10" fill="#5a4a78"/>${[...Array(12)].map((_,i)=>{const a=i/12*Math.PI*2;return `<path d="M${30+Math.cos(a)*9} ${32+Math.sin(a)*9} L${30+Math.cos(a)*19} ${32+Math.sin(a)*19}" stroke="#7a6aa0" stroke-width="2" stroke-linecap="round"/>`;}).join("")}`,
+    minnow:`<path d="M12 32 q14 -14 30 0 q-14 14 -30 0Z" fill="#9fd6e8"/><path d="M42 32 l10 -7 v14Z" fill="#9fd6e8"/><circle cx="20" cy="30" r="1.6" fill="#141830"/>`,
+    limpet:`<path d="M14 40 q16 -26 32 0Z" fill="#c9b48a"/><path d="M30 18 v22" stroke="#a8946c" stroke-width="1.5"/><path d="M22 34 h16" stroke="#a8946c" stroke-width="1"/>`,
+    seaglass:`<path d="M20 22 l14 -6 10 12 -6 14 -16 2 -6 -12Z" fill="#a8e0e6" opacity=".9"/><path d="M22 24 l10 -4 6 8 -8 6 -6 -2Z" fill="#fff" opacity=".35"/>`
+  },
+  cards:[], up:[], lock:false, found:0,
+  open(){ noteActivity("turning over rocks in the tide pools"); showMg("mgPools"); if(!this.bound){ this.bind(); this.bound=true; } this.fresh(); },
+  fresh(){
+    const k=Object.keys(this.LIFE).sort(()=>Math.random()-.5).slice(0, byMind(4,6,8));
+    this.pairs=k.length;
+    this.cards=k.concat(k).sort(()=>Math.random()-.5).map(x=>({k:x, up:false, done:false}));
+    this.up=[]; this.found=0; this.lock=false; this.render();
+    $("#pools").style.gridTemplateColumns="repeat("+byMind(4,4,4)+",1fr)";
+    $("#poolsStatus").textContent=this.pairs+" pairs under "+(this.pairs*2)+" rocks.";
+  },
+  render(){
+    const box=$("#pools"); box.innerHTML="";
+    this.cards.forEach((c,i)=>{
+      const b=document.createElement("button");
+      b.className="rock"+(c.up||c.done?" up":"")+(c.done?" done":""); b.dataset.i=i;
+      b.setAttribute("aria-label", c.up||c.done ? "A "+c.k : "A rock, not yet turned");
+      b.innerHTML=`<span class="face top"><svg viewBox="0 0 60 60"><path d="M12 42 q6 -22 24 -20 q16 2 14 22Z" fill="#000" opacity=".12"/></svg></span>
+        <span class="face under"><svg viewBox="0 0 60 60">${this.LIFE[c.k]}</svg></span>`;
+      box.appendChild(b);
+    });
+  },
+  tap(i){
+    const c=this.cards[i]; if(this.lock||c.up||c.done) return;
+    c.up=true; this.up.push(i); Sound.chime(0); buzz(6); this.render();
+    if(this.up.length<2) return;
+    const [a,b]=this.up.map(x=>this.cards[x]);
+    if(a.k===b.k){
+      a.done=b.done=true; this.up=[]; this.found++; Sound.chime(3); buzz(10); this.render();
+      $("#poolsStatus").textContent = this.found<this.pairs ? "Two "+a.k+"s. "+this.found+" of "+this.pairs+"." : "";
+      if(this.found===this.pairs) this.win();
+    }else{
+      this.lock=true; $("#poolsStatus").textContent="Not the same. They go back.";
+      setTimeout(()=>{ a.up=b.up=false; this.up=[]; this.lock=false; this.render(); }, 1000);
+    }
+  },
+  win(){
+    let g=byMind(10,18,28); S.sd+=g; S.journal.pools=(S.journal.pools||0)+1;
+    let extra="";
+    if(Math.random()<.35){ S.stones.push({k:"aqua", work:STONES.aqua.work}); extra=" Under the last rock: a rough aquamarine."; }
+    paintPurse(); save(); Sound.chime(5); buzz(20);
+    $("#poolsStatus").textContent="Every pair. +"+g+" stardust."+extra;
+  },
+  bind(){
+    $("#pools").addEventListener("click", e=>{ const b=e.target.closest(".rock"); if(b) this.tap(+b.dataset.i); });
+    $("#poolsNew").addEventListener("click", ()=> this.fresh());
+  }
+};
+
+/* ============ STREAM STONES ============ */
+const Stream = {
+  W:4, H:3, tiles:[], entry:0,
+  open(){ noteActivity("turning the stream stones"); showMg("mgStream"); if(!this.bound){ this.bind(); this.bound=true; }
+    this.W=byMind(3,4,5); this.H=byMind(3,3,4); $("#stream").style.gridTemplateColumns="repeat("+this.W+",1fr)";
+    $("#streamHint").style.display = mind()==="absorbing" ? "none" : ""; this.fresh(); },
+  /* openings are bitmasks: N=1 E=2 S=4 W=8; a tile is a mask plus a rotation */
+  rot(m){ return ((m<<1)&15) | ((m&8)?1:0); },
+  fresh(){
+    const W=this.W, H=this.H;
+    // carve a path from the left edge to the right edge
+    let r=Math.floor(Math.random()*H), c=0, path=[[r,c]], guard=0;
+    while(c<W-1 && guard++<60){
+      const moves=[[0,1],[0,1],[-1,0],[1,0]].filter(([dr,dc])=>{
+        const nr=r+dr, nc=c+dc; return nr>=0&&nr<H&&nc>=0&&nc<W && !path.some(p=>p[0]===nr&&p[1]===nc); });
+      if(!moves.length) return this.fresh();
+      const [dr,dc]=pick(moves); r+=dr; c+=dc; path.push([r,c]);
+    }
+    this.entry=path[0][0]; this.exit=path[path.length-1][0];
+    this.tiles=[]; for(let i=0;i<W*H;i++) this.tiles.push({mask:pick([3,6,12,9,5,10]), on:false, sol:null});
+    const dir=(a,b)=> a[0]===b[0] ? (b[1]>a[1]?2:8) : (b[0]>a[0]?4:1);
+    path.forEach((p,i)=>{
+      let m=0;
+      if(i===0) m|=8; else m|=dir(p,path[i-1]);
+      if(i===path.length-1) m|=2; else m|=dir(p,path[i+1]);
+      const t=this.tiles[p[0]*W+p[1]]; t.mask=m; t.sol=m; t.on=true;
+    });
+    // scramble every stone
+    this.tiles.forEach(t=>{ const n=Math.floor(Math.random()*4); for(let i=0;i<n;i++) t.mask=this.rot(t.mask); });
+    this.render(); $("#stream").classList.remove("done");
+    $("#streamStatus").textContent="Water comes in on row "+(this.entry+1)+", left side.";
+  },
+  connected(){
+    const W=this.W, H=this.H, seen=new Set(), q=[];
+    const at=(r,c)=>this.tiles[r*W+c];
+    if(at(this.entry,0).mask&8){ q.push([this.entry,0]); seen.add(this.entry*W); }
+    let reach=false;
+    while(q.length){
+      const [r,c]=q.shift(); const m=at(r,c).mask;
+      if(c===W-1 && (m&2)) reach=true;
+      [[1,-1,0,4],[2,0,1,8],[4,1,0,1],[8,0,-1,2]].forEach(([bit,dr,dc,back])=>{
+        if(!(m&bit)) return; const nr=r+dr, nc=c+dc;
+        if(nr<0||nr>=H||nc<0||nc>=W) return;
+        if(!(at(nr,nc).mask&back)) return;
+        const id=nr*W+nc; if(seen.has(id)) return; seen.add(id); q.push([nr,nc]);
+      });
+    }
+    return {seen, reach};
+  },
+  render(){
+    const box=$("#stream"); box.innerHTML="";
+    const {seen}=this.connected();
+    this.tiles.forEach((t,i)=>{
+      const b=document.createElement("button");
+      b.className="stone-t"+(seen.has(i)?" wet":""); b.dataset.i=i;
+      const m=t.mask, col=seen.has(i)?"var(--water)":"var(--ink-faint)";
+      const segs=[[1,"M30 30 V0"],[2,"M30 30 H60"],[4,"M30 30 V60"],[8,"M30 30 H0"]].filter(([bit])=>m&bit).map(([,d])=>`<path d="${d}" stroke="${col}" stroke-width="12" stroke-linecap="round"/>`).join("");
+      b.innerHTML=`<svg viewBox="0 0 60 60"><path d="M6 14 q24 -10 48 0 v34 q-24 10 -48 0Z" fill="var(--land)" opacity=".35"/>${segs}<circle cx="30" cy="30" r="6" fill="${col}"/></svg>`;
+      b.setAttribute("aria-label","Stone "+(i+1)+(seen.has(i)?", water running":""));
+      box.appendChild(b);
+    });
+    // banks
+    const rows=$$("#stream .stone-t");
+    if(rows[this.entry*this.W]) rows[this.entry*this.W].style.boxShadow="inset 4px 0 0 var(--water)";
+    if(rows[this.exit*this.W+this.W-1]) rows[this.exit*this.W+this.W-1].style.boxShadow="inset -4px 0 0 var(--water)";
+  },
+  tap(i){
+    if(this.connected().reach) return;
+    this.tiles[i].mask=this.rot(this.tiles[i].mask);
+    Sound.chime(1); buzz(6); this.render();
+    if(this.connected().reach) this.win();
+  },
+  win(){
+    const g=byMind(8,15,26); S.sd+=g; S.journal.streams=(S.journal.streams||0)+1; paintPurse(); save();
+    Sound.chime(5); buzz(20); $("#stream").classList.add("done");
+    $("#streamStatus").textContent="It runs. +"+g+" stardust.";
+  },
+  bind(){
+    $("#stream").addEventListener("click", e=>{ const b=e.target.closest(".stone-t"); if(b) this.tap(+b.dataset.i); });
+    $("#streamHint").addEventListener("click", ()=>{
+      const i=this.tiles.findIndex(t=>t.on && t.mask!==t.sol);
+      if(i<0){ $("#streamStatus").textContent="Every stone on the channel is already turned right."; return; }
+      let guard=0; while(this.tiles[i].mask!==this.tiles[i].sol && guard++<4) this.tiles[i].mask=this.rot(this.tiles[i].mask);
+      Sound.chime(2); this.render(); $$("#stream .stone-t")[i].classList.add("nudge");
+      setTimeout(()=>{ const el=$$("#stream .stone-t")[i]; el&&el.classList.remove("nudge"); }, 1500);
+      if(this.connected().reach) this.win();
+    });
+    $("#streamNew").addEventListener("click", ()=> this.fresh());
+  }
+};
+
+/* ============ FIREFLY JAR ============ */
+const Jar = {
+  n:0, caught:0,
+  open(){ noteActivity("catching fireflies"); showMg("mgJar"); if(!this.bound){ this.bind(); this.bound=true; } this.fresh(); },
+  fresh(){
+    const m=$("#meadow"); m.innerHTML=`<svg class="jar" viewBox="0 0 70 90"><path d="M18 14 h34 v10 q10 6 10 20 v36 q0 8 -8 8 h-38 q-8 0 -8 -8 v-36 q0 -14 10 -20Z" fill="var(--ink)" opacity=".12" stroke="var(--vapor-line)"/><rect x="16" y="6" width="38" height="8" rx="3" fill="var(--land-lip)" opacity=".6"/><g id="jarLights"></g></svg>`;
+    this.n=9; this.caught=0; $("#jarRelease").style.display="none";
+    for(let i=0;i<this.n;i++){
+      const f=document.createElement("button"); f.className="fly";
+      f.style.left=rnd(10,90)+"%"; f.style.top=rnd(10,72)+"%";
+      f.style.setProperty("--dx", rnd(-90,90)+"px"); f.style.setProperty("--dy", rnd(-60,60)+"px");
+      f.style.animationDuration=rnd(4,8)+"s";
+      f.innerHTML=`<i style="animation-duration:${rnd(1.2,2.6)}s"></i>`;
+      f.setAttribute("aria-label","A firefly");
+      f.addEventListener("click", ()=> this.catch(f));
+      m.appendChild(f);
+    }
+    $("#jarStatus").textContent="Nine out tonight.";
+  },
+  catch(f){
+    if(f.classList.contains("caught")) return;
+    f.classList.add("caught"); this.caught++;
+    Sound.chime(Math.min(5,Math.floor(this.caught/2))); buzz(6);
+    const g=$("#jarLights"); if(g) g.insertAdjacentHTML("beforeend", `<circle cx="${rnd(24,46)}" cy="${rnd(34,76)}" r="2.6" fill="#ffd98f"><animate attributeName="opacity" values=".3;1;.3" dur="${rnd(1.2,2.4)}s" repeatCount="indefinite"/></circle>`);
+    setTimeout(()=>f.remove(), 650);
+    $("#jarStatus").textContent = this.caught<this.n ? this.caught+" in the jar." : "All nine, glowing. Now the good part.";
+    if(this.caught>=this.n){ $("#jarRelease").style.display=""; }
+  },
+  release(){
+    $("#jarRelease").style.display="none";
+    const m=$("#meadow");
+    for(let i=0;i<this.n;i++){
+      const f=document.createElement("i"); f.className="fly"; f.style.left="50%"; f.style.top="82%";
+      f.style.setProperty("--dx", rnd(-160,160)+"px"); f.style.setProperty("--dy", rnd(-300,-120)+"px");
+      f.style.animationDuration=rnd(2.5,4)+"s"; f.style.animationIterationCount="1"; f.style.animationFillMode="forwards";
+      f.innerHTML="<i></i>"; m.appendChild(f);
+    }
+    const g=10; S.sd+=g; S.rest+=5; S.journal.fireflies=(S.journal.fireflies||0)+1; paintPurse(); save();
+    Sound.chime(5); buzz(16);
+    $("#jarStatus").textContent="Off they go. +"+g+" stardust, +5 rest.";
+    setTimeout(()=> this.fresh(), 4500);
+  },
+  bind(){ $("#jarRelease").addEventListener("click", ()=> this.release()); }
+};
+
+/* ============ POSTCARD ============ */
+const Postcard = {
+  make(){
+    const cs=getComputedStyle($("#app"));
+    const v=n=> cs.getPropertyValue("--"+n).trim() || "#888";
+    const sub=t=> t.replace(/var\(--([a-z0-9-]+)\)/g,(m,k)=>v(k));
+    const name=island().name||PLACES[S.env].name;
+    const date=new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});
+    const sky=sub($("#skybg svg").innerHTML.replace(/<defs>[\s\S]*?<\/defs>/, m=>m)); // keep defs
+    const isl=sub($("#islandArt").innerHTML);
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+      <defs><linearGradient id="pcbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${v("sky-top")}"/><stop offset=".55" stop-color="${v("sky-mid")}"/><stop offset="1" stop-color="${v("sky-low")}"/></linearGradient></defs>
+      <rect width="1000" height="1000" fill="url(#pcbg)"/>
+      <svg viewBox="200 150 1000 1000" x="0" y="0" width="1000" height="1000">${sky}</svg>
+      <svg viewBox="0 0 400 400" x="80" y="140" width="840" height="840">${isl}</svg>
+      <text x="60" y="940" font-family="Georgia,serif" font-size="46" fill="${v("ink")}">${name.replace(/[<&]/g,"")}</text>
+      <text x="60" y="978" font-family="system-ui,sans-serif" font-size="22" fill="${v("ink-soft")}">${date} · Lumina</text>
+    </svg>`;
+    const blob=new Blob([svg],{type:"image/svg+xml"});
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=()=>{
+      const cv=document.createElement("canvas"); cv.width=1000; cv.height=1000;
+      cv.getContext("2d").drawImage(img,0,0);
+      cv.toBlob(png=>{
+        URL.revokeObjectURL(url);
+        const file = png && new File([png], "lumina-postcard.png", {type:"image/png"});
+        if(file && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file], title:name}).catch(()=>{});
+          return;
+        }
+        const data=cv.toDataURL("image/png");
+        openSheet("Your postcard", name,
+          `<img src="${data}" alt="A postcard of ${name}" style="width:100%;border-radius:18px;display:block;margin-bottom:12px">
+           <div class="note">Press and hold the picture to save or share it.</div>`);
+      },"image/png");
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); toast("The postcard would not draw. Try again in a moment.", 3600, "info"); };
+    img.src=url;
+  }
+};
+
+/* ============ THE MOSAIC ============ */
+const Mosaic = {
+  W:12, H:10, PER_DAY:6,
+  // 0 empty, 1 sky, 2 rock, 3 grass, 4 bloom, 5 light
+  PIC:[
+    "111111111111","111115111111","111111111111","111133331111","113333333311",
+    "113334333311","112222222211","111222222111","111122221111","111111221111"],
+  COL:{1:"var(--sky-mid)",2:"var(--land)",3:"var(--grass)",4:"var(--petal)",5:"var(--glow)"},
+  open(){ noteActivity("laying mosaic stones"); showMg("mgMosaic"); if(!this.bound){ this.bind(); this.bound=true; } this.render(); },
+  state(){
+    if(!S.mosaic) S.mosaic={laid:[], day:"", today:0, done:false};
+    const d=new Date().toDateString();
+    if(S.mosaic.day!==d){ S.mosaic.day=d; S.mosaic.today=0; }
+    return S.mosaic;
+  },
+  render(){
+    const m=this.state(), box=$("#mosaic"); box.innerHTML="";
+    const laid=new Set(m.laid);
+    let next=-1;
+    for(let i=0;i<this.W*this.H;i++) if(!laid.has(i) && this.PIC[Math.floor(i/this.W)][i%this.W]!=="0"){ next=i; break; }
+    for(let i=0;i<this.W*this.H;i++){
+      const b=document.createElement("button"); b.className="tile"+(laid.has(i)?" laid":"")+(i===next?" next":"");
+      b.dataset.i=i;
+      if(laid.has(i)) b.style.background=this.COL[this.PIC[Math.floor(i/this.W)][i%this.W]];
+      b.setAttribute("aria-label", laid.has(i)?"Laid":"Empty");
+      box.appendChild(b);
+    }
+    const left=this.PER_DAY-m.today, total=this.W*this.H;
+    $("#mosaicStatus").textContent = m.done ? "Finished, and framed on the island." :
+      (left>0 ? left+" stone"+(left===1?"":"s")+" left today. "+laid.size+" of "+total+" laid." : "Today's stones are laid. "+laid.size+" of "+total+". Tomorrow, six more.");
+  },
+  tap(i){
+    const m=this.state(); if(m.done) return;
+    if(m.laid.includes(i)) return;
+    if(m.today>=this.PER_DAY){ $("#mosaicStatus").textContent="Six a day. It is meant to take a while."; return; }
+    // any empty tile may be laid; the picture is what it is
+    m.laid.push(i); m.today++; Sound.chime(1+(m.laid.length%5)); buzz(6);
+    if(m.laid.length>=this.W*this.H){ m.done=true; S.sd+=60; S.journal.mosaic=1; paintPurse(); Sound.chime(5); buzz(24);
+      toast("The mosaic is finished. It has taken you a while, and it shows. +60 stardust, and it hangs on the island now.", 6400, "bloom"); drawIsland(); }
+    save(); this.render();
+  },
+  bind(){ $("#mosaic").addEventListener("click", e=>{ const b=e.target.closest(".tile"); if(b) this.tap(+b.dataset.i); }); }
+};
+
 /* ============ CLOUD SHAPES ============ */
 const Clouds = {
   SHAPES:{
@@ -3124,6 +3926,7 @@ const Clouds = {
   },
   rounds:0, target:null,
   open(){
+    noteActivity("looking at clouds");
     showMg("mgClouds");
     if(!this.bound){ this.bind(); this.bound=true; }
     this.rounds=0; this.next();
@@ -3147,12 +3950,12 @@ const Clouds = {
   next(){
     const names=Object.keys(this.SHAPES).sort(()=>Math.random()-.5);
     this.target=names[0];
-    const others=names.slice(1,6);                       // five other shapes, not blobs
+    const others=names.slice(1, byMind(4,6,8));            // other shapes, not blobs
     $("#cloudPrompt").textContent="Which one looks like a "+this.target+"?";
-    const slot=Math.floor(Math.random()*6);
+    const count=byMind(4,6,8), slot=Math.floor(Math.random()*count);
     const grid=$("#cloudGrid"); grid.innerHTML="";
     let oi=0;
-    for(let i=0;i<6;i++){
+    for(let i=0;i<count;i++){
       const b=document.createElement("button");
       const shape = i===slot ? this.target : others[oi++];
       b.className="cloud-btn"; b.dataset.hit = i===slot ? "1":"0"; b.dataset.shape=shape;
@@ -3287,7 +4090,12 @@ function buySku(sku){
 function goPlace(key){
   const p=PLACES[key];
   if(!ownsPlace(key)){
-    if(p.cost!==undefined){
+    if(p.restCost!==undefined){
+      if(S.rest<p.restCost){ toast(p.name+" opens for "+p.restCost+" rest. You have "+fmt(S.rest)+". Rest is gathered by resting; there is no other way.", 5200, "info"); return; }
+      S.rest-=p.restCost; island(key).unlocked=true; paintPurse(); save();
+      Sound.chime(5); buzz(22);
+      toast(p.name+" opened. Not with effort — with rest. "+islandPlantNote(key).replace("<br>",""), 5600, "bloom");
+    }else if(p.cost!==undefined){
       if(S.sd<p.cost){ toast(p.name+" opens for "+p.cost+" stardust. You have "+fmt(S.sd)+".", 4200, "info"); return; }
       S.sd-=p.cost; island(key).unlocked=true; paintPurse(); save();
       Sound.chime(5); buzz(22);
@@ -3295,7 +4103,7 @@ function goPlace(key){
     }else{ buySku(p.pack); return; }
   }
   S.env=key; drawIsland(); renderPlots(); save(); closeSheet();
-  $("#wisps").innerHTML=""; $("#visitors").innerHTML="";
+  $("#wisps").innerHTML=""; $("#visitors").innerHTML=""; $("#resident").innerHTML=""; Resident.render();
   if(typeof World!=="undefined") World.center();
   toast("You're at " + p.name + ".", 3000);
 }
@@ -3388,7 +4196,7 @@ function wire(){
   $("#sheetClose").addEventListener("click", closeSheet);
   $("#scrim").addEventListener("click", closeSheet);
   $("#sheetBody").addEventListener("click", e=>{
-    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade]");
+    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade],[data-restbuy],[data-wispname],[data-mind],[data-close],[data-rename],[data-postcard],[data-spot],[data-lamp],[data-setname]");
     if(!t) return;
     if(t.dataset.buyseed){
       const k=t.dataset.buyseed, sp=SPECIES[k];
@@ -3410,6 +4218,10 @@ function wire(){
     if(t.dataset.open==="sort") Sorter.open();
     if(t.dataset.open==="clouds") Clouds.open();
     if(t.dataset.open==="lamps") Lamps.open();
+    if(t.dataset.open==="pools") Pools.open();
+    if(t.dataset.open==="stream") Stream.open();
+    if(t.dataset.open==="jar") Jar.open();
+    if(t.dataset.open==="mosaic") Mosaic.open();
     if(t.dataset.open==="tumbler") Tumbler.open();
     if(t.dataset.open==="sky") Sky.open();
     if(t.dataset.open==="trail") Trail.open();
@@ -3422,7 +4234,36 @@ function wire(){
     if(t.dataset.hut) openHut(t.dataset.hut);
     if(t.dataset.decor) buyDecor(t.dataset.decor);
     if(t.dataset.upgrade) buyUpgrade(t.dataset.upgrade);
-    if(t.dataset.palette){ S.comfort.palette=t.dataset.palette; applyComfort(); renderComfort(); }
+    if(t.dataset.close){ closeSheet(); }
+    if(t.dataset.rename){
+      openSheet("A name for this island", "Yours to call it what you like",
+        `<input id="islName" type="text" maxlength="28" value="${(island().name||"").replace(/"/g,"")}" placeholder="${PLACES[S.env].name}"
+          style="width:100%;min-height:56px;border-radius:16px;border:1px solid var(--vapor-line);background:var(--vapor);color:var(--ink);padding:0 16px;font:inherit;font-size:1.05rem;margin-bottom:12px">
+         <button class="btn warm" data-setname="1">Keep this name</button>
+         <button class="btn quiet" data-setname="clear" style="margin-top:8px">Back to ${PLACES[S.env].name}</button>`);
+      setTimeout(()=>{ const i=$("#islName"); i&&i.focus(); },400);
+    }
+    if(t.dataset.setname){
+      island().name = t.dataset.setname==="clear" ? null : (($("#islName").value||"").trim()||null);
+      save(); drawIsland(); closeSheet(); Sound.chime(2);
+    }
+    if(t.dataset.postcard) Postcard.make();
+    if(t.dataset.spot){ buyDecor(t.dataset.decorkey, +t.dataset.spot); }
+    if(t.dataset.lamp){ island().lamp = t.dataset.lamp==="default" ? null : t.dataset.lamp; save(); drawIsland(); openHut("decor"); Sound.chime(1); }
+    if(t.dataset.wispname){
+      const v=($("#wispName").value||"").trim(); if(!v) return;
+      S.resident.name=v; save(); closeSheet(); $("#resident").innerHTML=""; Resident.render();
+      Sound.chime(4); buzz(12); toast(v+" it is. It seems pleased.", 4000, "visitor");
+    }
+    if(t.dataset.mind){ S.comfort.mind=t.dataset.mind; save(); openPastimes(); }
+    if(t.dataset.restbuy){
+      const k=t.dataset.restbuy, sp=SPECIES[k];
+      if(S.rest<sp.rest) return;
+      S.rest-=sp.rest; S.restOwned[k]=true; paintPurse(); save();
+      Sound.chime(5); buzz(18); openHut("rest");
+      toast(sp.name+" is yours, bought with rest. Plant it as often as you like.", 4600, "bloom");
+    }
+    if(t.dataset.palette){ S.comfort.palette=t.dataset.palette; applyComfort(); makeSky(); renderComfort(); }
     if(t.dataset.openJournal) openJournal();
     if(t.dataset.lowlight) lowLightPreset();
     if(t.dataset.backup) backup();
@@ -3489,41 +4330,36 @@ function native(){
 
 /* ============ THE WORLD: panning ============ */
 const World = {
-  W:1400, H:1400, x:0, y:0, drag:null, moved:false,
-  vw(){ return $("#stage").clientWidth; }, vh(){ return $("#stage").clientHeight; },
-  clamp(){
-    this.x = clamp(this.x, Math.min(0, this.vw()-this.W), 0);
-    this.y = clamp(this.y, Math.min(0, this.vh()-this.H), 0);
-  },
-  apply(){ this.clamp(); $("#world").style.transform = `translate(${Math.round(this.x)}px,${Math.round(this.y)}px)`; },
-  /* put a world point at the centre of the screen */
+  W:1400, H:1400, drag:null, moved:false,
+  st(){ return $("#stage"); },
+  vw(){ return this.st().clientWidth; }, vh(){ return this.st().clientHeight; },
+  /* put a world point at the centre of the screen. Native scrolling keeps
+     everything rasterised at full resolution; a transformed 1400px layer does not. */
   panTo(wx, wy, animate){
-    const el=$("#world");
-    el.style.transition = animate ? "transform .9s cubic-bezier(.3,.8,.3,1)" : "none";
-    this.x = this.vw()/2 - wx; this.y = this.vh()/2 - wy; this.apply();
-    if(animate) setTimeout(()=> el.style.transition="none", 950);
+    const st=this.st();
+    const left=clamp(wx - this.vw()/2, 0, this.W-this.vw()), top=clamp(wy - this.vh()/2, 0, this.H-this.vh());
+    try{ st.scrollTo({left, top, behavior: animate ? "smooth" : "auto"}); }
+    catch(e){ st.scrollLeft=left; st.scrollTop=top; }
   },
   center(animate){ this.panTo(250+450, 380+470, animate); },
-  /* island-wrap percent -> world px */
   islandPt(px,py){ return [250 + px/100*900, 380 + py/100*900]; },
   bind(){
-    const st=$("#stage");
+    const st=this.st();
+    // touch scrolls natively; a mouse drags
     st.addEventListener("pointerdown", e=>{
-      if(e.button && e.button!==0) return;
-      this.drag={x:e.clientX, y:e.clientY, ox:this.x, oy:this.y}; this.moved=false;
-      $("#world").style.transition="none";
+      if(e.pointerType!=="mouse" || e.button!==0) return;
+      this.drag={x:e.clientX, y:e.clientY, sl:st.scrollLeft, stp:st.scrollTop}; this.moved=false;
     });
     st.addEventListener("pointermove", e=>{
       if(!this.drag) return;
       const dx=e.clientX-this.drag.x, dy=e.clientY-this.drag.y;
-      if(!this.moved && Math.hypot(dx,dy)>8){ this.moved=true; st.classList.add("dragging"); st.setPointerCapture(e.pointerId); }
-      if(this.moved){ this.x=this.drag.ox+dx; this.y=this.drag.oy+dy; this.apply(); $("#edgeHint").classList.add("gone"); }
+      if(!this.moved && Math.hypot(dx,dy)>8){ this.moved=true; st.classList.add("dragging"); }
+      if(this.moved){ st.scrollLeft=this.drag.sl-dx; st.scrollTop=this.drag.stp-dy; }
     });
     const end=()=>{ this.drag=null; st.classList.remove("dragging"); setTimeout(()=> this.moved=false, 0); };
     st.addEventListener("pointerup", end); st.addEventListener("pointercancel", end);
-    // a drag must not count as a tap on whatever was under the finger
     st.addEventListener("click", e=>{ if(this.moved){ e.stopPropagation(); e.preventDefault(); } }, true);
-    window.addEventListener("resize", ()=> this.apply());
+    st.addEventListener("scroll", ()=> $("#edgeHint").classList.add("gone"), {passive:true});
     setTimeout(()=> $("#edgeHint").classList.add("gone"), 9000);
   }
 };
@@ -3570,6 +4406,8 @@ async function boot(){
   wire();
   native();
   World.bind(); World.center();
+  Clock.apply(); Resident.render(); checkLetters();
+  returnCard();
   Nav.bind();
   SESSION.lastTick=now();
   setInterval(()=>{ tick(); }, 1000);
@@ -3584,7 +4422,7 @@ async function boot(){
    e.g. Lumina.state().sd = 500; Lumina.billing.restore(); */
 window.Lumina = {
   state:()=>S, session:()=>SESSION, billing:Billing, buy:buySku, prices:PRICES,
-  chimes:Chimes, sorter:Sorter, clouds:Clouds, visitors:VISITORS, visit:maybeVisitor, journal:openJournal,
+  chimes:Chimes, sorter:Sorter, clouds:Clouds, pools:Pools, stream:Stream, jar:Jar, visitors:VISITORS, visit:maybeVisitor, journal:openJournal,
   configure:(k)=>{ RC_KEY=k; return Billing.init(); },
   sky:Sky, tumbler:Tumbler, trail:Trail, sound:Sound,
   species:SPECIES, stones:STONES, places:PLACES,
