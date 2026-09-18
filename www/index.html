@@ -14,6 +14,13 @@
              6 minigames  7 comfort
    ============================================================ */
 
+/* ---------- 0. TYPE (bundled, OFL) ---------- */
+@font-face{font-family:"Fraunces";font-weight:600;font-display:swap;src:url(fonts/fraunces-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Fraunces";font-weight:700;font-display:swap;src:url(fonts/fraunces-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:500;font-display:swap;src:url(fonts/nunito-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:700;font-display:swap;src:url(fonts/nunito-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:800;font-display:swap;src:url(fonts/nunito-latin-800-normal.woff2) format("woff2")}
+
 /* ---------- 1. TOKENS ---------- */
 :root{
   /* Cloud Garden (default environment) */
@@ -40,8 +47,8 @@
   --motion:1;            /* 1 on, 0 off */
   --ui-scale:1;
 
-  --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-  --ui:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --display:"Fraunces","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --ui:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
 
   --tap:56px;            /* minimum comfortable target */
   --r-soft:22px;
@@ -137,8 +144,8 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;overscroll-behavior:none}
 body{
-  font-family:var(--ui);
-  font-size:calc(16px * var(--ui-scale));
+  font-family:var(--ui);font-weight:500;
+  font-size:calc(16.5px * var(--ui-scale));
   color:var(--ink);
   background:var(--sky-top);
   -webkit-user-select:none;user-select:none;
@@ -146,7 +153,7 @@ body{
 }
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 :focus-visible{outline:2px solid var(--glow);outline-offset:3px;border-radius:12px}
-h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:.01em;margin:0}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:0;margin:0}
 p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -200,11 +207,11 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
   display:flex;align-items:center;gap:10px;
   padding:10px var(--pad) 4px;min-height:44px;position:relative;z-index:5;
 }
-.title{font-family:var(--display);font-size:1.05rem;color:var(--ink-soft);flex:1;
+.title{font-family:var(--display);font-weight:600;font-size:1.15rem;color:var(--ink);flex:1;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .purse{display:flex;gap:8px;align-items:center}
 .coin{
-  display:inline-flex;align-items:center;gap:6px;
+  font-weight:700;display:inline-flex;align-items:center;gap:6px;
   padding:7px 13px;border-radius:999px;
   background:var(--vapor);border:1px solid var(--vapor-line);
   font-variant-numeric:tabular-nums;font-size:.9rem;color:var(--ink);
@@ -232,7 +239,7 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 }
 .dock-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .dock-btn{
-  min-height:var(--tap);border-radius:18px;
+  font-weight:700;min-height:var(--tap);border-radius:18px;
   background:var(--vapor);border:1px solid var(--vapor-line);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   font-size:.72rem;color:var(--ink-soft);padding:6px 4px;
@@ -380,7 +387,7 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 }
 .sheet.on{transform:translateY(0)}
 .sheet-head{display:flex;align-items:flex-start;gap:12px;padding:16px var(--pad) 6px}
-.sheet-head h2{font-size:1.4rem;flex:1;line-height:1.25}
+.sheet-head h2{font-size:1.6rem;flex:1;line-height:1.2}
 .sheet-head .sub{font-size:.85rem;color:var(--ink-faint);margin-top:4px}
 .grab{width:42px;height:4px;border-radius:2px;background:var(--vapor-line);margin:9px auto 0}
 .sheet-body{padding:8px var(--pad) 14px;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -396,7 +403,7 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .row .leaf{flex:none;width:44px;height:44px}
 .row .body{flex:1;min-width:0}
 .row .body{display:flex;flex-direction:column;gap:4px}
-.row .name{display:block;color:var(--ink);font-size:.98rem;line-height:1.3}
+.row .name{display:block;color:var(--ink);font-size:1rem;font-weight:700;line-height:1.3}
 .row .meta{display:block;color:var(--ink-faint);font-size:.8rem;line-height:1.5}
 .toggle .body{display:flex;flex-direction:column;gap:4px}
 .toggle .name{display:block}
@@ -410,8 +417,8 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
   background:linear-gradient(180deg,var(--sky-top),var(--sky-mid));
   transition:opacity .6s ease}
 .checkin.gone{opacity:0;pointer-events:none}
-.checkin .mark{font-family:var(--display);font-size:2.5rem;line-height:1.1;margin-bottom:6px}
-.checkin .ask{font-family:var(--display);font-size:1.45rem;color:var(--ink-soft);margin:26px 0 16px}
+.checkin .mark{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1.05;margin-bottom:8px;letter-spacing:-.01em}
+.checkin .ask{font-family:var(--display);font-weight:600;font-size:1.55rem;color:var(--ink);margin:26px 0 16px}
 .energy{
   width:100%;min-height:76px;border-radius:20px;padding:15px 18px;margin-bottom:11px;
   background:var(--vapor);border:1px solid var(--vapor-line);text-align:left;
@@ -419,7 +426,7 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 }
 .energy:active{transform:scale(.985);background:rgba(233,236,255,.16)}
 .energy > span:last-child{display:flex;flex-direction:column;gap:5px;min-width:0}
-.energy .lab{display:block;font-size:1.05rem;color:var(--ink);line-height:1.3}
+.energy .lab{display:block;font-size:1.1rem;font-weight:700;color:var(--ink);line-height:1.3}
 .energy .hint{display:block;font-size:.82rem;color:var(--ink-faint);line-height:1.5}
 .energy .orb{width:34px;height:34px;border-radius:50%;flex:none}
 .footnote{font-size:.8rem;color:var(--ink-faint);text-align:center;margin-top:14px;line-height:1.6}
@@ -430,12 +437,12 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
   padding:env(safe-area-inset-top) 0 max(10px,env(safe-area-inset-bottom))}
 .mg.on{display:flex}
 .mg-head{display:flex;align-items:center;gap:12px;padding:12px var(--pad)}
-.mg-head h2{font-size:1.2rem;flex:1}
+.mg-head h2{font-size:1.35rem;flex:1}
 .mg-body{flex:1;min-height:0;overflow-y:auto;padding:4px var(--pad) 12px;display:flex;flex-direction:column}
 .mg-foot{padding:8px var(--pad);display:grid;gap:8px}
 
 .btn{
-  min-height:var(--tap);border-radius:18px;padding:0 20px;
+  font-weight:700;min-height:var(--tap);border-radius:18px;padding:0 20px;
   background:var(--vapor);border:1px solid var(--vapor-line);color:var(--ink);
   display:flex;align-items:center;justify-content:center;gap:9px;font-size:.95rem;
   transition:background .18s ease,transform .18s ease;width:100%;
@@ -466,7 +473,7 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .trail-art{height:180px;margin-bottom:16px;border-radius:20px;overflow:hidden;
   background:rgba(10,12,26,.4);border:1px solid var(--vapor-line)}
 .trail-art svg{display:block;width:100%;height:100%}
-.trail-text{font-family:var(--display);font-size:1.08rem;line-height:1.66;color:var(--ink);margin-bottom:16px}
+.trail-text{font-family:var(--display);font-weight:600;font-size:1.12rem;line-height:1.6;color:var(--ink);margin-bottom:16px}
 .trail-log{font-size:.85rem;color:var(--ink-faint);line-height:1.6;margin-bottom:10px}
 
 /* wind chimes */
@@ -570,7 +577,7 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 .toggle{display:flex;align-items:center;gap:13px;width:100%;min-height:var(--tap);
   padding:9px 0;text-align:left}
 .toggle .body{flex:1}
-.toggle .name{font-size:.95rem;color:var(--ink)}
+.toggle .name{font-size:.98rem;font-weight:700;color:var(--ink)}
 .toggle .meta{font-size:.8rem;color:var(--ink-faint);margin-top:3px;line-height:1.45}
 .switch{width:54px;height:32px;border-radius:999px;background:var(--vapor-line);flex:none;position:relative;
   transition:background .2s ease}
@@ -588,6 +595,10 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 .letter p{color:var(--ink);margin:0 0 .7em;font-size:.98rem}
 .tally{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--vapor-line);font-size:.9rem;color:var(--ink-soft)}
 .tally b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+.guide p{color:var(--ink-soft);font-size:1rem;line-height:1.6;margin:0 0 .9em}
+.guide b{color:var(--ink);font-weight:700}
+.guide ul{margin:0 0 .9em;padding-left:1.2em;color:var(--ink-soft);line-height:1.55}
+.guide li{margin-bottom:.45em}
 .note{font-size:.84rem;color:var(--ink-faint);line-height:1.65;margin:4px 0 16px}
 .divider{height:1px;background:var(--vapor-line);margin:18px 0;opacity:.7}
 
@@ -618,15 +629,17 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 @keyframes sparkle{0%,100%{opacity:0;transform:scale(.3)}45%{opacity:.95;transform:scale(1)}}
 
 .toast{
-  position:fixed;left:0;right:0;margin:0 auto;top:calc(112px + env(safe-area-inset-top));
-  width:min(92vw,440px);box-sizing:border-box;
-  background:rgba(22,26,52,.97);border:1px solid var(--vapor-line);color:var(--ink);
-  padding:16px 20px 16px 16px;border-radius:22px;font-size:1.02rem;line-height:1.45;z-index:60;
-  opacity:0;pointer-events:none;transition:opacity .35s ease,translate .35s cubic-bezier(.2,.9,.3,1);
-  translate:0 -18px;display:flex;gap:14px;align-items:flex-start;text-align:left;
-  box-shadow:0 12px 40px rgba(0,0,0,.45);
+  position:fixed;left:0;right:0;top:0;z-index:60;box-sizing:border-box;
+  padding:calc(14px + env(safe-area-inset-top)) 18px 14px 16px;
+  background:rgba(22,26,52,.97);border-bottom:1px solid var(--vapor-line);color:var(--ink);
+  font-size:1.02rem;line-height:1.4;font-weight:600;
+  translate:0 -110%;transition:translate .38s cubic-bezier(.2,.9,.3,1);
+  display:flex;gap:14px;align-items:center;text-align:left;cursor:pointer;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
 }
-.toast.on{opacity:1;translate:0 0}
+.toast.on{translate:0 0}
+.toast .bar{position:absolute;left:0;bottom:0;height:3px;background:var(--glow);width:100%;transform-origin:0 50%;animation:toastbar linear forwards}
+@keyframes toastbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 .toast .ti{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:rgba(242,192,120,.16)}
 .toast .ti svg{width:20px;height:20px}
@@ -1329,7 +1342,31 @@ function save(){
 function saveNow(){ clearTimeout(saveTimer); S.lastSeen = now(); Store.write(JSON.stringify(S)); }
 
 /* ---------- small helpers ---------- */
-let toastTimer=null;
+/* Notifications queue instead of overwriting: one banner at a time across
+   the top, each with a visible timer, tap to dismiss early. */
+const Notify = {
+  q:[], showing:false, timer:null,
+  push(msg, ms, type){
+    if(this.q.length>=4) this.q.shift();
+    this.q.push({msg, ms:clamp(ms||3800, 2800, 6500), type:type||"info"});
+    if(!this.showing) this.next();
+  },
+  next(){
+    const item=this.q.shift();
+    const t=$("#toast");
+    if(!item){ this.showing=false; t.classList.remove("on"); return; }
+    this.showing=true;
+    t.className="toast on "+item.type;
+    t.innerHTML='<span class="ti">'+(TOAST_ICONS[item.type]||TOAST_ICONS.info)+'</span><span style="flex:1">'+item.msg+'</span><i class="bar" style="animation-duration:'+item.ms+'ms"></i>';
+    clearTimeout(this.timer);
+    this.timer=setTimeout(()=> this.dismiss(), item.ms);
+  },
+  dismiss(){
+    clearTimeout(this.timer);
+    const t=$("#toast"); t.classList.remove("on");
+    setTimeout(()=> this.next(), 420);
+  }
+};
 const TOAST_ICONS = {
   info:  '<svg viewBox="0 0 24 24" fill="none" stroke="var(--glow)" stroke-width="1.8" stroke-linecap="round"><path d="M12 3l2.2 6.2L21 12l-6.8 2.8L12 21l-2.2-6.2L3 12l6.8-2.8Z"/></svg>',
   bloom: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--petal)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>',
@@ -1337,12 +1374,7 @@ const TOAST_ICONS = {
   star:  '<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"><path d="M4 20L20 4M12 4h8v8"/></svg>',
   stone: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--glow)" stroke-width="1.8" stroke-linejoin="round"><path d="M6 15l-2-5 4-5h8l4 5-3 8H8Z"/></svg>'
 };
-function toast(msg, ms, type){
-  const t = $("#toast");
-  t.className = "toast on " + (type||"info");
-  t.innerHTML = '<span class="ti">'+(TOAST_ICONS[type]||TOAST_ICONS.info)+'</span><span>'+msg+'</span>';
-  clearTimeout(toastTimer); toastTimer = setTimeout(()=> t.classList.remove("on"), Math.max(ms||3200, 3200));
-}
+function toast(msg, ms, type){ Notify.push(msg, ms, type); }
 function buzz(ms){
   if(!S.comfort.haptics) return;
   const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
@@ -2293,62 +2325,114 @@ const VISITORS = {
     when:x=> x.sprouts+x.blooms>=1,
     lines:["It has been crossing the same leaf all afternoon and seems content with the progress.",
            "It leaves a line of silver behind it, which catches the lantern light."],
-    art:`<path d="M16 40 q4 -14 22 -12 q10 2 12 8" stroke="#c9b48a" stroke-width="7" fill="none" stroke-linecap="round"/>
-         <circle cx="34" cy="30" r="13" fill="#d8a7c4"/><path d="M34 30 m-8 0 a8 8 0 1 1 8 8 a4 4 0 1 1 0 -8" fill="none" stroke="#fff" stroke-width="2" opacity=".55"/>
-         <path d="M48 30 l3 -8 M52 32 l5 -6" stroke="#c9b48a" stroke-width="2" stroke-linecap="round"/>`},
+    art:`<defs><radialGradient id="vg-snail" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#f3d3e6"/><stop offset="1" stop-color="#b9829f"/></radialGradient>
+         <linearGradient id="vb-snail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2cfae"/><stop offset="1" stop-color="#a88f68"/></linearGradient></defs>
+         <ellipse cx="30" cy="50" rx="20" ry="3" fill="#000" opacity=".18"/>
+         <path d="M12 44 q4 -12 20 -10 q12 1 22 4 q4 2 2 6 q-6 3 -14 2 q-14 -1 -30 -2Z" fill="url(#vb-snail)"/>
+         <circle cx="30" cy="30" r="14" fill="url(#vg-snail)"/>
+         <path d="M30 30 m-9 0 a9 9 0 1 1 9 9 a5 5 0 1 1 0 -5 a2 2 0 1 1 0 -2" fill="none" stroke="#fff" stroke-width="2" opacity=".5" stroke-linecap="round"/>
+         <circle cx="26" cy="24" r="4" fill="#fff" opacity=".28"/>
+         <path d="M50 34 l4 -9 M54 36 l6 -6" stroke="#a88f68" stroke-width="2.4" stroke-linecap="round"/>
+         <circle cx="54" cy="25" r="2" fill="#141830"/><circle cx="60" cy="30" r="2" fill="#141830"/>`},
   moth:{name:"A moon moth", at:null, gift:[6,10], night:true,
     when:x=> x.blooms>=1 && x.night,
     lines:["Pale green, the size of your palm. It only comes out for the flowers that only open at night.",
            "It rests with its wings flat and does not seem to mind being looked at."],
-    art:`<path d="M28 30 q-18 -22 -22 -2 q4 18 20 10Z M28 30 q18 -22 22 -2 q-4 18 -20 10Z" fill="#c8ecd8" opacity=".92"/>
-         <path d="M28 30 q-14 6 -12 16 q10 2 12 -8 M28 30 q14 6 12 16 q-10 2 -12 -8" fill="#c8ecd8" opacity=".75"/>
-         <path d="M28 22 v18" stroke="#7d9c86" stroke-width="3" stroke-linecap="round"/>
-         <circle cx="16" cy="24" r="2.4" fill="#7d9c86" opacity=".7"/><circle cx="40" cy="24" r="2.4" fill="#7d9c86" opacity=".7"/>`},
+    art:`<defs><radialGradient id="vg-moth" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#e6fbf0"/><stop offset="1" stop-color="#9dd2b8"/></radialGradient></defs>
+         <g opacity=".9"><path d="M30 28 C 12 6, 2 14, 6 30 C 8 40, 20 40, 30 32Z" fill="url(#vg-moth)"/>
+         <path d="M30 28 C 48 6, 58 14, 54 30 C 52 40, 40 40, 30 32Z" fill="url(#vg-moth)"/>
+         <path d="M30 32 C 18 34, 14 46, 20 52 C 26 54, 30 44, 30 36Z" fill="url(#vg-moth)" opacity=".85"/>
+         <path d="M30 32 C 42 34, 46 46, 40 52 C 34 54, 30 44, 30 36Z" fill="url(#vg-moth)" opacity=".85"/></g>
+         <circle cx="16" cy="24" r="3.6" fill="#7aa88e" opacity=".55"/><circle cx="44" cy="24" r="3.6" fill="#7aa88e" opacity=".55"/>
+         <circle cx="16" cy="24" r="1.4" fill="#fff" opacity=".7"/><circle cx="44" cy="24" r="1.4" fill="#fff" opacity=".7"/>
+         <path d="M30 20 v20" stroke="#5f8a72" stroke-width="3.2" stroke-linecap="round"/>
+         <path d="M28 20 q-3 -7 -7 -9 M32 20 q3 -7 7 -9" stroke="#5f8a72" stroke-width="1.4" fill="none" stroke-linecap="round"/>`},
   fireflies:{name:"Fireflies", at:[52,40], gift:[8,14],
     when:x=> x.blooms>=3,
     lines:["A dozen of them, blinking out of time with each other, which is somehow the right way.",
            "They gather where the light is warmest and do not seem to need anything from you."],
-    art:`<g fill="#ffd98f"><circle cx="14" cy="18" r="3"/><circle cx="30" cy="12" r="2.4"/><circle cx="44" cy="24" r="3"/>
-         <circle cx="22" cy="36" r="2.2"/><circle cx="40" cy="42" r="2.8"/><circle cx="30" cy="28" r="2"/></g>
-         <g fill="#ffd98f" opacity=".2"><circle cx="14" cy="18" r="8"/><circle cx="44" cy="24" r="8"/><circle cx="40" cy="42" r="7"/></g>`},
+    art:`<defs><radialGradient id="vg-ff"><stop offset="0" stop-color="#fff3c8"/><stop offset=".4" stop-color="#ffd98f"/><stop offset="1" stop-color="#ffd98f" stop-opacity="0"/></radialGradient></defs>
+         ${[[14,18,3.6],[30,12,3],[44,24,3.4],[22,36,2.8],[40,42,3.2],[30,28,2.4],[50,40,2.2]].map(([x,y,r],i)=>
+           `<circle cx="${x}" cy="${y}" r="${r*3.2}" fill="url(#vg-ff)" opacity=".55"><animate attributeName="opacity" values=".2;.8;.2" dur="${1.4+i*.35}s" repeatCount="indefinite"/></circle>
+            <circle cx="${x}" cy="${y}" r="${r}" fill="#fff6d8"/>`).join("")}`},
   bluebird:{name:"A bluebird", at:[84,49], gift:[6,12],
     when:x=> x.forms.bell||x.forms.round,
     lines:["It lands on the lantern post, says one clear thing, and thinks about it.",
            "Its blue is the blue of nothing else in the garden. It knows this."],
-    art:`<ellipse cx="28" cy="32" rx="14" ry="10" fill="#8ea6f0"/><circle cx="38" cy="24" r="8" fill="#8ea6f0"/>
-         <path d="M45 24 l7 2 -7 2Z" fill="#f2c078"/><circle cx="40" cy="22" r="1.6" fill="#141830"/>
-         <path d="M20 30 q-8 4 -12 12 q10 -2 14 -8" fill="#6f88d8"/><ellipse cx="30" cy="36" rx="8" ry="4" fill="#f0d8c8" opacity=".8"/>`},
+    art:`<defs><linearGradient id="vg-bb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9bdf8"/><stop offset="1" stop-color="#5f78d6"/></linearGradient></defs>
+         <ellipse cx="30" cy="50" rx="14" ry="2.5" fill="#000" opacity=".16"/>
+         <path d="M14 36 q-10 2 -12 10 q10 -1 14 -6Z" fill="#4f66c2"/>
+         <ellipse cx="28" cy="34" rx="15" ry="11" fill="url(#vg-bb)"/>
+         <path d="M20 30 q10 -6 22 2 q-8 8 -22 2Z" fill="#6f88e0" opacity=".8"/>
+         <ellipse cx="29" cy="39" rx="9" ry="5" fill="#f4dccb"/>
+         <circle cx="39" cy="24" r="9" fill="url(#vg-bb)"/>
+         <path d="M47 24 l8 2 -8 3Z" fill="#e8b14f"/>
+         <circle cx="41" cy="22" r="2" fill="#141830"/><circle cx="41.7" cy="21.3" r=".7" fill="#fff"/>
+         <path d="M30 44 v6 M33 44 v6" stroke="#e8b14f" stroke-width="1.6" stroke-linecap="round"/>`},
   frog:{name:"A tree frog", at:[63,58], gift:[5,9],
     when:x=> x.blooms>=2,
     lines:["It sits at the edge of the stream with the patience of something that has never once been late.",
            "One note, low, and then a long wait to see if anything answers."],
-    art:`<ellipse cx="28" cy="36" rx="16" ry="11" fill="#8fd9b6"/><circle cx="20" cy="24" r="6" fill="#8fd9b6"/><circle cx="36" cy="24" r="6" fill="#8fd9b6"/>
-         <circle cx="20" cy="24" r="2.6" fill="#141830"/><circle cx="36" cy="24" r="2.6" fill="#141830"/>
-         <path d="M10 44 q-4 6 2 8 M46 44 q4 6 -2 8" stroke="#8fd9b6" stroke-width="4" stroke-linecap="round"/>`},
+    art:`<defs><radialGradient id="vg-frog" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#b8f0c8"/><stop offset=".6" stop-color="#5fc48a"/><stop offset="1" stop-color="#2f8a5e"/></radialGradient>
+         <radialGradient id="vg-frogeye" cx=".35" cy=".3" r=".7"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#d9a640"/></radialGradient></defs>
+         <ellipse cx="30" cy="52" rx="20" ry="3" fill="#000" opacity=".2"/>
+         <path d="M8 46 q4 -8 12 -6 q-6 6 -4 10Z" fill="#3f9e6a"/><path d="M52 46 q-4 -8 -12 -6 q6 6 4 10Z" fill="#3f9e6a"/>
+         <ellipse cx="30" cy="38" rx="18" ry="13" fill="url(#vg-frog)"/>
+         <ellipse cx="30" cy="44" rx="11" ry="5" fill="#eaf7d8" opacity=".85"/>
+         <path d="M14 30 q16 -12 32 0" fill="none" stroke="#2f8a5e" stroke-width="1.2" opacity=".5"/>
+         <circle cx="20" cy="24" r="7.5" fill="url(#vg-frog)"/><circle cx="40" cy="24" r="7.5" fill="url(#vg-frog)"/>
+         <circle cx="20" cy="24" r="5" fill="url(#vg-frogeye)"/><circle cx="40" cy="24" r="5" fill="url(#vg-frogeye)"/>
+         <ellipse cx="20" cy="24" rx="1.6" ry="3.2" fill="#141830"/><ellipse cx="40" cy="24" rx="1.6" ry="3.2" fill="#141830"/>
+         <circle cx="18.6" cy="22.2" r="1.2" fill="#fff"/><circle cx="38.6" cy="22.2" r="1.2" fill="#fff"/>
+         <path d="M24 34 q6 3 12 0" fill="none" stroke="#2f8a5e" stroke-width="1.4" stroke-linecap="round"/>
+         <g fill="#5fc48a"><circle cx="8" cy="51" r="2.4"/><circle cx="13" cy="53" r="2.4"/><circle cx="52" cy="51" r="2.4"/><circle cx="47" cy="53" r="2.4"/></g>`},
   hummingbird:{name:"A hummingbird", at:null, gift:[8,12],
     when:x=> x.forms.star||x.forms.spire||x.forms.bell,
     lines:["It hangs in the air like it has decided gravity is a rumour.",
            "It visits every flower in turn and leaves before you have finished looking."],
-    art:`<ellipse cx="30" cy="30" rx="10" ry="6" fill="#8fd9b6"/><circle cx="39" cy="26" r="5" fill="#8fd9b6"/>
-         <path d="M44 26 l12 1" stroke="#141830" stroke-width="1.8" stroke-linecap="round"/>
-         <path d="M28 26 q-6 -14 4 -16 q2 10 -4 16 M30 26 q6 -14 -4 -16" fill="#d8a7c4" opacity=".85"/>
-         <path d="M20 32 q-8 4 -10 10 q8 -2 10 -6" fill="#6fae86"/>`},
+    art:`<defs><linearGradient id="vg-hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe0c0"/><stop offset="1" stop-color="#3f9e7a"/></linearGradient>
+         <linearGradient id="vg-hbw" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d8a7c4"/><stop offset="1" stop-color="#f4dcea"/></linearGradient></defs>
+         <g opacity=".85"><path d="M28 28 C 20 8, 34 4, 36 18 C 34 24, 30 28, 28 28Z" fill="url(#vg-hbw)"/>
+         <path d="M28 28 C 10 20, 8 34, 22 34 C 26 34, 28 30, 28 28Z" fill="url(#vg-hbw)" opacity=".8"/></g>
+         <ellipse cx="30" cy="32" rx="11" ry="6.5" fill="url(#vg-hb)"/>
+         <ellipse cx="32" cy="35" rx="6" ry="3" fill="#eaf7ee" opacity=".7"/>
+         <circle cx="40" cy="27" r="5.5" fill="url(#vg-hb)"/>
+         <path d="M38 24 q4 -1 6 2 q-3 2 -6 -2Z" fill="#e66e96" opacity=".85"/>
+         <path d="M45 27 l13 1.5" stroke="#141830" stroke-width="1.8" stroke-linecap="round"/>
+         <circle cx="41" cy="25.5" r="1.4" fill="#141830"/>
+         <path d="M20 34 q-10 4 -12 12 q10 -2 13 -8Z" fill="#3f9e7a"/>`},
   owl:{name:"An owl", at:[68,30], gift:[18,26], rare:.5,
     when:x=> x.night && S.restLifetime>=100,
     lines:["She has been watching for some time. She approves of how little you have been doing.",
            "One slow blink. That is the whole conversation, and it is enough."],
-    art:`<ellipse cx="30" cy="36" rx="14" ry="16" fill="#9a8a78"/><circle cx="30" cy="22" r="11" fill="#b0a08c"/>
-         <circle cx="25" cy="21" r="4.5" fill="#fff"/><circle cx="35" cy="21" r="4.5" fill="#fff"/><circle cx="25" cy="21" r="2" fill="#141830"/><circle cx="35" cy="21" r="2" fill="#141830"/>
-         <path d="M30 24 l-2 4 4 0Z" fill="#f2c078"/><path d="M20 14 l3 -7 3 6 M40 14 l-3 -7 -3 6" fill="#b0a08c"/>
-         <path d="M18 34 q0 14 8 16 M42 34 q0 14 -8 16" stroke="#7a6a58" stroke-width="2" fill="none"/>`},
+    art:`<defs><radialGradient id="vg-owl" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#cbb9a2"/><stop offset="1" stop-color="#7a6650"/></radialGradient></defs>
+         <ellipse cx="30" cy="54" rx="14" ry="2.5" fill="#000" opacity=".18"/>
+         <ellipse cx="30" cy="38" rx="15" ry="17" fill="url(#vg-owl)"/>
+         <path d="M30 26 q-12 6 -10 22 M30 26 q12 6 10 22" fill="none" stroke="#5e4c3a" stroke-width="1.4" opacity=".6"/>
+         <path d="M22 44 h16 M23 48 h14 M25 52 h10" stroke="#e8dcc8" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>
+         <circle cx="30" cy="21" r="12" fill="url(#vg-owl)"/>
+         <path d="M20 12 l3 -8 4 6 M40 12 l-3 -8 -4 6" fill="#8a7660"/>
+         <circle cx="24" cy="21" r="6" fill="#f5efe4"/><circle cx="36" cy="21" r="6" fill="#f5efe4"/>
+         <circle cx="24" cy="21" r="3.6" fill="#e8b14f"/><circle cx="36" cy="21" r="3.6" fill="#e8b14f"/>
+         <circle cx="24" cy="21" r="2" fill="#141830"/><circle cx="36" cy="21" r="2" fill="#141830"/>
+         <circle cx="23" cy="20" r=".8" fill="#fff"/><circle cx="35" cy="20" r=".8" fill="#fff"/>
+         <path d="M30 24 l-2.5 4 h5Z" fill="#e8b14f"/>
+         <path d="M25 54 l-2 4 M27 54 l0 4 M33 54 l0 4 M35 54 l2 4" stroke="#8a7660" stroke-width="1.5" stroke-linecap="round"/>`},
   fox:{name:"A fox", at:[22,58], gift:[14,22], rare:.35,
     when:x=> x.blooms>=5,
     lines:["It came to see what all the light was about. It has decided the answer is nothing to worry over.",
            "It curls up by the pond for exactly as long as it wants to, then leaves without ceremony."],
-    art:`<path d="M12 40 q4 -16 18 -18 q14 2 18 18Z" fill="#e0954a"/><circle cx="30" cy="22" r="9" fill="#e0954a"/>
-         <path d="M23 16 l-4 -10 8 6Z M37 16 l4 -10 -8 6Z" fill="#e0954a"/>
-         <path d="M30 26 q-3 4 0 5 q3 -1 0 -5" fill="#fff" opacity=".8"/><circle cx="26" cy="21" r="1.4" fill="#141830"/><circle cx="34" cy="21" r="1.4" fill="#141830"/>
-         <path d="M46 40 q10 -6 6 -14" stroke="#e0954a" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="52" cy="26" r="3" fill="#fff"/>`}
+    art:`<defs><linearGradient id="vg-fox" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4a866"/><stop offset="1" stop-color="#c8722e"/></linearGradient></defs>
+         <ellipse cx="30" cy="52" rx="20" ry="3" fill="#000" opacity=".18"/>
+         <path d="M46 44 q14 -8 8 -20 q-4 12 -14 16Z" fill="url(#vg-fox)"/><path d="M54 24 q3 4 0 8 q-4 -2 -3 -7Z" fill="#fff"/>
+         <path d="M10 46 q3 -18 20 -20 q17 2 20 20Z" fill="url(#vg-fox)"/>
+         <path d="M18 46 q4 -10 12 -10 q8 0 12 10Z" fill="#fbe9d8" opacity=".9"/>
+         <circle cx="30" cy="23" r="10" fill="url(#vg-fox)"/>
+         <path d="M22 17 l-4 -11 9 6Z M38 17 l4 -11 -9 6Z" fill="url(#vg-fox)"/>
+         <path d="M23 16 l-2 -6 5 3Z M37 16 l2 -6 -5 3Z" fill="#fbe9d8" opacity=".8"/>
+         <path d="M30 28 q-6 5 -8 1 q3 -4 8 -5 q5 1 8 5 q-2 4 -8 -1Z" fill="#fbe9d8"/>
+         <ellipse cx="30" cy="27.5" rx="2" ry="1.4" fill="#2a1e18"/>
+         <path d="M25 22 q2 -1 3 1 M32 23 q1 -2 3 -1" stroke="#2a1e18" stroke-width="1.6" fill="none" stroke-linecap="round"/>`}
 };
 function situation(){
   const x={sprouts:0, blooms:0, forms:{}, night:false};
@@ -2811,6 +2895,9 @@ function openPastimes(){
     <div class="lab" style="font-size:.9rem;color:var(--ink);margin-bottom:6px">How much thinking today?</div>
     <div class="pills">${[["gentle","Gentle"],["curious","Curious"],["absorbing","Absorbing"]].map(([k,n])=>
       `<button class="pill" data-mind="${k}" aria-pressed="${(S.comfort.mind||"curious")===k?"true":"false"}">${n}</button>`).join("")}</div>
+    <button class="row" data-guide="5" style="border-color:var(--vapor-line)">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--ink-soft)" stroke-width="1.5"><circle cx="22" cy="22" r="14"/><path d="M22 16v7l4 3M22 12v1"/></svg>
+      <span class="body"><span class="name">How the pastimes work</span><span class="meta">One line on each, and the mood setting</span></span></button>
     <button class="row" data-open-journal="1" style="border-color:var(--vapor-line)">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><path d="M10 6h20l6 6v26H10Z"/><path d="M16 20h14M16 27h14M16 34h9"/></svg>
       <span class="body"><span class="name">Field Notes</span>
@@ -3010,6 +3097,7 @@ function renderComfort(){
     ${tog("haptics", c.haptics, "Vibration", "Small buzz when something happens.")}
     ${tog("breath", c.breath, "Breathing circle while resting", "A slow circle to follow, only in resting mode.")}
     <div class="divider"></div>
+    <button class="btn" data-guide="0" style="margin-bottom:14px">How Lumina works</button>
     <div class="note">There are no streaks, no daily goals and no timers anywhere in Lumina. Being away costs you nothing, and the garden keeps growing while you are gone.</div>`;
   openSheet("Comfort", "Set it however your body wants it", html);
 }
@@ -3292,6 +3380,7 @@ const Sky = {
     Heavens.build();
     this.say(msg);
     toast(msg+" It hangs in your sky now.", 5200, "star");
+    setTimeout(()=>{ if(SESSION.mgOpen==="mgSky"){ const rest=SKIES.filter(x=>x.id!==this.puz.id); this.start(SKIES.find(x=>!S.skies[x.id]) || pick(rest)); } }, 3400);
     $("#skyNext").textContent = "Thread another";
   },
   bind(){
@@ -3561,8 +3650,8 @@ const Sorter = {
     const k=pick(Object.keys(SPECIES).filter(x=>SPECIES[x].cost>0));
     S.seeds[k]=(S.seeds[k]||0)+1;
     paintPurse(); save(); Sound.chime(5); buzz(20);
-    $("#sortStatus").textContent="All home. +15 stardust, and a "+SPECIES[k].name+" seed fell out of the tray.";
-    $("#sortMore").style.display="";
+    $("#sortStatus").textContent="All home. +15 stardust, and a "+SPECIES[k].name+" seed fell out of the tray. More seeds in a moment.";
+    setTimeout(()=>{ if(SESSION.mgOpen==="mgSort") this.round(); }, 3400);
   }
 };
 
@@ -3613,7 +3702,8 @@ const Lamps = {
     const g = this.n===3 ? 12 : this.n===4 ? 20 : 32;
     S.sd+=g; S.journal.lamps=(S.journal.lamps||0)+1; paintPurse(); save();
     Sound.chime(5); buzz(22); $("#lamps").classList.add("solved");
-    $("#lampsStatus").textContent = "All lit. +"+g+" stardust."+(this.solved===3?" The next row is wider.":"");
+    $("#lampsStatus").textContent = "All lit. +"+g+" stardust."+(this.solved===3?" The next row is wider.":"")+" A new arrangement in a moment.";
+    setTimeout(()=>{ if(SESSION.mgOpen==="mgLamps") this.fresh(); }, 3000);
   },
   bind(){
     $("#lamps").addEventListener("click", e=>{ const b=e.target.closest(".lamp"); if(b) this.tap(+b.dataset.i); });
@@ -3683,7 +3773,8 @@ const Pools = {
     let extra="";
     if(Math.random()<.35){ S.stones.push({k:"aqua", work:STONES.aqua.work}); extra=" Under the last rock: a rough aquamarine."; }
     paintPurse(); save(); Sound.chime(5); buzz(20);
-    $("#poolsStatus").textContent="Every pair. +"+g+" stardust."+extra;
+    $("#poolsStatus").textContent="Every pair. +"+g+" stardust."+extra+" A new shore in a moment.";
+    setTimeout(()=>{ if(SESSION.mgOpen==="mgPools") this.fresh(); }, 3200);
   },
   bind(){
     $("#pools").addEventListener("click", e=>{ const b=e.target.closest(".rock"); if(b) this.tap(+b.dataset.i); });
@@ -3766,7 +3857,8 @@ const Stream = {
   win(){
     const g=byMind(8,15,26); S.sd+=g; S.journal.streams=(S.journal.streams||0)+1; paintPurse(); save();
     Sound.chime(5); buzz(20); $("#stream").classList.add("done");
-    $("#streamStatus").textContent="It runs. +"+g+" stardust.";
+    $("#streamStatus").textContent="It runs. +"+g+" stardust. Another channel in a moment.";
+    setTimeout(()=>{ if(SESSION.mgOpen==="mgStream") this.fresh(); }, 3000);
   },
   bind(){
     $("#stream").addEventListener("click", e=>{ const b=e.target.closest(".stone-t"); if(b) this.tap(+b.dataset.i); });
@@ -3975,9 +4067,9 @@ const Clouds = {
         S.sd+=g; S.journal.clouds=(S.journal.clouds||0)+1; paintPurse(); save();
         Sound.chime(4); buzz(12);
         $("#cloudStatus").textContent = this.rounds===5 ? "Five of five. +"+g+" stardust, with a bonus for the set." : "There it is. +"+g+" stardust.";
-        $("#cloudNext").textContent = this.rounds===5 ? "Another five" : "Next cloud";
         if(this.rounds===5) this.rounds=0;
         $("#cloudNext").style.display="";
+        setTimeout(()=>{ if(SESSION.mgOpen==="mgClouds") this.next(); }, 2200);
       }else{
         b.classList.add("nope"); setTimeout(()=>b.classList.remove("nope"),500);
         $("#cloudStatus").textContent="That one is a "+b.dataset.shape+". "+pick(["Close, though.","A good "+b.dataset.shape+", to be fair.","Keep looking."]);
@@ -4164,6 +4256,12 @@ function wire(){
     setTimeout(()=> $("#checkin").style.display="none", 700);
     setEnergy(b.dataset.energy);
     if(b.dataset.energy==="low" && S.comfort.breath) runBreath();
+    if(!S.seen.guide){
+      S.seen.guide=true; save();
+      setTimeout(()=>{ openSheet("First time here?", "Two minutes, or skip it",
+        '<div class="note">There is a short guide to how the garden works — what the energy question does, what stardust and rest are for, and what the pastimes are. It is always in Comfort if you want it later.</div>'+
+        '<button class="btn warm" data-guide="0" style="margin-bottom:10px">Show me</button><button class="btn quiet" data-close="1">I will find my way</button>'); }, 1400);
+    }
   }));
 
   $("#btnMood").addEventListener("click", ()=>{
@@ -4196,7 +4294,7 @@ function wire(){
   $("#sheetClose").addEventListener("click", closeSheet);
   $("#scrim").addEventListener("click", closeSheet);
   $("#sheetBody").addEventListener("click", e=>{
-    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade],[data-restbuy],[data-wispname],[data-mind],[data-close],[data-rename],[data-postcard],[data-spot],[data-lamp],[data-setname]");
+    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade],[data-restbuy],[data-wispname],[data-mind],[data-close],[data-rename],[data-postcard],[data-spot],[data-lamp],[data-setname],[data-guide]");
     if(!t) return;
     if(t.dataset.buyseed){
       const k=t.dataset.buyseed, sp=SPECIES[k];
@@ -4235,6 +4333,7 @@ function wire(){
     if(t.dataset.decor) buyDecor(t.dataset.decor);
     if(t.dataset.upgrade) buyUpgrade(t.dataset.upgrade);
     if(t.dataset.close){ closeSheet(); }
+    if(t.dataset.guide!==undefined) Guide.open(+t.dataset.guide);
     if(t.dataset.rename){
       openSheet("A name for this island", "Yours to call it what you like",
         `<input id="islName" type="text" maxlength="28" value="${(island().name||"").replace(/"/g,"")}" placeholder="${PLACES[S.env].name}"
@@ -4294,6 +4393,7 @@ function wire(){
   });
 
   $("#revealBtn").addEventListener("click", ()=> Reveal.take());
+  $("#toast").addEventListener("click", ()=> Notify.dismiss());
   $$("[data-close-mg]").forEach(b=> b.addEventListener("click", ()=> hideMg(b.dataset.closeMg)));
 
   // idle tracking for the resting dim
@@ -4311,6 +4411,64 @@ function wire(){
   // no accidental zoom / pull-to-refresh fighting the one-thumb layout
   document.addEventListener("gesturestart", e=> e.preventDefault());
 }
+
+/* ============ THE GUIDE ============ */
+const GUIDE = [
+  {t:"What Lumina is", h:`<p>A small garden in the sky that grows whether or not you are looking at it. There are no timers, no streaks, no daily goals and nothing that can be failed or lost. Being away costs nothing.</p>
+    <p>It was built for people living with chronic illness, so it bends to how you feel rather than the other way round. Everything in this guide is optional. The garden will do fine if you only ever open it and watch.</p>`},
+  {t:"How is your energy?", h:`<p>Each time you open the app it asks. Your answer shapes the day:</p>
+    <ul><li><b>I have some energy</b> — everything is open: planting, pastimes, exploring, the Hut.</li>
+    <li><b>Somewhere in between</b> — the same, a little lighter, plants growing a touch faster.</li>
+    <li><b>Low — be gentle with me</b> — Sanctuary Mode. Rain falls, the garden tends itself, light is gathered for you, the screen dims when you stop touching it, and you earn <b>Rest</b> for doing nothing. Two buttons remain: Resting and Comfort.</li></ul>
+    <p>Change it any time with the button in the ribbon at the top.</p>`},
+  {t:"The garden", h:`<p><b>Drag</b> to look around; the island is bigger than your screen. Tap the sky, the trees, the waterfall, the lanterns and the boulders — they all do something.</p>
+    <p><b>Planting:</b> open the Hut, tap a seed, then tap open ground. Plants grow on real time and never wilt. A tap on a growing plant is worth twenty seconds of weather.</p>
+    <p><b>Gathering light:</b> a plant in bloom pulses when it has light to give. Tap it for stardust. In Sanctuary Mode this happens for you.</p>
+    <p><b>New beds:</b> the dashed circle with a number is ground you can turn for stardust. Islands grow from six or eight beds to sixteen.</p>`},
+  {t:"Stardust and Rest", h:`<p><b>Stardust</b> comes from blooms, visitors, shooting stars, the sky, the island, and every pastime. It buys seeds, beds, decor, upgrades and new islands.</p>
+    <p><b>Rest</b> comes only from resting in Sanctuary Mode. It never turns into stardust and stardust never turns into it. It buys the night plants, the Moon Garden, and nothing else buys those. The owl comes only to gardens with a hundred rest behind them.</p>`},
+  {t:"The Hut", h:`<ul><li><b>Seeds</b> — free plants for stardust, ten rare varieties you buy once and plant forever, and the seeds you have found.</li>
+    <li><b>Decor</b> — seven pieces, three places per island. Each draws a particular visitor: a birdbath for birds, a mushroom ring for the snail and frog, a bench for the fox. You choose the lantern colour here too.</li>
+    <li><b>Upgrades</b> — six permanent ones: faster growth, full growth while away, more wisps, more visitors, deeper light, more stones under boulders.</li>
+    <li><b>Rest</b> — the night shelf.</li></ul>`},
+  {t:"Pastimes", h:`<p>Eleven, none timed, none failable. At the top of the list, choose <b>Gentle</b>, <b>Curious</b> or <b>Absorbing</b> for how much thinking you want today; it resizes all of them.</p>
+    <ul><li><b>The Tumbler</b> — swipe a rough stone smooth, or let it turn on its own.</li>
+    <li><b>Star Threads</b> — tap numbered stars in order; a picture appears and hangs in your sky.</li>
+    <li><b>Wind Chimes</b> — no wrong notes. Echo mode plays a phrase for you to play back.</li>
+    <li><b>Seed Sorting</b> — tap a seed, tap its bowl.</li>
+    <li><b>Lighting the Lanterns</b> — tap one, its neighbours change; light them all. A nudge button helps.</li>
+    <li><b>Tide Pools</b> — turn over rocks, find the pairs.</li>
+    <li><b>Stream Stones</b> — turn the stones to bring the water across.</li>
+    <li><b>Firefly Jar</b> — catch them slowly, then let them go.</li>
+    <li><b>Cloud Shapes</b> — which cloud is the rabbit?</li>
+    <li><b>The Mosaic</b> — six stones a day, finished over weeks.</li>
+    <li><b>Trail Expeditions</b> — a short walk, two choices at a time, things brought home.</li></ul>`},
+  {t:"Who comes to visit", h:`<p><b>Wisps</b> drift in when things bloom. Tap one for a gift. One wisp stays after your first flower and asks for a name; it follows you between islands.</p>
+    <p><b>Visitors</b> — snail, moth, fireflies, bluebird, frog, hummingbird, fox, owl — are drawn to what you have grown and built. The camera turns to them. Tap to say hello.</p>
+    <p><b>Letters</b> from the previous keeper turn up as things happen. <b>Hybrids</b> appear when two different plants bloom side by side long enough. All of it is kept in <b>Field Notes</b>, which is a record, not a checklist.</p>`},
+  {t:"Islands", h:`<p>The Cloud Garden is yours from the start. The Orchard Shelf, the Reed Bank and the Windmill Rise open for stardust. The Moon Garden opens for rest. Two packs — the Far Sky and the Warm Waters — are one-time purchases of two islands each, with four plants between them.</p>
+    <p>Every island keeps growing while you are on another. Each has its own weather, its own sound, and its own plants that come with it.</p>`},
+  {t:"Tips", h:`<ul><li>On a bad day, choose <b>Low</b> and put the phone face down. That is playing correctly.</li>
+    <li>Plant two different flowers side by side and leave them. Something may come of it.</li>
+    <li>The <b>Comfort</b> button has a one-tap Low Light preset, five colour palettes, separate dials for music, weather and chimes, bigger tap targets, and a left-hand layout.</li>
+    <li>Tap a notification to dismiss it early.</li>
+    <li>Nothing grows faster for being watched. Close the app; it will be further along when you return.</li>
+    <li>If you reinstall, <b>Places &gt; Copy my garden code</b> first, then paste it back.</li>
+    <li>The Android back button steps out of whatever is open.</li></ul>`}
+];
+const Guide = {
+  page:0,
+  open(p){ this.page=p||0; this.render(); },
+  render(){
+    const g=GUIDE[this.page], n=GUIDE.length;
+    openSheet(g.t, "How Lumina works · "+(this.page+1)+" of "+n,
+      '<div class="guide">'+g.h+'</div>'+
+      '<div class="pills" style="justify-content:center;margin:14px 0 6px">'+GUIDE.map((x,i)=>`<button class="pill" data-guide="${i}" aria-pressed="${i===this.page?"true":"false"}" aria-label="${x.t}" style="min-height:34px;padding:0 12px">${i+1}</button>`).join("")+'</div>'+
+      '<div style="display:flex;gap:10px">'+(this.page>0?'<button class="btn quiet" data-guide="'+(this.page-1)+'">Back</button>':"")+
+      (this.page<n-1?'<button class="btn warm" data-guide="'+(this.page+1)+'">Next</button>':'<button class="btn warm" data-close="1">Into the garden</button>')+'</div>');
+    $("#sheetBody").scrollTop=0;
+  }
+};
 
 /* ============ NATIVE SHELL ============ */
 function native(){
