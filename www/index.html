@@ -222,6 +222,12 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .dot.rp{background:var(--leaf);box-shadow:0 0 9px var(--leaf)}
 
 /* mood ribbon: how the game is currently adapting */
+.presence{margin:4px var(--pad) 0;min-height:44px;border-radius:999px;padding:6px 14px 6px 8px;
+  background:rgba(143,217,182,.14);border:1px solid var(--leaf);color:var(--ink);
+  display:flex;align-items:center;gap:10px;font-size:.9rem;font-weight:700;position:relative;z-index:5;text-align:left}
+.presence[hidden]{display:none}
+.presence svg{width:30px;height:30px;flex:none}
+.presence i{font-style:normal;font-weight:500;color:var(--ink-soft)}
 .ribbon{
   margin:2px var(--pad) 0;padding:9px 14px;border-radius:999px;
   background:var(--vapor);border:1px solid var(--vapor-line);
@@ -630,14 +636,16 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 
 .toast{
   position:fixed;left:0;right:0;top:0;z-index:60;box-sizing:border-box;
-  padding:calc(14px + env(safe-area-inset-top)) 18px 14px 16px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 12px;
   background:rgba(22,26,52,.97);border-bottom:1px solid var(--vapor-line);color:var(--ink);
-  font-size:1.02rem;line-height:1.4;font-weight:600;
-  translate:0 -110%;transition:translate .38s cubic-bezier(.2,.9,.3,1);
-  display:flex;gap:14px;align-items:center;text-align:left;cursor:pointer;
+  translate:0 -110%;transition:translate .38s cubic-bezier(.2,.9,.3,1);cursor:pointer;
   box-shadow:0 8px 30px rgba(0,0,0,.4);
 }
 .toast.on{translate:0 0}
+.toast-in{max-width:520px;margin:0 auto;display:flex;gap:12px;align-items:center;text-align:left}
+.toast .tx{flex:1;font-size:1rem;line-height:1.4;font-weight:600}
+.toast .tx b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--glow);font-weight:800;margin-bottom:2px}
+.toast.visitor .tx b{color:var(--leaf)}.toast.star .tx b{color:var(--ink-soft)}.toast.letter .tx b{color:var(--petal)}
 .toast .bar{position:absolute;left:0;bottom:0;height:3px;background:var(--glow);width:100%;transform-origin:0 50%;animation:toastbar linear forwards}
 @keyframes toastbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 .toast .ti{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -679,6 +687,7 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
     </div>
   </div>
 
+  <button class="presence" id="presence" hidden></button>
   <!-- mood ribbon -->
   <div class="ribbon">
     <span id="moodText">Settling in</span>
@@ -1344,11 +1353,24 @@ function saveNow(){ clearTimeout(saveTimer); S.lastSeen = now(); Store.write(JSO
 /* ---------- small helpers ---------- */
 /* Notifications queue instead of overwriting: one banner at a time across
    the top, each with a visible timer, tap to dismiss early. */
+/* Two kinds of notification.
+   - A REPLY to something the player just did: short, immediate, may follow another.
+   - An EVENT the garden raised on its own: labelled, literal, and never more
+     than one every 40 seconds. Anything that arrives too soon is dropped —
+     the thing it announces is visible on the island anyway. */
+const LABELS = {info:"Garden", bloom:"Garden", visitor:"Visitor", star:"Sky", stone:"Stone", seed:"Seed", letter:"Letter", weather:"Weather"};
 const Notify = {
-  q:[], showing:false, timer:null,
-  push(msg, ms, type){
-    if(this.q.length>=4) this.q.shift();
-    this.q.push({msg, ms:clamp(ms||3800, 2800, 6500), type:type||"info"});
+  q:[], showing:false, timer:null, lastEvent:0,
+  push(msg, ms, type, isEvent){
+    type=type||"info";
+    if(isEvent){
+      const t=now();
+      if(t-this.lastEvent < 40000) return;              // the garden may not interrupt twice in a minute
+      if(this.q.some(x=>x.event)) return;
+      this.lastEvent=t;
+    }
+    if(this.q.length>=3) this.q.shift();
+    this.q.push({msg, ms:clamp(ms||3400, 2400, 6000), type, event:!!isEvent});
     if(!this.showing) this.next();
   },
   next(){
@@ -1357,14 +1379,16 @@ const Notify = {
     if(!item){ this.showing=false; t.classList.remove("on"); return; }
     this.showing=true;
     t.className="toast on "+item.type;
-    t.innerHTML='<span class="ti">'+(TOAST_ICONS[item.type]||TOAST_ICONS.info)+'</span><span style="flex:1">'+item.msg+'</span><i class="bar" style="animation-duration:'+item.ms+'ms"></i>';
+    t.innerHTML='<div class="toast-in"><span class="ti">'+(TOAST_ICONS[item.type]||TOAST_ICONS.info)+'</span>'+
+      '<span class="tx"><b>'+(LABELS[item.type]||"Garden")+'</b>'+item.msg+'</span></div>'+
+      '<i class="bar" style="animation-duration:'+item.ms+'ms"></i>';
     clearTimeout(this.timer);
     this.timer=setTimeout(()=> this.dismiss(), item.ms);
   },
   dismiss(){
     clearTimeout(this.timer);
-    const t=$("#toast"); t.classList.remove("on");
-    setTimeout(()=> this.next(), 420);
+    $("#toast").classList.remove("on");
+    setTimeout(()=> this.next(), 380);
   }
 };
 const TOAST_ICONS = {
@@ -1372,9 +1396,13 @@ const TOAST_ICONS = {
   bloom: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--petal)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>',
   visitor:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--leaf)" stroke-width="1.8" stroke-linecap="round"><path d="M4 14c3-5 6-7 10-6 3 1 5 3 6 6-3 2-6 3-9 2-4-1-6-1-7-2Z"/><path d="M14 8l4-3"/></svg>',
   star:  '<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"><path d="M4 20L20 4M12 4h8v8"/></svg>',
-  stone: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--glow)" stroke-width="1.8" stroke-linejoin="round"><path d="M6 15l-2-5 4-5h8l4 5-3 8H8Z"/></svg>'
+  stone: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--glow)" stroke-width="1.8" stroke-linejoin="round"><path d="M6 15l-2-5 4-5h8l4 5-3 8H8Z"/></svg>',
+  seed:  '<svg viewBox="0 0 24 24" fill="none" stroke="var(--leaf)" stroke-width="1.8" stroke-linecap="round"><path d="M12 21c0-5 3-9 8-10-1 6-4 9-8 10ZM12 21c0-5-3-9-8-10 1 6 4 9 8 10Z"/></svg>',
+  letter:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--petal)" stroke-width="1.8" stroke-linejoin="round"><path d="M4 6h16v12H4Z"/><path d="M4 7l8 6 8-6"/></svg>',
+  weather:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--water)" stroke-width="1.8" stroke-linecap="round"><path d="M7 15a4 4 0 0 1 1-8 5 5 0 0 1 9 1 3 3 0 0 1 1 7Z"/></svg>'
 };
-function toast(msg, ms, type){ Notify.push(msg, ms, type); }
+function toast(msg, ms, type){ Notify.push(msg, ms, type, false); }      // a reply to the player
+function event(msg, ms, type){ Notify.push(msg, ms, type, true); }       // the garden speaking up
 function buzz(ms){
   if(!S.comfort.haptics) return;
   const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
@@ -2084,8 +2112,7 @@ function tapPlot(i){
   SESSION.idleSince = now();
   if(S.energy==="low"){
     // sanctuary: no management, just a kind word
-    if(p && p.sp) toast(SPECIES[p.sp].note, 4200);
-    else toast("The rain is doing the work today.", 3000);
+    if(p && p.sp) toast(SPECIES[p.sp].name+". "+SPECIES[p.sp].note, 4200, "bloom");
     return;
   }
   if(!p){
@@ -2119,7 +2146,7 @@ function tapPlot(i){
   }else{
     // tending: a tap is worth twenty seconds of weather
     p.growth += 20000;
-    if(seasonRate(p.sp)<1 && Math.random()<.3) toast(SPECIES[p.sp].name+" is waiting for "+SEASON_OF[p.sp]+". It grows slowly out of season, and then all at once.", 4200, "bloom");
+    if(seasonRate(p.sp)<1 && Math.random()<.3) toast(SPECIES[p.sp].name+" grows slowly until "+SEASON_OF[p.sp]+".", 3400, "bloom");
     Sound.chime(0); buzz(8);
     floatNum(el, "\u2726");
     renderPlots(); save();
@@ -2147,11 +2174,11 @@ function maybeWisp(force){
   w.addEventListener("click", ()=>{
     const gift = 6 + Math.floor(Math.random()*14);
     gainSd(gift, w); Sound.chime(4); buzz(16);
-    toast(pick(WISP_LINES), 3600);
+    toast("+"+gift+" stardust from a wisp. "+pick(WISP_LINES), 3600, "visitor");
     if(Math.random()<.18){
       const k = pick(["quartz","agate","jasper","obsidian","amethyst"]);
       S.stones.push({k, work:STONES[k].work});
-      toast("It left a rough " + STONES[k].name.toLowerCase() + " behind.", 3600);
+      toast("The wisp left a rough " + STONES[k].name.toLowerCase() + ". It is in the Tumbler.", 3600, "stone");
       save();
     }
     w.remove();
@@ -2166,7 +2193,7 @@ function poiTap(kind, idx, el){
   const key=S.env+":"+kind+":"+idx, t=now();
   SESSION.poi = SESSION.poi||{};
   if(SESSION.poi[key] && t-SESSION.poi[key] < POI_COOL[kind]){
-    toast(pick(["Give it a moment.","It has nothing more just now.","Later. It is resting too."]), 2600, "info"); return;
+    return;
   }
   SESSION.poi[key]=t;
   const box=$("#fx"), r=el.getBBox();
@@ -2176,7 +2203,7 @@ function poiTap(kind, idx, el){
       l.style.left=(px+rnd(-4,4))+"%"; l.style.top=(py+rnd(-6,0))+"%"; l.style.setProperty("--dx", rnd(-60,60)+"px");
       l.style.animationDelay=(i*.18)+"s"; box.appendChild(l); setTimeout(()=>l.remove(),3200); }
     const g=2+Math.floor(Math.random()*3); gainSd(g,null); Sound.chime(1); buzz(8);
-    toast(pick(["A few leaves let go. +"+g+" stardust.","Something small rustles and thinks better of it. +"+g+".","The branches are warmer than the air. +"+g+" stardust."]), 3200, "bloom");
+    toast("+"+g+" stardust from the tree.", 2600, "bloom");
     if(Math.random()<.3) maybeVisitor(true);
   }
   if(kind==="fall"){
@@ -2184,20 +2211,19 @@ function poiTap(kind, idx, el){
       ${["#f2c078","#f0a8a0","#c8b0e8","#8fd9b6","#9fd6e8"].map((c,i)=>`<path d="M${8+i*4} 58 A${52-i*4} ${52-i*4} 0 0 1 ${112-i*4} 58" stroke="${c}" stroke-width="3" fill="none" opacity=".7"/>`).join("")}</svg>`);
     setTimeout(()=>{ const rb=box.querySelector(".rainbow"); rb&&rb.remove(); }, 12000);
     gainSd(4,null); Sound.chime(4); buzz(10);
-    toast("The spray caught the light. +4 stardust.", 3600, "star");
+    toast("+4 stardust. A rainbow in the spray.", 3000, "star");
   }
   if(kind==="lantern"){
     Sound.chime(2); buzz(8);
-    if($("#wisps").children.length<3){ maybeWisp(true); toast("The light drew a wisp in. Tap it to say hello.", 3800, "visitor"); }
-    else toast("The lantern is doing what lanterns do.", 2800, "info");
+    if($("#wisps").children.length<3){ maybeWisp(true); toast("A wisp came to the lantern. Tap it.", 3000, "visitor"); }
   }
   if(kind==="boulder"){
     const chance = S.upgrades.sieve ? .55 : .3;
     if(Math.random()<chance){
       const k=pick(["quartz","agate","jasper","obsidian","amethyst","aqua"]);
       S.stones.push({k, work:STONES[k].work}); save();
-      Sound.chime(3); buzz(14); toast("Under it: a rough "+STONES[k].name.toLowerCase()+". The tumbler will want it.", 4200, "stone");
-    }else{ gainSd(1,null); Sound.chime(0); toast("A rock. A good one, but a rock. +1.", 2800, "info"); }
+      Sound.chime(3); buzz(14); toast("A rough "+STONES[k].name.toLowerCase()+" under the boulder. It is in the Tumbler.", 3800, "stone");
+    }else{ gainSd(1,null); Sound.chime(0); toast("+1 stardust. Just a rock this time.", 2400, "info"); }
   }
   if(kind==="decor"){
     const it=DECOR[idx]; if(!it) return;
@@ -2208,7 +2234,7 @@ function poiTap(kind, idx, el){
   }
   if(kind==="mill"){
     gainSd(3,null); Sound.chime(2); buzz(8);
-    toast("The sails come round. The whole hill hums for a moment. +3 stardust.", 3600, "bloom");
+    toast("+3 stardust from the windmill.", 2600, "bloom");
   }
 }
 
@@ -2236,7 +2262,7 @@ const Heavens = {
       <circle cx="33" cy="32" r="3" fill="var(--sky-top)" opacity=".18"/><circle cx="46" cy="46" r="4" fill="var(--sky-top)" opacity=".16"/></svg>`;
     m.addEventListener("click", ()=>{
       S.rest+=2; S.journal.moon=(S.journal.moon||0)+1; paintPurse(); save(); Sound.chime(2); buzz(8);
-      toast(pick(this.MOON_LINES)+" +2 rest.", 4200, "star");
+      toast("+2 rest from looking at the moon. "+pick(this.MOON_LINES), 4200, "star");
     });
     box.appendChild(m);
     this.constellations();
@@ -2271,17 +2297,17 @@ const Heavens = {
       art=`<svg viewBox="0 0 160 80"><path d="M10 44 q26 -30 76 -22 q30 6 44 20 q-18 20 -60 18 q-40 0 -60 -16Z" fill="var(--ink)" opacity=".22"/>
         <path d="M128 40 l26 -20 -4 30Z" fill="var(--ink)" opacity=".2"/><circle cx="30" cy="40" r="2.4" fill="var(--sky-top)" opacity=".6"/>
         <path d="M60 22 q-6 -12 0 -18 q6 6 0 18" fill="var(--ink)" opacity=".15"/></svg>`;
-      onTap=()=>{ const g=8+Math.floor(Math.random()*8); gainSd(g,b); toast(pick(this.WHALE_LINES)+" +"+g+" stardust.", 4600, "star"); Sound.chime(4); };
+      onTap=()=>{ const g=8+Math.floor(Math.random()*8); gainSd(g,b); toast("+"+g+" stardust from the sky whale. "+pick(this.WHALE_LINES), 4200, "star"); Sound.chime(4); };
     }else if(kind==="lantern"){
       dur=70; y=null;
       art=`<svg viewBox="0 0 40 60"><path d="M12 6 h16 l6 26 q-14 8 -28 0Z" fill="var(--glow)" opacity=".85"/>
         <path d="M14 8 h12 l4 20 q-10 5 -20 0Z" fill="#fff" opacity=".35"/><path d="M12 36 h16" stroke="var(--land)" stroke-width="2"/>
         <circle cx="20" cy="20" r="14" fill="var(--glow)" opacity=".18"/></svg>`;
-      onTap=()=>{ gainSd(5,b); S.journal.lanterns=(S.journal.lanterns||0)+1; save(); toast(pick(this.LANTERN_WISHES)+" +5 stardust.", 4600, "star"); Sound.chime(2); };
+      onTap=()=>{ gainSd(5,b); S.journal.lanterns=(S.journal.lanterns||0)+1; save(); toast("+5 stardust from a paper lantern. "+pick(this.LANTERN_WISHES), 4200, "star"); Sound.chime(2); };
     }else{
       dur=60; y=rnd(80,220);
       art=`<svg viewBox="0 0 120 40">${[0,1,2,3,4,5,6].map(i=>`<path d="M${10+i*15} ${16+(i%2)*6} q5 -5 10 0 q5 -5 10 0" stroke="var(--ink)" stroke-width="1.6" fill="none" opacity=".6"/>`).join("")}</svg>`;
-      onTap=()=>{ gainSd(3,b); toast(pick(this.BIRD_LINES)+" +3 stardust.", 3400, "star"); Sound.chime(1); };
+      onTap=()=>{ gainSd(3,b); toast("+3 stardust from the flock. "+pick(this.BIRD_LINES), 3400, "star"); Sound.chime(1); };
     }
     b.innerHTML=art;
     b.setAttribute("aria-label", kind==="whale"?"A sky whale, passing. Tap it.":kind==="lantern"?"A paper lantern rising. Tap to read its wish.":"A flock of birds. Tap them.");
@@ -2312,7 +2338,7 @@ function shootingStar(){
     const gift=5+Math.floor(Math.random()*10);
     gainSd(gift, b); Sound.chime(4); buzz(14);
     S.journal.stars=(S.journal.stars||0)+1; save();
-    toast(pick(WISHES), 3600);
+    toast("Shooting star caught. "+pick(WISHES), 3600, "star");
     b.remove();
   });
   stage.appendChild(b);
@@ -2475,15 +2501,23 @@ function maybeVisitor(force){
     const first=!S.journal.visitors[k];
     S.journal.visitors[k]=(S.journal.visitors[k]||0)+1;
     gainSd(gift, b); Sound.chime(4); buzz(14);
-    toast((first?"New in your notes: "+v.name.toLowerCase()+". ":"")+pick(v.lines)+" +"+gift+" stardust.", 5600, "visitor");
+    toast("+"+gift+" stardust from "+v.name.toLowerCase()+"."+(first?" It is now in your Field Notes.":""), 3600, "visitor");
+    setTimeout(()=> toast(pick(v.lines), 4200, "visitor"), 0);
     b.classList.add("leaving"); setTimeout(()=>b.remove(), 900);
   });
   $("#visitors").appendChild(b);
   const [wx,wy]=World.islandPt(pos[0],pos[1]);
-  World.panTo(wx, wy, true);
+  const where = v.at ? {bluebird:"on the lantern post", frog:"by the stream", fox:"by the pond", owl:"in the trees", snail:"on the front rim", fireflies:"over the beds"}[k]||"on the island" : "among the flowers";
+  const chip=$("#presence");
+  chip.hidden=false;
+  chip.innerHTML=`<svg viewBox="0 0 60 60">${v.art.replace(/id="vg-/g,'id="pc-').replace(/url\(#vg-/g,'url(#pc-')}</svg><span>${v.name} is here <i>· ${where} · tap to look</i></span>`;
+  chip.onclick=()=>{ World.panTo(wx, wy, true); Sound.chime(1); };
+  const gone=()=>{ if(chip.innerHTML.includes(v.name)) chip.hidden=true; };
+  b.addEventListener("click", gone, {once:true});
   Sound.chime(2);
-  toast(v.name+" has arrived"+(v.at?" by the "+(k==="bluebird"?"lantern":k==="frog"?"stream":k==="fox"?"pond":"beds"):" among the flowers")+". Tap to say hello.", 5000, "visitor");
-  setTimeout(()=>{ if(b.isConnected){ b.classList.add("leaving"); setTimeout(()=>b.remove(),900);} }, 90000);
+  event(v.name+" has landed "+where+". Tap it to say hello.", 5000, "visitor");
+  World.panTo(wx, wy, true);
+  setTimeout(()=>{ if(b.isConnected){ b.classList.add("leaving"); setTimeout(()=>b.remove(),900);} gone(); }, 90000);
 }
 
 /* ---------- letters: the story, in the order it turns up ---------- */
@@ -2511,7 +2545,7 @@ function checkLetters(){
     try{ if(!L.when()) return; }catch(e){ return; }
     S.letters.push(L.id); S.since.letters++; save();
     Sound.chime(3);
-    toast("A letter, "+L.where+". It is in your Field Notes.", 5600, "star");
+    event("A letter from M. was found "+L.where+". Read it in Field Notes.", 5600, "letter");
   });
 }
 
@@ -2531,7 +2565,7 @@ const Clock = {
     if(this.acc<30000) return;
     this.acc=0; this.apply(); checkLetters(); Resident.tick();
     // a spell of weather now and then, in season
-    if(!this.weather && S.energy!=="low" && Math.random()<.08){
+    if(!this.weather && S.energy!=="low" && Math.random()<.03){
       const w={winter:"snow", spring:"petals", summer:"warmrain", autumn:"leaves"}[this.season()];
       this.start(w);
     }
@@ -2550,7 +2584,7 @@ const Clock = {
     box.classList.add("on");
     const lines={snow:"Snow. It will not settle; it never does up here.", petals:"Blossom on the wind from somewhere upwind of you.",
       warmrain:"Warm rain, the kind you can sit out in.", leaves:"Leaves coming down from trees that are not on this island."};
-    toast(lines[kind], 4200, "info");
+    event(lines[kind], 4000, "weather");
     if(kind==="warmrain"){ Sound.rain(true); }
     setTimeout(()=> this.stop(), rnd(90000,180000));
   },
@@ -2604,7 +2638,7 @@ const Resident = {
     if(!S.resident && Object.keys(S.journal.bloomed||{}).length>=1){
       S.resident={name:null, born:now(), seen:now()}; save();
       this.render();
-      toast("A wisp has decided to stay. Tap it to give it a name.", 5600, "visitor");
+      event("A wisp has decided to stay on your island. Tap it to give it a name.", 5600, "visitor");
     }
     this.render();
   },
@@ -2627,7 +2661,7 @@ const Resident = {
     const key = days>=7?7:days>=3?3:days>=1?1:0;
     const line = pick(this.LINES_BACK[key]) + " " + this.LINES_TIME[Clock.part()];
     S.resident.seen=now(); gainSd(1,null); save(); Sound.chime(2); buzz(6);
-    toast(S.resident.name+": "+line, 5200, "visitor");
+    toast(S.resident.name+" says: "+line, 5200, "visitor");
   },
   nameIt(){
     openSheet("A name for your wisp", "It will keep it",
@@ -2639,8 +2673,13 @@ const Resident = {
 };
 
 /* ---------- the clock ---------- */
+let lastBloomed=[];
+function bloomedNames(n){
+  const names=[...new Set(lastBloomed.map(k=>SPECIES[k].name))];
+  return names.length ? names.slice(0,3).join(", ")+(names.length>3?" and more":"")+(n===1?" has opened.":" have opened.") : n+" flowers opened.";
+}
 function applyGrowth(ms, rate){
-  let bloomed = 0;
+  let bloomed = 0; lastBloomed=[];
   if(S.upgrades.compost) rate *= 1.25;
   const all=[]; Object.keys(S.islands).forEach(k=> S.islands[k].plots.forEach(p=>all.push(p)));
   all.forEach(p=>{
@@ -2648,7 +2687,7 @@ function applyGrowth(ms, rate){
     const sp=SPECIES[p.sp], was=stageOf(p);
     p.growth += ms*rate*seasonRate(p.sp);
     if(stageOf(p)===3){
-      if(was<3){ bloomed++; S.journal.bloomed[p.sp]=true; }
+      if(was<3){ bloomed++; S.journal.bloomed[p.sp]=true; lastBloomed.push(p.sp); }
       const over = p.growth - sp.bloom;
       const earned = Math.floor(over/20000)*sp.gift;   // light the plant has made, ever
       const cap = sp.gift*(S.upgrades.roots?16:8);      // it only holds so much
@@ -2666,14 +2705,14 @@ function tick(){
   if(dt<0 || dt>60000) dt = 1000;          // tab was backgrounded; offline math handles the rest
   const mode = MOODS[S.energy||"mid"];
   const b = applyGrowth(dt, mode.rate);
-  if(b>0){ Sound.chime(5); toast("Something opened.", 2600, "bloom"); }
+  if(b>0){ Sound.chime(5); event(bloomedNames(b), 3400, "bloom"); }
   autoPolish(dt);
   SESSION.pollen=(SESSION.pollen||0)+dt;
   if(SESSION.pollen>=60000){
     const hrs=SESSION.pollen/3600000; SESSION.pollen=0;
     crossPollinate(hrs).forEach(h=>{
       Sound.chime(5); buzz(20);
-      toast("Something new: a "+h.name+" seed, from the "+SPECIES[h.parents[0]].name+" and the "+SPECIES[h.parents[1]].name+" growing side by side.", 6000, "bloom");
+      event("New seed: "+h.name+", from "+SPECIES[h.parents[0]].name+" and "+SPECIES[h.parents[1]].name+" growing side by side. It is in the Hut.", 6000, "seed");
     });
   }
   Clock.tick(dt);
@@ -2704,7 +2743,7 @@ function catchUp(){
   crossPollinate(Math.min(away/3600000, 48)).forEach(h=> S.since.hybrids.push(h.id));
   const mins = Math.round(away/60000);
   const txt = mins<90 ? mins+" minutes" : mins<2880 ? Math.round(mins/60)+" hours" : Math.round(mins/1440)+" days";
-  setTimeout(()=> toast("The garden kept growing for " + txt + " while you were away.", 4800), 1400);
+  setTimeout(()=> toast("The garden grew for " + txt + " while you were away.", 4200), 1400);
 }
 function paintPurse(){
   $("#sdVal").textContent = fmt(S.sd);
@@ -4197,7 +4236,7 @@ function goPlace(key){
   S.env=key; drawIsland(); renderPlots(); save(); closeSheet();
   $("#wisps").innerHTML=""; $("#visitors").innerHTML=""; $("#resident").innerHTML=""; Resident.render();
   if(typeof World!=="undefined") World.center();
-  toast("You're at " + p.name + ".", 3000);
+
 }
 
 /* ============ BACKUP ============ */
@@ -4569,12 +4608,12 @@ async function boot(){
   Nav.bind();
   SESSION.lastTick=now();
   setInterval(()=>{ tick(); }, 1000);
-  setInterval(()=>{ if(S.energy!=="low") maybeWisp(false); }, 22000);
-  setInterval(shootingStar, 75000);
+  setInterval(()=>{ if(S.energy!=="low") maybeWisp(false); }, 45000);
+  setInterval(shootingStar, 150000);
   Heavens.build();
-  setInterval(()=>{ if(Math.random()<.5) Heavens.drifter(pick(["whale","lantern","birds","lantern"])); }, 48000);
+  setInterval(()=>{ if(Math.random()<.4) Heavens.drifter(pick(["whale","lantern","birds","lantern"])); }, 110000);
   setTimeout(()=> Heavens.drifter("lantern"), 20000);
-  setInterval(maybeVisitor, 38000);
+  setInterval(maybeVisitor, 90000);
 }
 /* Debug handle. Useful from a device console while wiring RevenueCat,
    e.g. Lumina.state().sd = 500; Lumina.billing.restore(); */
