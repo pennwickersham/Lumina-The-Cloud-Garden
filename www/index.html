@@ -634,16 +634,20 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
   animation:sparkle calc(2.4s / var(--motion,1)) ease-in-out infinite}
 @keyframes sparkle{0%,100%{opacity:0;transform:scale(.3)}45%{opacity:.95;transform:scale(1)}}
 
+/* The banner is sized and placed by JavaScript from the measured viewport,
+   so nothing about flex, transforms or an odd WebView can collapse or move it. */
 .toast{
-  position:fixed;left:0;right:0;top:0;z-index:60;box-sizing:border-box;
-  padding:calc(10px + env(safe-area-inset-top)) 14px 12px;
-  background:rgba(22,26,52,.97);border-bottom:1px solid var(--vapor-line);color:var(--ink);
-  translate:0 -110%;transition:translate .38s cubic-bezier(.2,.9,.3,1);cursor:pointer;
-  box-shadow:0 8px 30px rgba(0,0,0,.4);
+  position:fixed;display:none;box-sizing:border-box;z-index:60;
+  writing-mode:horizontal-tb;white-space:normal;word-break:normal;overflow:hidden;
+  padding:12px 14px 14px;border-radius:18px;max-height:140px;
+  background:rgba(22,26,52,.97);border:1px solid var(--vapor-line);color:var(--ink);
+  box-shadow:0 10px 30px rgba(0,0,0,.45);cursor:pointer;
+  animation:toastIn .32s ease both;
 }
-.toast.on{translate:0 0}
-.toast-in{max-width:520px;margin:0 auto;display:flex;gap:12px;align-items:center;text-align:left}
-.toast .tx{flex:1;font-size:1rem;line-height:1.4;font-weight:600}
+.toast.on{display:block}
+@keyframes toastIn{from{opacity:0;margin-top:-10px}to{opacity:1;margin-top:0}}
+.toast-in{display:flex;gap:12px;align-items:center;text-align:left;width:100%}
+.toast .tx{flex:1 1 auto;min-width:0;font-size:1rem;line-height:1.4;font-weight:600}
 .toast .tx b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--glow);font-weight:800;margin-bottom:2px}
 .toast.visitor .tx b{color:var(--leaf)}.toast.star .tx b{color:var(--ink-soft)}.toast.letter .tx b{color:var(--petal)}
 .toast .bar{position:absolute;left:0;bottom:0;height:3px;background:var(--glow);width:100%;transform-origin:0 50%;animation:toastbar linear forwards}
@@ -1373,12 +1377,22 @@ const Notify = {
     this.q.push({msg, ms:clamp(ms||3400, 2400, 6000), type, event:!!isEvent});
     if(!this.showing) this.next();
   },
+  place(){
+    // measured, not inferred: below the top bar, centred, never wider than the screen
+    const t=$("#toast");
+    const vw=window.innerWidth||document.documentElement.clientWidth||360;
+    const w=Math.min(vw-24, 520);
+    const bar=$(".topbar"); const r=bar?bar.getBoundingClientRect():{bottom:56};
+    t.style.width=w+"px"; t.style.left=Math.round((vw-w)/2)+"px"; t.style.right="auto";
+    t.style.top=Math.round((r.bottom||56)+8)+"px";
+  },
   next(){
     const item=this.q.shift();
     const t=$("#toast");
-    if(!item){ this.showing=false; t.classList.remove("on"); return; }
+    if(!item){ this.showing=false; t.classList.remove("on"); t.style.display="none"; return; }
     this.showing=true;
-    t.className="toast on "+item.type;
+    this.place();
+    t.className="toast on "+item.type; t.style.display="block";
     t.innerHTML='<div class="toast-in"><span class="ti">'+(TOAST_ICONS[item.type]||TOAST_ICONS.info)+'</span>'+
       '<span class="tx"><b>'+(LABELS[item.type]||"Garden")+'</b>'+item.msg+'</span></div>'+
       '<i class="bar" style="animation-duration:'+item.ms+'ms"></i>';
@@ -1387,10 +1401,11 @@ const Notify = {
   },
   dismiss(){
     clearTimeout(this.timer);
-    $("#toast").classList.remove("on");
-    setTimeout(()=> this.next(), 380);
+    const t=$("#toast"); t.classList.remove("on"); t.style.display="none";
+    setTimeout(()=> this.next(), 300);
   }
 };
+window.addEventListener("resize", ()=>{ if(Notify.showing) Notify.place(); });
 const TOAST_ICONS = {
   info:  '<svg viewBox="0 0 24 24" fill="none" stroke="var(--glow)" stroke-width="1.8" stroke-linecap="round"><path d="M12 3l2.2 6.2L21 12l-6.8 2.8L12 21l-2.2-6.2L3 12l6.8-2.8Z"/></svg>',
   bloom: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--petal)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>',
@@ -1510,13 +1525,20 @@ const Sound = {
     const t=this.ctx.currentTime;
     this.musicGain.gain.linearRampToValueAtTime(on ? clamp(S.comfort.music,0,1)*.9 : 0, t+2.5);
     clearTimeout(this.mTimer);
+    // a recorded track in audio/music.mp3 replaces the generative line
+    if(this.loops.music){
+      if(!this.musicSrc){ const src=this.ctx.createBufferSource(); src.buffer=this.loops.music; src.loop=true;
+        src.connect(this.musicGain); src.start(); this.musicSrc=src; }
+      return;
+    }
     if(on && S.comfort.music>0) this.mTimer=setTimeout(()=>this.musicStep(), 1200);
   },
   /* Drop licensed loops into www/audio/ with these names and they replace the
      synthesised beds for that island. Missing files are silently skipped. */
   LOOPS:{cloud:"audio/wind-soft.mp3", alpine:"audio/wind-pines.mp3", cavern:"audio/cave-drips.mp3",
          tidal:"audio/shore.mp3", springs:"audio/springs.mp3", orchard:"audio/orchard-evening.mp3",
-         reeds:"audio/marsh.mp3", mill:"audio/meadow-wind.mp3", moon:"audio/night-quiet.mp3", rain:"audio/rain.mp3"},
+         reeds:"audio/marsh.mp3", mill:"audio/meadow-wind.mp3", moon:"audio/night-quiet.mp3", rain:"audio/rain.mp3",
+         music:"audio/music.mp3"},
   loops:{},
   async loadLoops(){
     const c=this.ctx; if(!c) return;
@@ -1526,6 +1548,7 @@ const Sound = {
         this.loops[k]=await c.decodeAudioData(await r.arrayBuffer()); }catch(e){}
     }
     if(this.loops[S.env]) this.env(S.env);
+    if(this.loops.music){ clearTimeout(this.mTimer); this.mTimer=null; this.music(true); }
   },
   playLoop(name){
     if(this.loopSrc){ try{ this.loopSrc.stop(); }catch(e){} this.loopSrc=null; }
@@ -1555,7 +1578,7 @@ const Sound = {
     if(this.musicGain){
       const want = clamp(S.comfort.music,0,1)*.9;
       this.musicGain.gain.linearRampToValueAtTime(want, t+1.2);
-      if(want>0 && !this.mTimer) this.mTimer=setTimeout(()=>this.musicStep(), 900);
+      if(want>0 && !this.mTimer && !this.loops.music) this.mTimer=setTimeout(()=>this.musicStep(), 900);
       if(want<=0){ clearTimeout(this.mTimer); this.mTimer=null; }
     }
   },

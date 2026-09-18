@@ -52,3 +52,16 @@ Audacity (free): trim to 60-90 s, apply Effect > Fade In (1 s) and Fade Out
 (1 s) at the ends, or use Effect > Crossfade Clips for a seamless join.
 Export as MP3, 128 kbps, mono. Normalise to about -18 dB so no island is
 louder than another.
+
+MUSIC
+-----
+The music is generated live from a pentatonic scale and needs no file. To use
+a recorded track instead, add:
+
+  music.mp3            Any island        replaces the generative music entirely
+
+It loops, obeys the Music dial in Comfort, and passes through the same
+high-frequency softener. Choose something slow, without a beat, in the
+2-4 minute range, and check it loops cleanly. Pixabay Music
+(https://pixabay.com/music/search/ambient%20calm/) is licensed the same way
+as its sound effects: royalty-free, no attribution, commercial use allowed.
