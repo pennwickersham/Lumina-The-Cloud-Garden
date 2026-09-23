@@ -8,7 +8,10 @@
   "scripts": {
     "setup": "bash scripts/setup.sh",
     "assets": "capacitor-assets generate --android",
-    "sync": "cap sync android",
+    "sync": "node scripts/gen-firebase-config.js && cap sync android",
+    "build": "node scripts/gen-firebase-config.js",
+    "build:web": "node scripts/gen-firebase-config.js",
+    "build:release": "node scripts/gen-firebase-config.js",
     "apk": "cd android && ./gradlew assembleDebug",
     "apk:release": "cd android && ./gradlew assembleRelease",
     "open": "cap open android"
@@ -17,11 +20,16 @@
     "@capacitor/android": "8.5.2",
     "@capacitor/app": "8.1.1",
     "@capacitor/core": "8.5.2",
+    "@capacitor/device": "^8.0.3",
+    "@capacitor/filesystem": "^8.1.3",
     "@capacitor/haptics": "8.0.2",
+    "@capacitor/ios": "8.5.2",
     "@capacitor/preferences": "8.0.1",
+    "@capacitor/share": "^8.0.2",
     "@capacitor/splash-screen": "8.0.2",
     "@capacitor/status-bar": "8.0.3",
-    "@revenuecat/purchases-capacitor": "13.5.1"
+    "@revenuecat/purchases-capacitor": "13.5.1",
+    "firebase": "^10.12.2"
   },
   "devDependencies": {
     "@capacitor/assets": "3.0.5",
