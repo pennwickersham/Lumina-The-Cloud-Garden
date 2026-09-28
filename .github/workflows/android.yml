@@ -36,10 +36,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # android/ is committed (custom icons, signing, Firebase config), so only
+      # scaffold it and generate icons when a fresh checkout lacks it.
       - name: Create the Android project
-        run: npx cap add android
+        id: scaffold
+        run: |
+          if [ -f android/build.gradle ]; then
+            echo "Using the committed android/ project."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            npx cap add android
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Generate icons and splash screens
+        if: steps.scaffold.outputs.created == 'true'
         run: npx capacitor-assets generate --android
         continue-on-error: true
 
