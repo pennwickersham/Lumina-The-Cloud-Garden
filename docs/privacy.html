@@ -7,58 +7,99 @@
 <style>
   body{font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
        max-width:70ch;margin:0 auto;padding:40px 22px 80px;color:#1b1d2b;background:#fbfbfd}
+  nav{margin-bottom:28px;font-size:.95rem}
+  nav a{margin-right:16px}
   h1{font:400 2rem/1.2 Georgia,serif;margin:0 0 6px}
-  .sub{color:#666a80;margin-bottom:34px}
+  .sub{color:#666a80;margin-bottom:28px}
+  .tldr{background:#eef0fa;border:1px solid #d5d9ef;border-radius:10px;padding:16px 18px}
   h2{font:400 1.25rem/1.3 Georgia,serif;margin:34px 0 8px}
+  ul{padding-left:22px}
   a{color:#2f4a8f}
   footer{margin-top:44px;padding-top:16px;border-top:1px solid #dcdde6;color:#666a80;font-size:.9rem}
 </style>
 </head>
 <body>
+<nav><a href="./">Lumina</a><a href="support.html">Support</a><a href="privacy.html">Privacy</a></nav>
 <h1>Privacy Policy — Lumina: The Cloud Garden</h1>
-<div class="sub">Last updated: REPLACE WITH PUBLICATION DATE</div>
+<div class="sub">Effective date: September 28, 2026 · Brewster Wickersham Publications</div>
 
-<p>Lumina is published by Brewster Wickersham Publications LLC. This policy covers the
-Lumina mobile app.</p>
+<p class="tldr"><b>The short version:</b> Lumina has no accounts, no ads, no analytics and
+no tracking. It never asks for your name, email, location, contacts, photos or health
+information. To keep your garden safe if you reinstall, the app backs up your game progress
+to a cloud database under an anonymous device identifier. Purchases are handled by Apple or
+Google, with RevenueCat keeping track of what you own. We never sell data.</p>
 
-<h2>What the app collects</h2>
-<p>Nothing. Lumina has no accounts, no sign-in, no analytics, no advertising and no
-trackers. It does not ask for your name, email address, location, contacts, photos,
-health information or device identifiers, and it does not send any information about
-you anywhere.</p>
+<h2>1. Who we are</h2>
+<p>Lumina is published by Brewster Wickersham Publications ("we," "us"), the publishing
+imprint of Pendleton B. Wickersham, MD. You can reach us at
+<a href="mailto:info@brewsterwickershampublications.com">info@brewsterwickershampublications.com</a>.</p>
 
-<h2>What is stored on your device</h2>
-<p>Your garden — plants, stardust, rest, polished stones, solved constellations and your
-comfort settings — is saved on the device itself and never leaves it. Deleting the app
-deletes that data. The app provides a garden code you can copy and keep if you want to
-move your garden to a new device or restore it after reinstalling.</p>
+<h2>2. What is stored on your device</h2>
+<p>Your garden is saved on your device: plants and islands, stardust and rest, polished
+stones, pastime progress, the energy level you picked on the opening screen, your Comfort
+settings (brightness, colours, sound, text size and so on), and which purchases you own.
+Deleting the app deletes this local copy.</p>
 
-<h2>Purchases</h2>
-<p>Purchases of rare plant varieties and additional islands are handled by Google Play
-through RevenueCat, which manages the receipt so your purchases can be restored later.
-RevenueCat receives an anonymous identifier and your purchase receipt. It does not
-receive your name or email address from this app. Payment details are handled entirely
-by Google Play and are never visible to this app or to us. See
-<a href="https://www.revenuecat.com/privacy">RevenueCat's privacy policy</a> and
-<a href="https://policies.google.com/privacy">Google's privacy policy</a>.</p>
-<p>All purchases are one-time. There are no subscriptions and no recurring charges.</p>
+<h2>3. Cloud backup of your game progress</h2>
+<p>So that your garden is not lost if you delete and reinstall the app, Lumina keeps a copy
+of the same game progress described above in Google Firebase Cloud Firestore. The backup is
+stored under an identifier your phone gives to the app (the Android ID on Android, or the
+identifier for vendor on iOS). This identifier is specific to this app on your device. It is
+not your name, email address, phone number or advertising ID, and it is not used to track
+you across other apps or websites. The backup contains game data only.</p>
+<p>Like any internet service, Google receives your device's IP address when the app connects
+in order to deliver the data. See <a href="https://firebase.google.com/support/privacy">Firebase's
+privacy and security information</a>.</p>
 
-<h2>Children</h2>
-<p>Lumina is suitable for all ages and collects no information from anyone, including
-children under 13.</p>
+<h2>4. Purchases</h2>
+<p>Lumina offers optional one-time purchases (rare plant varieties and island packs). There
+are no subscriptions. Payment is processed by Apple (App Store) or Google (Google Play) under
+their terms, and we never see your payment details. To recognise what you own and restore
+purchases, we use <a href="https://www.revenuecat.com/privacy">RevenueCat</a>, which receives
+your purchase receipts and history, a randomly generated app user identifier, and basic
+technical details such as device type, operating system version and country. RevenueCat acts
+as our service provider and does not receive your name or email address from this app.</p>
 
-<h2>Medical disclaimer</h2>
-<p>Lumina is a game designed to be comfortable for people living with chronic illness.
-It is not a medical device, it does not provide medical advice, and it is not a
-treatment for any condition.</p>
+<h2>5. What we do not collect</h2>
+<ul>
+  <li><b>No health data.</b> The energy choice on the opening screen only changes how the
+    game plays. It is not a symptom record and is not used for anything else.</li>
+  <li><b>No account or registration.</b> There is no sign-up and no sign-in.</li>
+  <li><b>No advertising or analytics.</b> No ad networks, no analytics SDKs, no trackers.</li>
+  <li><b>No sale or sharing of data</b> for advertising or any other purpose.</li>
+</ul>
 
-<h2>Changes</h2>
+<h2>6. Sharing pictures</h2>
+<p>If you choose to share a picture of your polished stones, the image is made on your device
+and handed to your phone's share menu. It goes only where you send it.</p>
+
+<h2>7. How long data is kept, and deleting it</h2>
+<p>The cloud backup is kept for as long as it is useful to restore your garden. To have your
+backup deleted, email us at the address above and we will remove it. Uninstalling the app
+removes everything stored on the device. Purchase records are also kept by Apple or Google
+under their own policies.</p>
+
+<h2>8. Security</h2>
+<p>Data travelling between the app and Firebase or RevenueCat is encrypted in transit
+(HTTPS/TLS).</p>
+
+<h2>9. Children</h2>
+<p>Lumina is designed for adults, particularly people living with chronic illness, and is not
+directed at children under 13. We do not knowingly collect personal information from
+children. If you believe a child has provided personal information, contact us and we will
+delete it.</p>
+
+<h2>10. Medical disclaimer</h2>
+<p>Lumina is a game designed to be comfortable to play on difficult days. It is not a medical
+device, does not provide medical advice, and is not a treatment for any condition.</p>
+
+<h2>11. Changes</h2>
 <p>If this policy changes, the updated version will be posted at this address with a new
-date at the top.</p>
+effective date.</p>
 
-<h2>Contact</h2>
-<p>Questions: REPLACE WITH SUPPORT EMAIL ADDRESS</p>
+<h2>12. Contact</h2>
+<p><a href="mailto:info@brewsterwickershampublications.com">info@brewsterwickershampublications.com</a></p>
 
-<footer>Brewster Wickersham Publications LLC</footer>
+<footer>© 2026 Brewster Wickersham Publications</footer>
 </body>
 </html>
