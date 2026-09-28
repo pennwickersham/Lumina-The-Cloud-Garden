@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+// Release signing secrets come from a Gradle property (e.g. ~/.gradle/gradle.properties)
+// or an environment variable (GitHub Actions secrets), never from this file.
+def signingValue = { String name -> project.findProperty(name) ?: System.getenv(name) }
+def releaseStorePassword = signingValue('LUMINA_KEYSTORE_PASSWORD')
+
 android {
     namespace = "com.wickersham.lumina"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -18,15 +23,20 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('lumina-release.keystore')
-            storePassword 'Lumina2026'
-            keyAlias 'lumina'
-            keyPassword 'Lumina2026'
+            if (releaseStorePassword) {
+                storeFile file(signingValue('LUMINA_KEYSTORE_FILE') ?: 'lumina-release.keystore')
+                storePassword releaseStorePassword
+                keyAlias signingValue('LUMINA_KEY_ALIAS') ?: 'lumina'
+                keyPassword signingValue('LUMINA_KEY_PASSWORD') ?: releaseStorePassword
+            }
         }
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Without the secrets, release builds come out unsigned instead of failing.
+            if (releaseStorePassword) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
