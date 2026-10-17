@@ -1655,7 +1655,6 @@ function saveNow(){ clearTimeout(saveTimer); S.lastSeen = now(); Store.save(JSON
      and never at all when Comfort > "Quiet garden" is on.
    - note(): log only. For things the player can already see happening. */
 const LABELS = {info:"Garden", bloom:"Garden", visitor:"Visitor", star:"Sky", stone:"Stone", seed:"New seed", letter:"Letter", weather:"Weather"};
-const BANNER_KINDS = {letter:1, seed:1, discover:1};
 const Notify = {
   timer:null, lastBanner:0, showing:false,
   push(msg, ms, type){
