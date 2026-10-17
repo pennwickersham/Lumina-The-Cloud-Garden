@@ -4,7 +4,7 @@ Oct 17, 2026 · @Pendleton Brewster Wickersham
 
 ## Summary
 
-The game overhaul, the build fix, the signing change and the store listings are all on `main`, merged on 17 October 2026 in [pull request #1](https://github.com/pennwickersham/Lumina-The-Cloud-Garden/pull/1). New store screenshots are on the branch `claude/jolly-cerf-43wcau`, waiting to be merged, and will land in `store/screenshots/` and `docs/press/`. The release signing password is no longer in `android/app/build.gradle`, so **release builds are unsigned until you set it up** (Next steps, items 1 and 2).
+The game overhaul, the build fix, the signing change and the store listings are all on `main`, merged on 17 October 2026 in [pull request #1](https://github.com/pennwickersham/Lumina-The-Cloud-Garden/pull/1). New store and press screenshots, merged in [pull request #2](https://github.com/pennwickersham/Lumina-The-Cloud-Garden/pull/2), are in `store/screenshots/` and `docs/press/`. The release signing password is no longer in `android/app/build.gradle`, so **release builds are unsigned until you set it up** (Next steps, items 1 and 2).
 
 | Area | What changed | Where |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ A scripted player who visits at 8am and 8pm unlocks the Orchard Shelf on day 3, 
 
 ## Store screenshots and listing
 
-All screenshots were retaken from the overhauled game and are on the branch `claude/jolly-cerf-43wcau`, together with this handoff as `HANDOFF.md`, ahead of `main`. They reach `main` once that branch is merged. Each shot is a real capture with a caption above it. All are store-ready: exact pixel sizes, no transparency.
+All screenshots were retaken from the overhauled game and are on `main`, merged in [pull request #2](https://github.com/pennwickersham/Lumina-The-Cloud-Garden/pull/2) together with this handoff as `HANDOFF.md`. Each shot is a real capture with a caption above it. All are store-ready: exact pixel sizes, no transparency.
 
 | Store slot | Shots | Size (px) | Folder |
 | --- | --- | --- | --- |
@@ -134,7 +134,7 @@ Do the first three before building any release. The rest is roughly in launch or
 - [ ] **Set the signing password locally.** Add `LUMINA_KEYSTORE_PASSWORD=...` to `~/.gradle/gradle.properties` on any machine that builds releases. Without it, `npm run apk:release` produces an unsigned build that Play rejects.
 - [ ] **Add the repository secret.** In GitHub, go to Settings → Secrets and variables → Actions and add `LUMINA_KEYSTORE_PASSWORD`. Then run **Build release bundle** once from the Actions tab to confirm it produces `lumina-release-aab`.
 - [ ] **Replace the exposed upload key.** If nothing has gone to Play yet, generate a new key with `keytool -genkeypair -v -keystore lumina-upload.keystore -alias lumina -keyalg RSA -keysize 2048 -validity 10000`. Store it base64-encoded as the `LUMINA_KEYSTORE_BASE64` secret, update the password secret, and delete `android/app/lumina-release.keystore` from the repo. If a build has already been uploaded, request an upload key reset in Play Console under Test and release → App integrity.
-- [ ] **Merge the screenshots.** Merge `claude/jolly-cerf-43wcau` into `main` to bring in the new screenshots and listing text.
+- [x] **Merge the screenshots.** Done on 17 October 2026 in [pull request #2](https://github.com/pennwickersham/Lumina-The-Cloud-Garden/pull/2).
 - [ ] **Play-test on a real phone for 2–3 days.** Install `lumina-debug-apk` from the latest Actions run. Check the pacing, that night flowers open after dark, that pop-ups stay rare, and the Flora book. Tune the numbers using the code map above.
 - [ ] **Build and test iOS on a Mac.** Run `npx cap sync ios`, then open `ios/App` in Xcode. On iPad, the check-in and pastime screens sit to the left with empty space on the right; consider centring them before App Review.
 - [ ] **Create the in-app products.** Create the 13 one-time products in App Store Connect and Play Console, with the IDs in `store/listing.md`, and attach them to the RevenueCat offering.
