@@ -2959,6 +2959,9 @@ function buyUpgrade(k){
   Sound.chime(5); buzz(20); openHut("upgrades");
   toast(it.name+". "+it.note, 4600, "bloom");
 }
+function legalHtml(){
+  return '<div class="divider"></div><div style="display:flex;gap:8px;justify-content:center;align-items:center;margin:10px 0 14px;font-size:0.9rem"><button class="btn quiet" data-url="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" style="margin:0;padding:4px 8px;min-height:auto">Terms of Use (EULA)</button><span style="color:var(--ink-faint)">|</span><button class="btn quiet" data-url="https://pennwickersham.github.io/Lumina-The-Cloud-Garden/privacy.html" style="margin:0;padding:4px 8px;min-height:auto">Privacy Policy</button></div>';
+}
 function hutTabs(cur){
   return `<div class="pills" style="margin-top:0">
     ${[["seeds","Seeds"],["decor","Decor"],["upgrades","Upgrades"],["rest","Rest"]].map(([k,n])=>
@@ -3009,6 +3012,7 @@ function openHut(tab){
         <span class="cost">${have?"done":it.cost}</span></button>`;
     });
   }
+  html += legalHtml();
   openSheet("The Hut", "You have " + fmt(S.sd) + " stardust", html);
 }
 function openSeeds(){
@@ -3085,6 +3089,7 @@ function openSeeds(){
     });
   }
   html += '<div class="divider"></div><button class="btn quiet" data-share="seeds">Share a picture of my seed collection</button>';
+  html += legalHtml();
   openSheet("The Hut", "You have " + fmt(S.sd) + " stardust", html);
 }
 function openPastimes(){
@@ -3246,6 +3251,7 @@ function openPlaces(){
   });
   html += '<div class="divider"></div>';
   html += '<button class="btn quiet" data-restorebuys="1" style="margin-bottom:14px">Restore my purchases</button>';
+  html += legalHtml();
   openSheet("Places", "Where your islands sit", html);
 }
 function renderComfort(){
@@ -4641,8 +4647,9 @@ function wire(){
   $("#sheetClose").addEventListener("click", closeSheet);
   $("#scrim").addEventListener("click", closeSheet);
   $("#sheetBody").addEventListener("click", e=>{
-    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade],[data-restbuy],[data-wispname],[data-mind],[data-close],[data-rename],[data-share],[data-sharego],[data-spot],[data-lamp],[data-setname],[data-guide]");
+    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade],[data-restbuy],[data-wispname],[data-mind],[data-close],[data-rename],[data-share],[data-sharego],[data-spot],[data-lamp],[data-setname],[data-guide],[data-url]");
     if(!t) return;
+    if(t.dataset.url) window.open(t.dataset.url, '_blank');
     if(t.dataset.buyseed){
       const k=t.dataset.buyseed, sp=SPECIES[k];
       if(S.sd<sp.cost) return;
