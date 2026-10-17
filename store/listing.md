@@ -26,11 +26,15 @@ There are no streaks, no daily goals and no timers. Nothing wilts while you are 
 
 Lumina was made for people living with chronic illness, pain, fatigue or migraine, and for anyone who wants a game that asks very little of them.
 
-A GARDEN THAT WAITS FOR YOU
-• Plant seeds and watch them bloom over minutes, not days
+A GARDEN THAT GROWS OVER DAYS
+• Plant seeds and watch them bloom over hours and days, then keep filling out
+• Ferns unfurl, vines climb, trees take most of a week, and some flowers open only at night
 • Collect stardust from your flowers and rest from quiet time
 • Meet visitors: a fox, an owl, a tree frog, a hummingbird, fireflies and more
 • Find letters tucked around the island and keep them in Field Notes
+
+47 PLANTS TO DISCOVER
+Two flowers blooming side by side sometimes make a seed nobody sold you. Others turn up only at dawn, after rain, or in the right season. The Flora book shows every plant and where to look.
 
 NINE ISLANDS TO FIND
 From the Orchard Shelf to the Reed Bank and the Windmill Rise. The Crystal Caverns are dark by design, for light-sensitive days. The Hot Spring Terraces are built to feel like warmth on a sore joint. The Moon Garden opens only to people who have rested.
@@ -71,9 +75,9 @@ Lumina is a game, not a medical device, and it does not give medical advice.
 |---|---|
 | App icon, 512×512 | `store/googleplay-icon-512.png` |
 | Feature graphic, 1024×500 | `docs/lumina-banner.png` |
-| Phone screenshots (7) | `store/screenshots/googleplay/phone/` (1080×1920) |
-| 7-inch tablet screenshots (5) | `store/screenshots/googleplay/tablet-7in/` (1080×1920) |
-| 10-inch tablet screenshots (5) | `store/screenshots/googleplay/tablet-10in/` (1440×2560) |
+| Phone screenshots (8) | `store/screenshots/googleplay/phone/` (1080×1920) |
+| 7-inch tablet screenshots (6) | `store/screenshots/googleplay/tablet-7in/` (1080×1920) |
+| 10-inch tablet screenshots (6) | `store/screenshots/googleplay/tablet-10in/` (1440×2560) |
 
 **Release notes for the first release (500)**
 
@@ -155,8 +159,8 @@ The first release of Lumina. Your island is waiting.
 
 | Slot | Folder |
 |---|---|
-| iPhone 6.9" display (7) | `store/screenshots/appstore/iphone-6.9in/` (1320×2868) |
-| iPad 13" display (5) | `store/screenshots/appstore/ipad-13in/` (2064×2752) |
+| iPhone 6.9" display (8) | `store/screenshots/appstore/iphone-6.9in/` (1320×2868) |
+| iPad 13" display (6) | `store/screenshots/appstore/ipad-13in/` (2064×2752) |
 
 App Store Connect scales these down for smaller iPhones and iPads, so these two
 sets cover every device. The iPad set is required because the Xcode project
