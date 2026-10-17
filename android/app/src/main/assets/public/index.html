@@ -308,8 +308,17 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .plot.empty::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--vapor-line)}
 .plot.armed{border-color:var(--glow);background:rgba(242,192,120,.12)}
 .plot:active{transform:scale(.96)}
-.plot .sprite{position:absolute;bottom:14px;width:100%;height:82px;pointer-events:none}
-.plant-sway{transform-origin:50% 100%;animation:sway calc(7s / var(--motion,1)) ease-in-out infinite}
+.plot .sprite{position:absolute;bottom:22px;left:50%;height:100px;width:auto;aspect-ratio:100/130;transform:translateX(-50%);pointer-events:none;overflow:visible}
+.plot .sprite > g{pointer-events:visiblePainted}   /* tap the plant itself, not the empty box around it */
+.plant-sway{transform-box:view-box;transform-origin:50px 124px;animation:sway calc(7s / var(--motion,1)) ease-in-out infinite}
+.sprite .swing{transform-box:fill-box;transform-origin:50% 0;animation:swing calc(4.5s / var(--motion,1)) ease-in-out infinite}
+@keyframes swing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.sprite .glowpulse{animation:glowpulse calc(3.6s / var(--motion,1)) ease-in-out infinite}
+@keyframes glowpulse{0%,100%{opacity:.22}50%{opacity:.42}}
+.sprite .twinkle{animation:twinkle 3s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+.sprite .steam{animation:steam calc(5s / var(--motion,1)) ease-in-out infinite;opacity:0}
+@keyframes steam{0%{opacity:0;transform:translateY(6px)}40%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
 @keyframes sway{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
 
 .plot.ready::before{content:"";position:absolute;inset:-6px;border-radius:50%;
@@ -321,6 +330,9 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
   animation:pulse calc(2.6s / var(--motion,1)) ease-in-out infinite;
 }
 @keyframes pulse{0%,100%{transform:scale(.82);opacity:.75}50%{transform:scale(1.08);opacity:1}}
+.plot .burst{position:absolute;left:50%;bottom:60px;width:120px;height:120px;margin-left:-60px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,240,200,.55),rgba(242,192,120,.18) 45%,transparent 70%);animation:burst 3.2s ease-out forwards}
+@keyframes burst{0%{transform:scale(.3);opacity:0}25%{opacity:1}100%{transform:scale(1.6);opacity:0}}
 
 .visitor{position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;z-index:9;
   padding:0;animation:arrive 1.1s cubic-bezier(.2,.9,.3,1) both, hover calc(6s / var(--motion,1)) ease-in-out 1.1s infinite}
@@ -378,6 +390,8 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 /* floating "+3" feedback */
 .float-num{position:absolute;font-size:1rem;color:var(--glow);pointer-events:none;z-index:8;
   font-variant-numeric:tabular-nums;animation:rise 1.5s ease-out forwards}
+.float-num.say{translate:-50% 0;white-space:nowrap;font-size:.86rem;font-weight:700;color:var(--ink);padding:6px 12px;border-radius:999px;
+  background:rgba(22,26,52,.9);border:1px solid var(--vapor-line);animation-duration:2.6s;z-index:95}
 @keyframes rise{0%{opacity:0;transform:translateY(0) scale(.85)}
   22%{opacity:1}100%{opacity:0;transform:translateY(-52px) scale(1)}}
 
@@ -411,6 +425,7 @@ p{margin:0 0 .8em;line-height:1.6;color:var(--ink-soft)}
 .row.pick{border-color:var(--vapor-line)}
 .row:active{background:rgba(233,236,255,.15)}
 .row .leaf{flex:none;width:44px;height:44px}
+.row svg.leaf[viewBox="0 0 100 130"]{width:48px;height:62px;margin:-6px 0}
 .row .body{flex:1;min-width:0}
 .row .body{display:flex;flex-direction:column;gap:4px}
 .row .name{display:block;color:var(--ink);font-size:1rem;font-weight:700;line-height:1.3}
@@ -597,6 +612,20 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
 .toggle[aria-pressed="true"] .switch::after{transform:translateX(22px)}
 
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.flora{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fcell{background:var(--vapor);border-radius:16px;padding:10px 10px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px}
+.fcell svg{width:74px;height:96px}
+.fcell b{font-size:.86rem;color:var(--ink);font-weight:700}
+.fcell span{font-size:.74rem;line-height:1.35;color:var(--ink-soft)}
+.fcell.unknown b{color:var(--ink-faint)}
+.flora-progress{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;color:var(--ink-soft)}
+.flora-progress b{color:var(--ink);font-size:1.3rem}
+.flora-progress i{display:block;height:8px;border-radius:99px;background:var(--vapor);overflow:hidden}
+.flora-progress em{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--leaf),var(--glow))}
+.pollen{position:absolute;width:44px;height:34px;margin:-17px 0 0 -22px;pointer-events:none;z-index:90}
+.pollen i{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--glow);box-shadow:0 0 6px var(--glow);
+  animation:pollen calc(6s / var(--motion,1)) ease-in-out infinite;opacity:0}
+@keyframes pollen{0%{opacity:0;transform:translate(0,6px)}30%{opacity:.9}100%{opacity:0;transform:translate(14px,-14px)}}
 .cell{background:var(--vapor);border-radius:16px;padding:10px 6px 8px;text-align:center;font-size:.76rem;color:var(--ink-soft)}
 .cell svg{width:54px;height:54px;display:block;margin:0 auto 4px}
 .cell.dim{opacity:.35}.cell.dim svg{filter:grayscale(1) brightness(.6)}
@@ -646,24 +675,34 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
   padding:12px 14px 14px;border-radius:18px;max-height:140px;
   background:rgba(22,26,52,.97);border:1px solid var(--vapor-line);color:var(--ink);
   box-shadow:0 10px 30px rgba(0,0,0,.45);cursor:pointer;
-  animation:toastIn .32s ease both;
+  opacity:0;transform:translateY(-4px);transition:opacity .45s ease, transform .45s ease;
 }
-.toast.on{display:block}
-@keyframes toastIn{from{opacity:0;margin-top:-10px}to{opacity:1;margin-top:0}}
+.toast.on{opacity:1;transform:none}
 .toast-in{display:flex;gap:12px;align-items:center;text-align:left;width:100%}
 .toast .tx{flex:1 1 auto;min-width:0;font-size:1rem;line-height:1.4;font-weight:600}
 .toast .tx b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--glow);font-weight:800;margin-bottom:2px}
-.toast.visitor .tx b{color:var(--leaf)}.toast.star .tx b{color:var(--ink-soft)}.toast.letter .tx b{color:var(--petal)}
-.toast .bar{position:absolute;left:0;bottom:0;height:3px;background:var(--glow);width:100%;transform-origin:0 50%;animation:toastbar linear forwards}
-@keyframes toastbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.toast.k-visitor .tx b,.toast.k-discover .tx b,.toast.k-seed .tx b{color:var(--leaf)}.toast.k-star .tx b{color:var(--ink-soft)}.toast.k-letter .tx b{color:var(--petal)}
+/* the garden log */
+.logbtn{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--vapor-line);background:var(--vapor);
+  display:inline-flex;align-items:center;justify-content:center;position:relative;color:var(--ink-soft)}
+.logbtn svg{width:19px;height:19px}
+.logbtn.unread::after{content:"";position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;
+  background:var(--glow);box-shadow:0 0 0 2px var(--sky-top)}
+.logrow{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--vapor-line)}
+.logrow:last-child{border-bottom:0}
+.logrow .ti{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(242,192,120,.12)}
+.logrow .ti svg{width:17px;height:17px}
+.logrow .lx{flex:1;min-width:0;line-height:1.45;color:var(--ink)}
+.logrow .lx i{font-style:normal;color:var(--ink-faint);font-size:.85rem}
+.logrow .lx small{display:block;color:var(--ink-faint);font-size:.78rem;margin-top:2px}
 .toast .ti{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:rgba(242,192,120,.16)}
 .toast .ti svg{width:20px;height:20px}
-.toast.visitor .ti{background:rgba(143,217,182,.18)}
-.toast.star .ti{background:rgba(233,236,255,.16)}
+.toast.k-visitor .ti,.toast.k-discover .ti,.toast.k-seed .ti{background:rgba(143,217,182,.18)}
+.toast.k-star .ti{background:rgba(233,236,255,.16)}
 
 .plot{width:calc(70px * var(--touch,1));height:calc(70px * var(--touch,1));margin:calc(-35px * var(--touch,1)) 0 0 calc(-35px * var(--touch,1))}
-.plot .sprite{height:calc(92px * var(--touch,1))}
+.plot .sprite{bottom:calc(22px * var(--touch,1))}
 .visitor{width:calc(104px * var(--touch,1));height:calc(104px * var(--touch,1));margin:calc(-52px * var(--touch,1)) 0 0 calc(-52px * var(--touch,1))}
 .dock-btn{min-height:calc(var(--tap) * var(--touch,1))}
 .btn{min-height:calc(var(--tap) * var(--touch,1))}
@@ -715,6 +754,7 @@ input[type=range]::-moz-range-thumb{width:34px;height:34px;border-radius:50%;bac
   <!-- top bar -->
   <div class="topbar">
     <div class="title" id="envName">The Cloud Garden</div>
+    <button class="logbtn" id="btnLog" aria-label="Garden log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></button>
     <div class="purse">
       <span class="coin" id="purseSd" title="Stardust"><i class="dot sd"></i><b id="sdVal">0</b></span>
       <span class="coin" id="purseRp" title="Rest"><i class="dot rp"></i><b id="rpVal">0</b></span>
@@ -1163,7 +1203,115 @@ const HYBRIDS = [
   {id:"starlantern",parents:["starthistle","lanternvine"],name:"Star Lantern",stem:"#a9b0d8", flower:"#fff0b8", form:"orb", gift:14, bloom:780000, note:"A light that came a long way down to be here."},
   {id:"snowlily",   parents:["driftlily","frostbloom"], name:"Snow Lily",   stem:"#a4cfd8", flower:"#ffffff", form:"round", gift:12, bloom:720000, note:"Opens in the cold and closes in company."}
 ];
-HYBRIDS.forEach(h=>{ SPECIES[h.id]={hybrid:true, cost:0, locked:true, name:h.name, bloom:h.bloom, stem:h.stem, flower:h.flower, gift:h.gift, form:h.form, note:h.note}; });
+HYBRIDS.forEach(h=>{ SPECIES[h.id]={hybrid:true, cost:h.gift*22, locked:true, name:h.name, bloom:h.bloom, stem:h.stem, flower:h.flower, gift:h.gift, form:h.form, note:h.note}; });
+
+/* ---------- found plants: seeds that turn up only when the moment is right ---------- */
+const FOUND = {
+  rainlily:  {name:"Rain Lily",   bloom:300000, stem:"#86c9b0", flower:"#b9d8ff", gift:5, cost:80,
+              how:"Comes up after enough rain. Resting brings the rain.", note:"Comes up after rain. Nobody plants it on purpose."},
+  dawncrocus:{name:"Dawn Crocus", bloom:240000, stem:"#9cc79a", flower:"#f6c6a8", gift:4, cost:70,
+              how:"Left on the step for someone who visits at dawn.", note:"Opens for the first light and not much after."},
+  snowdrop:  {name:"Snowdrop",    bloom:420000, stem:"#a9cbbf", flower:"#ffffff", gift:6, cost:110,
+              how:"Comes down with the snow, in winter.", note:"Came down with the snow and decided to stay."},
+  windflower:{name:"Windflower",  bloom:360000, stem:"#9fd0a4", flower:"#f4b6d0", gift:5, cost:90,
+              how:"Blows in with spring blossom.", note:"Blown in from an island you have never seen."}
+};
+Object.keys(FOUND).forEach(k=>{ const f=FOUND[k];
+  SPECIES[k]={found:true, cost:f.cost, locked:true, name:f.name, bloom:f.bloom, stem:f.stem, flower:f.flower, gift:f.gift, note:f.note}; });
+function findSeed(k){
+  if(!S || S.unlocked[k]) return false;
+  S.unlocked[k]=true; S.seeds[k]=(S.seeds[k]||0)+1;
+  S.journal.found=S.journal.found||{}; S.journal.found[k]=now(); save();
+  Sound.chime(5); buzz(20);
+  event("A seed nobody planted: "+SPECIES[k].name+". "+SPECIES[k].note+" It is in the Hut.", 0, "seed", true);
+  return true;
+}
+/* ---------- plant looks ----------
+   Every species has a kind (how it grows: its silhouette and how big it gets),
+   a leaf, and a bloom (the flower, fruit or crystal it makes). A plant keeps
+   growing for days after it first blooms, so an old garden looks old. */
+const SLOW_KIND = {tree:1.8, conifer:2, bush:1.3, vine:1.2, tall:1.15};
+const KIND_SIZE = {   // sprite height in px at first bloom, and the size it reaches when fully mature
+  ground:[104,1.3], succulent:[124,1.25], flower:[150,1.15], bulb:[156,1.15], fern:[150,1.3], reed:[176,1.2],
+  tall:[190,1.2], bush:[150,1.4], vine:[184,1.25], kelp:[168,1.2], crystal:[136,1.35], tree:[210,1.55], conifer:[210,1.6]
+};
+const MATURE_DAYS = {tree:6, conifer:7, bush:4, vine:4};
+const PLANT_LOOK = {
+  moonpetal:   {kind:"flower",   leaf:"heart",  bloom:"moon",      night:"open"},
+  emberfern:   {kind:"fern",                    bloom:"embers",    glow:true},
+  tidebell:    {kind:"bulb",     leaf:"strap",  bloom:"bells",     swing:true},
+  driftlily:   {kind:"flower",   leaf:"lance",  bloom:"lily",      lean:16},
+  lanternvine: {kind:"vine",     leaf:"heart",  bloom:"lantern",   glow:true},
+  glasswort:   {kind:"succulent",               bloom:"glassbud"},
+  frostbloom:  {kind:"bush",     leaf:"needle", bloom:"snowflake", frost:true},
+  starthistle: {kind:"tall",     leaf:"spiky",  bloom:"thistle"},
+  sunmantle:   {kind:"tall",     leaf:"heart",  bloom:"daisy",     glow:true},
+  nightjasmine:{kind:"vine",     leaf:"lance",  bloom:"starlets",  night:"open"},
+  cinderbell:  {kind:"bush",     leaf:"round",  bloom:"bells",     swing:true},
+  seaglass:    {kind:"fern",                    bloom:"none",      rainbow:true},
+  copperthistle:{kind:"tall",    leaf:"spiky",  bloom:"thistle"},
+  glacierlily: {kind:"bulb",     leaf:"strap",  bloom:"lily",      frost:true},
+  foxfire:     {kind:"ground",                  bloom:"sparks",    glow:true},
+  bellheather: {kind:"bush",     leaf:"needle", bloom:"heather"},
+  starwell:    {kind:"bulb",     leaf:"strap",  bloom:"iris"},
+  emberlace:   {kind:"tall",     leaf:"lance",  bloom:"plume",     glow:true},
+  skygentian:  {kind:"ground",   leaf:"lance",  bloom:"trumpet"},
+  krummholz:   {kind:"conifer",                 bloom:"cones"},
+  geodebloom:  {kind:"crystal",                 bloom:"geode",     glow:true},
+  moonmilk:    {kind:"fern",                    bloom:"none"},
+  sealantern:  {kind:"kelp",                    bloom:"orb",       glow:true},
+  saltglass:   {kind:"kelp",                    bloom:"beads"},
+  steamlily:   {kind:"bulb",     leaf:"strap",  bloom:"lily",      steam:true},
+  windfall:    {kind:"tree",                    bloom:"apples"},
+  reedbell:    {kind:"reed",                    bloom:"bells",     swing:true},
+  wheatlight:  {kind:"reed",                    bloom:"wheat",     glow:true},
+  moonveil:    {kind:"flower",   leaf:"round",  bloom:"veil",      night:"open"},
+  duskbell:    {kind:"tall",     leaf:"round",  bloom:"bells",     swing:true},
+  sleeperpoppy:{kind:"flower",   leaf:"spiky",  bloom:"poppy",     nod:true},
+  nightwell:   {kind:"bulb",     leaf:"strap",  bloom:"orb",       glow:true},
+  sintermoss:  {kind:"ground",                  bloom:"beads"},
+  emberpetal:  {kind:"flower",   leaf:"heart",  bloom:"daisy"},
+  moonbell:    {kind:"flower",   leaf:"heart",  bloom:"bells",     swing:true},
+  tideflame:   {kind:"bulb",     leaf:"strap",  bloom:"plume",     glow:true},
+  lanternlily: {kind:"flower",   leaf:"lance",  bloom:"lantern",   glow:true, lean:18},
+  driftmoon:   {kind:"flower",   leaf:"lance",  bloom:"moon",      night:"open", lean:14},
+  frostbell:   {kind:"bush",     leaf:"needle", bloom:"bells",     frost:true, swing:true},
+  hearthvine:  {kind:"fern",                    bloom:"starlets",  glow:true},
+  glassmoon:   {kind:"succulent",               bloom:"moon",      night:"open"},
+  starlantern: {kind:"tree",                    bloom:"lantern",   glow:true},
+  snowlily:    {kind:"bush",     leaf:"needle", bloom:"lily",      frost:true},
+  rainlily:    {kind:"bulb",     leaf:"strap",  bloom:"moon"},
+  dawncrocus:  {kind:"ground",   leaf:"lance",  bloom:"cup"},
+  snowdrop:    {kind:"ground",   leaf:"lance",  bloom:"bells",     frost:true, swing:true},
+  windflower:  {kind:"flower",   leaf:"spiky",  bloom:"anemone"}
+};
+
+/* ---------- pacing: a garden measured in hours and days ----------
+   Bloom times above are written in the old minute-scale units; this maps each one
+   onto real time. A bloom then makes its gift of light every two hours and holds
+   four gifts (eight with Deep roots), so a garden checked morning and evening is
+   never wasted and never in a hurry. Trees and shrubs take longer than flowers. */
+const MIN=60000, HOUR=3600000;
+const OLD_BLOOM={};
+const PACE={150000:40*MIN, 240000:1.5*HOUR, 300000:2.5*HOUR, 330000:3*HOUR, 360000:3*HOUR, 390000:3.5*HOUR,
+  420000:4*HOUR, 450000:4.5*HOUR, 480000:5*HOUR, 540000:6*HOUR, 600000:8*HOUR, 660000:10*HOUR,
+  690000:11*HOUR, 720000:12*HOUR, 780000:14*HOUR, 900000:18*HOUR};
+const YIELD_MS=2*HOUR, HOLD=4, TEND_EVERY=3*HOUR;
+Object.keys(SPECIES).forEach(k=>{
+  const sp=SPECIES[k]; OLD_BLOOM[k]=sp.bloom;
+  sp.bloom = Math.round((PACE[sp.bloom]||sp.bloom*24) * (SLOW_KIND[(PLANT_LOOK[k]||{}).kind]||1));
+  sp.gift = Math.round(sp.gift*1.5);
+});
+function fmtDur(ms){
+  const m=Math.round(ms/60000);
+  if(m<2) return "a minute";
+  if(m<55) return m+" minutes";
+  const h=Math.round(ms/3600000);
+  if(h<=1) return "about an hour";
+  if(h<36) return h+" hours";
+  const d=Math.round(ms/86400000*2)/2;
+  return d+" days";
+}
 function bedsAdjacent(a,b){ const A=PLOT_POS[a], B=PLOT_POS[b]; return Math.hypot(A[0]-B[0], (A[1]-B[1])*1.4) < 19; }
 function crossPollinate(hours){
   // called with hours of elapsed time; each adjacent pair of different blooms has a small chance
@@ -1175,8 +1323,8 @@ function crossPollinate(hours){
       if(stageOf(a)!==3||stageOf(b)!==3||!bedsAdjacent(i,j)) continue;
       const h=HYBRIDS.find(h=>(h.parents[0]===a.sp&&h.parents[1]===b.sp)||(h.parents[0]===b.sp&&h.parents[1]===a.sp));
       if(!h) continue;
-      const chance = 1-Math.pow(0.88, hours);           // ~12% per hour of two blooms side by side
-      if(Math.random()<chance){
+      const chance = 1-Math.pow(0.97, hours);           // ~3% per hour of two blooms side by side
+      if(!found.length && Math.random()<chance){        // and at most one new seed at a time
         S.unlocked[h.id]=true; S.seeds[h.id]=(S.seeds[h.id]||0)+1;
         S.journal.hybrids=S.journal.hybrids||{}; S.journal.hybrids[h.id]=(S.journal.hybrids[h.id]||0)+1;
         found.push(h);
@@ -1290,23 +1438,23 @@ const WISP_LINES = [
 /* ---------- islands ---------- */
 /* free: always yours. cost: unlocked with stardust. pack: comes with a purchase. */
 const PLACES = {
-  cloud:  {name:"The Cloud Garden", env:"cloud", free:true, beds:8,
+  cloud:  {name:"The Cloud Garden", env:"cloud", free:true, beds:4,
            blurb:"Your first island. Open sky, slow weather, a long way down."},
-  orchard:{name:"The Orchard Shelf", env:"orchard", cost:240, beds:6,
+  orchard:{name:"The Orchard Shelf", env:"orchard", cost:240, beds:3,
            blurb:"A terrace of old fruit trees at the golden end of the day. Windfalls in the grass, wasps too lazy to bother you."},
-  reeds:  {name:"The Reed Bank", env:"reeds", cost:560, beds:6,
+  reeds:  {name:"The Reed Bank", env:"reeds", cost:560, beds:3,
            blurb:"Low water and tall reeds, and the sound of both. Herons stand in it. Frogs run the place."},
-  mill:   {name:"The Windmill Rise", env:"mill", cost:1100, beds:6,
+  mill:   {name:"The Windmill Rise", env:"mill", cost:1100, beds:3,
            blurb:"A hill of long grass with a slow mill on top. The sails turn whether or not there is wind, which nobody has explained."},
-  alpine: {name:"The Alpine Retreat", env:"alpine", pack:"pack_farsky", legacy:"deed_alpine", beds:6,
+  alpine: {name:"The Alpine Retreat", env:"alpine", pack:"pack_farsky", legacy:"deed_alpine", beds:3,
            blurb:"A mountain shoulder above treeline. Wind in the pines, snow that never settles hard, a stream you can hear from anywhere."},
-  cavern: {name:"The Crystal Caverns", env:"cavern", pack:"pack_farsky", legacy:"deed_cavern", beds:6,
+  cavern: {name:"The Crystal Caverns", env:"cavern", pack:"pack_farsky", legacy:"deed_cavern", beds:3,
            blurb:"Underground and very dark by design — for light-sensitive days. Geodes throw a low glow; sound comes back a half-second late."},
-  tidal:  {name:"The Tidal Shallows", env:"tidal", pack:"pack_warmwaters", legacy:"deed_tidal", beds:6,
+  tidal:  {name:"The Tidal Shallows", env:"tidal", pack:"pack_warmwaters", legacy:"deed_tidal", beds:3,
            blurb:"A sandbar at the low end of the afternoon. Warm shallow water on three sides and nothing on the horizon."},
-  springs:{name:"The Hot Spring Terraces", env:"springs", pack:"pack_warmwaters", legacy:"deed_springs", beds:6,
+  springs:{name:"The Hot Spring Terraces", env:"springs", pack:"pack_warmwaters", legacy:"deed_springs", beds:3,
            blurb:"Mineral pools stepping down a warm hillside, steam standing in the air. Built to feel like heat on a bad joint."},
-  moon:   {name:"The Moon Garden", env:"moon", restCost:300, beds:6,
+  moon:   {name:"The Moon Garden", env:"moon", restCost:300, beds:3,
            blurb:"An island that only opens to people who have rested. Silver grass, a well of light, and an owl who keeps her own hours."}
 };
 const PACKS = {
@@ -1316,7 +1464,7 @@ const PACKS = {
                    blurb:"The Tidal Shallows and the Hot Spring Terraces, with four plants between them."}
 };
 const MAX_BEDS = 16;
-const BED_COST = [0,0,0,0,0,0,30,45,65,90,120,160,210,270,340,420];   // cost of the Nth bed
+const BED_COST = [0,0,0,40,60,90,130,180,240,310,390,480,580,690,820,960];   // cost of the Nth bed
 
 const BUNDLE_SKU = "plants_all";
 const PRICES = {plants_all:"$2.99", pack_farsky:"$2.99", pack_warmwaters:"$2.99"};
@@ -1343,7 +1491,7 @@ function newIsland(k){ return {plots:new Array(MAX_BEDS).fill(null), beds:PLACES
 
 /* ---------- state ---------- */
 const DEFAULT_STATE = {
-  v:2,
+  v:3,
   created:0, lastSeen:0,
   energy:null,              // "high" | "mid" | "low"
   sd:35, rest:0, restLifetime:0,
@@ -1474,6 +1622,16 @@ async function load(){
     // stones used to occupy a planting bed; they belong on the rim now
     isl.plots.forEach((p,i)=>{ if(p && p.stone){ S.polished.push(p.stone); isl.plots[i]=null; } });
   });
+  if((S.v||2) < 3){
+    // v3 moved the garden from minutes to hours: keep every plant at the same
+    // point in its life, and let each bloom start full.
+    Object.keys(S.islands).forEach(k=> S.islands[k].plots.forEach(p=>{
+      if(!p || !p.sp || !SPECIES[p.sp]) return;
+      p.growth = p.growth / (OLD_BLOOM[p.sp]||SPECIES[p.sp].bloom) * SPECIES[p.sp].bloom;
+      delete p.taken; p.stored=0;
+    }));
+    S.v = 3;
+  }
   if(!S.upgrades) S.upgrades={};
   if(!S.restOwned) S.restOwned={};
   if(!S.since) S.since={blooms:0, hybrids:[], stones:0, letters:0};
@@ -1488,30 +1646,33 @@ function save(){
 function saveNow(){ clearTimeout(saveTimer); S.lastSeen = now(); Store.save(JSON.stringify(S)); }
 
 /* ---------- small helpers ---------- */
-/* Notifications queue instead of overwriting: one banner at a time across
-   the top, each with a visible timer, tap to dismiss early. */
-/* Two kinds of notification.
-   - A REPLY to something the player just did: short, immediate, may follow another.
-   - An EVENT the garden raised on its own: labelled, literal, and never more
-     than one every 40 seconds. Anything that arrives too soon is dropped —
-     the thing it announces is visible on the island anyway. */
-const LABELS = {info:"Garden", bloom:"Garden", visitor:"Visitor", star:"Sky", stone:"Stone", seed:"Seed", letter:"Letter", weather:"Weather"};
+/* Notifications, kept quiet on purpose.
+   - toast(): a REPLY to something the player just did. Shown at once, replacing
+     whatever is up; nothing queues behind it.
+   - event(): the garden raising something on its own. It always goes into the
+     garden log (the bell in the top bar). Only a few kinds are worth a banner,
+     at most one banner every three minutes, never over an open sheet or pastime,
+     and never at all when Comfort > "Quiet garden" is on.
+   - note(): log only. For things the player can already see happening. */
+const LABELS = {info:"Garden", bloom:"Garden", visitor:"Visitor", star:"Sky", stone:"Stone", seed:"New seed", letter:"Letter", weather:"Weather"};
+const BANNER_KINDS = {letter:1, seed:1, discover:1};
 const Notify = {
-  q:[], showing:false, timer:null, lastEvent:0,
-  push(msg, ms, type, isEvent){
+  timer:null, lastBanner:0, showing:false,
+  push(msg, ms, type){
     type=type||"info";
-    if(isEvent){
-      const t=now();
-      if(t-this.lastEvent < 40000) return;              // the garden may not interrupt twice in a minute
-      if(this.q.some(x=>x.event)) return;
-      this.lastEvent=t;
-    }
-    if(this.q.length>=3) this.q.shift();
-    this.q.push({msg, ms:clamp(ms||3400, 2400, 6000), type, event:!!isEvent});
-    if(!this.showing) this.next();
+    const t=$("#toast");
+    this.place();
+    t.className="toast k-"+type; t.style.display="block";
+    t.innerHTML='<div class="toast-in"><span class="ti">'+(TOAST_ICONS[type]||TOAST_ICONS.info)+'</span>'+
+      '<span class="tx"><b>'+(LABELS[type]||"Garden")+'</b>'+msg+'</span></div>';
+    void t.offsetWidth; t.classList.add("on");
+    this.showing=true;
+    clearTimeout(this.timer);
+    // long enough to read at a gentle pace: about a second per eight words
+    const words=String(msg).replace(/<[^>]*>/g," ").split(/\s+/).length;
+    this.timer=setTimeout(()=> this.dismiss(), clamp(ms||0, 2600 + words*260, 7000));
   },
   place(){
-    // measured, not inferred: below the top bar, centred, never wider than the screen
     const t=$("#toast");
     const vw=window.innerWidth||document.documentElement.clientWidth||360;
     const w=Math.min(vw-24, 520);
@@ -1519,26 +1680,55 @@ const Notify = {
     t.style.width=w+"px"; t.style.left=Math.round((vw-w)/2)+"px"; t.style.right="auto";
     t.style.top=Math.round((r.bottom||56)+8)+"px";
   },
-  next(){
-    const item=this.q.shift();
-    const t=$("#toast");
-    if(!item){ this.showing=false; t.classList.remove("on"); t.style.display="none"; return; }
-    this.showing=true;
-    this.place();
-    t.className="toast on "+item.type; t.style.display="block";
-    t.innerHTML='<div class="toast-in"><span class="ti">'+(TOAST_ICONS[item.type]||TOAST_ICONS.info)+'</span>'+
-      '<span class="tx"><b>'+(LABELS[item.type]||"Garden")+'</b>'+item.msg+'</span></div>'+
-      '<i class="bar" style="animation-duration:'+item.ms+'ms"></i>';
-    clearTimeout(this.timer);
-    this.timer=setTimeout(()=> this.dismiss(), item.ms);
-  },
   dismiss(){
-    clearTimeout(this.timer);
-    const t=$("#toast"); t.classList.remove("on"); t.style.display="none";
-    setTimeout(()=> this.next(), 300);
+    clearTimeout(this.timer); this.showing=false;
+    const t=$("#toast"); t.classList.remove("on");
+    setTimeout(()=>{ if(!this.showing) t.style.display="none"; }, 450);
+  },
+  busy(){ return SESSION.mgOpen || $("#sheet").classList.contains("on") || $("#checkin").style.display!=="none"; },
+  event(msg, type, banner){
+    Log.add(msg, type);
+    if(!banner || S.comfort.quiet || this.busy()) return;
+    const t=now();
+    if(t-this.lastBanner < 180000) return;
+    this.lastBanner=t;
+    this.push(msg, 0, type);
   }
 };
 window.addEventListener("resize", ()=>{ if(Notify.showing) Notify.place(); });
+
+/* The garden log: everything the garden did, newest first, read when you like. */
+const Log = {
+  add(msg, type){
+    if(!S.log) S.log=[];
+    const last=S.log[0];
+    if(last && last.msg===msg && now()-last.t<600000){ last.n=(last.n||1)+1; last.t=now(); }
+    else S.log.unshift({msg:String(msg), type:type||"info", t:now()});
+    if(S.log.length>40) S.log.length=40;
+    S.logUnread=(S.logUnread||0)+1;
+    this.paint();
+  },
+  paint(){
+    const b=$("#btnLog"); if(!b) return;
+    b.classList.toggle("unread", (S.logUnread||0)>0);
+  },
+  open(){
+    S.logUnread=0; this.paint(); save();
+    const rows=(S.log||[]).map(e=>`<div class="logrow k-${e.type}"><span class="ti">${TOAST_ICONS[e.type]||TOAST_ICONS.info}</span>
+      <span class="lx">${e.msg}${e.n>1?` <i>×${e.n}</i>`:""}<small>${ago(e.t)}</small></span></div>`).join("");
+    openSheet("Garden log", "What happened, when you want to know",
+      rows || '<div class="note">Nothing yet. Things that happen on the island will be written down here, so nothing has to interrupt you.</div>');
+  }
+};
+function ago(t){
+  const m=Math.round((now()-t)/60000);
+  if(m<1) return "just now";
+  if(m<60) return m+(m===1?" minute ago":" minutes ago");
+  const h=Math.round(m/60);
+  if(h<24) return h+(h===1?" hour ago":" hours ago");
+  const d=Math.round(h/24);
+  return d===1?"yesterday":d+" days ago";
+}
 const TOAST_ICONS = {
   info:  '<svg viewBox="0 0 24 24" fill="none" stroke="var(--glow)" stroke-width="1.8" stroke-linecap="round"><path d="M12 3l2.2 6.2L21 12l-6.8 2.8L12 21l-2.2-6.2L3 12l6.8-2.8Z"/></svg>',
   bloom: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--petal)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>',
@@ -1549,8 +1739,10 @@ const TOAST_ICONS = {
   letter:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--petal)" stroke-width="1.8" stroke-linejoin="round"><path d="M4 6h16v12H4Z"/><path d="M4 7l8 6 8-6"/></svg>',
   weather:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--water)" stroke-width="1.8" stroke-linecap="round"><path d="M7 15a4 4 0 0 1 1-8 5 5 0 0 1 9 1 3 3 0 0 1 1 7Z"/></svg>'
 };
-function toast(msg, ms, type){ Notify.push(msg, ms, type, false); }      // a reply to the player
-function event(msg, ms, type){ Notify.push(msg, ms, type, true); }       // the garden speaking up
+TOAST_ICONS.discover=TOAST_ICONS.visitor;
+function toast(msg, ms, type){ Notify.push(msg, ms, type); }              // a reply to the player
+function event(msg, ms, type, banner){ Notify.event(msg, type, banner); } // the garden speaking up
+function note(msg, type){ Log.add(msg, type); }                          // log only
 function buzz(ms){
   if(!S.comfort.haptics) return;
   const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
@@ -1565,11 +1757,13 @@ function gainSd(n, el){
 function floatNum(el, text){
   const r = el.getBoundingClientRect();
   const d = document.createElement("div");
-  d.className="float-num"; d.textContent=text;
-  d.style.left = (r.left + r.width/2 - 12) + "px";
-  d.style.top  = (r.top - 6) + "px";
+  const words = String(text).length > 4;            // a short phrase, not just "+5"
+  d.className = "float-num" + (words ? " say" : ""); d.textContent=text;
+  const vw = window.innerWidth || 400;
+  d.style.left = (words ? clamp(r.left + r.width/2, 100, vw-100) : r.left + r.width/2 - 12) + "px";
+  d.style.top  = (r.top - (words ? 30 : 6)) + "px";
   document.body.appendChild(d);
-  setTimeout(()=> d.remove(), 1600);
+  setTimeout(()=> d.remove(), words ? 2700 : 1600);
 }
 
 /* ============================================================
@@ -1793,8 +1987,8 @@ function lowLightPreset(){
 /* ---------- energy mode ---------- */
 const MOODS = {
   high:{label:"Some energy — everything is open", rate:1, rain:false},
-  mid: {label:"In between — lighter, hints always on", rate:1.15, rain:false},
-  low: {label:"Resting — the garden is tending itself", rate:1.5, rain:true}
+  mid: {label:"In between — lighter, hints always on", rate:1, rain:false},
+  low: {label:"Resting — the garden is tending itself", rate:1, rain:true}
 };
 function setEnergy(mode, quiet){
   S.energy = mode;
@@ -1818,7 +2012,6 @@ function setEnergy(mode, quiet){
   if(low){
     Object.assign(S.comfort,{dim:Math.max(S.comfort.dim,.22)});
     applyComfort();
-    if(!quiet) toast("Rain's on. Put the phone down if you like.", 4200);
   }
   SESSION.armedSeed=null;
   renderPlots(); paintPurse(); save();
@@ -1835,7 +2028,7 @@ function cashRest(){
 /* Four rows sitting on the grass ellipse, ordered back to front so the
    nearer plants paint over the further ones. */
 const PLOT_POS = [
-  // the first eight open on a new island; the rest are bought with stardust
+  // the first few open on a new island; the rest are bought with stardust
   [52,42],[36,42],[68,42],[42,52],[58,52],[44,33],[58,33],[52,61],
   [20,42],[84,42],[26,52],[74,52],[30,33],[72,33],[36,61],[68,61]
 ];
@@ -2113,96 +2306,342 @@ function stageOf(p){
   if(r>=.2) return 1;
   return 0;
 }
-function leaf(x,y,ang,len,fill,op){
-  // a single leaf with a midrib, rotated about its base
-  return `<g transform="translate(${x} ${y}) rotate(${ang})" opacity="${op}">
-    <path d="M0 0 q${len*0.42} ${-len*0.36} ${len} 0 q${-len*0.42} ${len*0.36} ${-len} 0Z" fill="${fill}"/>
-    <path d="M${len*0.1} 0 H${len*0.9}" stroke="#fff" stroke-width="1" opacity=".22"/></g>`;
+/* ---------- plant art ----------
+   Drawn in a 100 x 130 box with the plant's foot at (50,124). Each kind builds its
+   own silhouette and returns the points where blooms go; each bloom is drawn there.
+   Before first bloom the whole plant is scaled down with its progress, so a sprout
+   already has the shape of what it will become. */
+const PX=v=>Math.round(v*10)/10;
+function prng(seed){ let x=(seed>>>0)||1; return ()=>{ x^=x<<13; x^=x>>>17; x^=x<<5; return ((x>>>0)%100000)/100000; }; }
+function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function shade(hex, t){
+  const n=parseInt(hex.slice(1),16), ch=[n>>16, n>>8&255, n&255];
+  const f=v=> Math.max(0,Math.min(255,Math.round(t<0 ? v*(1+t) : v+(255-v)*t)));
+  return "#"+ch.map(v=>f(v).toString(16).padStart(2,"0")).join("");
 }
-function plantSvg(p){
-  const sp=SPECIES[p.sp], st=stageOf(p);
-  const stem=sp.stem, fl=`url(#pg-${p.sp})`;
-  const defs = `<defs><radialGradient id="pg-${p.sp}" cx=".4" cy=".35" r=".75">
-      <stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".28" stop-color="${sp.flower}"/>
-      <stop offset="1" stop-color="${sp.flower}" stop-opacity=".82"/></radialGradient>
-    <linearGradient id="sg-${p.sp}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${stem}"/><stop offset="1" stop-color="${stem}" stop-opacity=".7"/></linearGradient></defs>`;
-  const shadow = defs + `<ellipse cx="33" cy="81" rx="16" ry="4.5" fill="#000" opacity=".2"/>`;
-  let inner="";
-  if(st===0){
-    inner = `<ellipse cx="33" cy="76" rx="8" ry="3.5" fill="${stem}" opacity=".35"/>
-             <path d="M33 76 q0 -8 5 -12" stroke="${stem}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-             ${leaf(37,64,-40,10,stem,.9)}`;
-  }else if(st===1){
-    inner = `<path d="M33 78 q-2 -14 1 -30" stroke="${stem}" stroke-width="3" fill="none" stroke-linecap="round"/>
-             ${leaf(33,64,200,15,stem,.9)}${leaf(33,56,-20,14,stem,.8)}
-             <circle cx="34" cy="47" r="3.5" fill="${stem}" opacity=".8"/>`;
-  }else if(st===2){
-    inner = `<path d="M33 78 q-3 -20 0 -46" stroke="${stem}" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-             ${leaf(32,66,205,18,stem,.9)}${leaf(33,58,-25,17,stem,.85)}${leaf(31,50,215,13,stem,.7)}
-             <ellipse cx="33" cy="27" rx="6.5" ry="9.5" fill="${fl}" opacity=".55"/>
-             <ellipse cx="33" cy="30" rx="4" ry="6" fill="${fl}" opacity=".8"/>`;
-  }else{
-    const glow = `<circle cx="33" cy="26" r="22" fill="${sp.flower}" opacity=".12"/>
-                  <circle cx="33" cy="26" r="15" fill="${sp.flower}" opacity=".12"/>`;
-    inner = glow +
-            `<path d="M33 78 q-3 -22 0 -48" stroke="${stem}" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-             ${leaf(32,68,205,19,stem,.9)}${leaf(33,60,-25,18,stem,.85)}${leaf(31,52,215,14,stem,.7)}${leaf(33,45,-30,11,stem,.6)}` +
-            bloomForm(sp.form||"round", fl, stem, sp.flower);
+const LEAF_PATH = {
+  lance:(L,W)=>`M0 0Q${PX(L*.42)} ${PX(-W)} ${PX(L)} 0Q${PX(L*.42)} ${PX(W)} 0 0Z`,
+  heart:(L,W)=>`M0 0C${PX(L*.12)} ${PX(-W*1.35)} ${PX(L*.86)} ${PX(-W*1.15)} ${PX(L)} 0C${PX(L*.86)} ${PX(W*1.15)} ${PX(L*.12)} ${PX(W*1.35)} 0 0Z`,
+  round:(L,W)=>`M0 0C${PX(L*.02)} ${PX(-W*1.5)} ${PX(L*1.02)} ${PX(-W*1.5)} ${PX(L)} 0C${PX(L*1.02)} ${PX(W*1.5)} ${PX(L*.02)} ${PX(W*1.5)} 0 0Z`,
+  needle:(L,W)=>`M0 ${PX(-W*.3)}L${PX(L)} 0L0 ${PX(W*.3)}Z`,
+  spiky:(L,W)=>{
+    const n=5; let top="", bot="";
+    for(let i=1;i<=n;i++){ const x=L*i/n, w=W*Math.sin(Math.PI*Math.min(1,i/n*0.95+.08));
+      top+=`L${PX(x-L/n*.6)} ${PX(-w*.45)}L${PX(x)} ${PX(-w*1.1)}`;
+      bot=`L${PX(x)} ${PX(w*1.1)}L${PX(x-L/n*.6)} ${PX(w*.45)}`+bot; }
+    return `M0 0${top}L${PX(L)} 0${bot}Z`;
   }
-  return `<svg class="sprite ${S.comfort.motion?"plant-sway":""}" viewBox="0 0 66 88">${shadow}${inner}</svg>`;
+};
+function leafAt(x,y,ang,L,W,shape,fill,rib){
+  const d=LEAF_PATH[shape]||LEAF_PATH.lance;
+  return `<g transform="translate(${PX(x)} ${PX(y)}) rotate(${PX(ang)})"><path d="${d(L,W)}" fill="${fill}"/>`+
+    (rib && L>7 ? `<path d="M${PX(L*.1)} 0H${PX(L*.82)}" stroke="#fff" stroke-opacity=".22" stroke-width=".9"/>` : "")+`</g>`;
 }
-/* Each rare variety blooms into a different shape, not just a different colour. */
-function bloomForm(form, fl, stem, flatColor){
-  const flat = flatColor || fl;    // halos want a plain colour even when petals use a gradient
-  if(form==="bell"){
-    const bell=(x,y,sc,op)=>`<g transform="translate(${x} ${y}) scale(${sc})" opacity="${op}">
-      <path d="M-9 -12 q9 -8 18 0 q0 12 5 18 q-14 5 -28 0 q5 -6 5 -18Z" fill="${fl}"/>
-      <path d="M-6 -10 q6 -5 12 0 q0 8 2 12 q-8 2 -16 0 q2 -4 2 -12Z" fill="#fff" opacity=".18"/>
-      <circle cx="0" cy="8" r="2.4" fill="#fff" opacity=".8"/></g>`;
-    return `<circle cx="33" cy="24" r="15" fill="${flat}" opacity=".14"/>
-      <path d="M33 14 q-10 2 -14 10 M33 14 q10 2 14 10" stroke="${stem}" stroke-width="2" fill="none" stroke-linecap="round"/>
-      ${bell(19,28,.8,.9)}${bell(47,28,.8,.9)}${bell(33,22,1,1)}`;
-  }
-  if(form==="star"){
-    let pts="";
-    for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2-Math.PI/2, r=i%2?5:14;
-      pts += (33+Math.cos(a)*r).toFixed(1)+","+(26+Math.sin(a)*r).toFixed(1)+" "; }
-    return `<circle cx="33" cy="26" r="15" fill="${flat}" opacity=".15"/>
-      <polygon points="${pts}" fill="${fl}"/>
-      <circle cx="33" cy="26" r="3.4" fill="#fff" opacity=".8"/>`;
-  }
-  if(form==="orb"){
-    return `<circle cx="33" cy="25" r="17" fill="${flat}" opacity=".14"/>
-      <circle cx="33" cy="25" r="11" fill="${flat}" opacity=".55"/>
-      <circle cx="33" cy="25" r="7" fill="${fl}"/>
-      <circle cx="29.5" cy="21.5" r="2.6" fill="#fff" opacity=".8"/>`;
-  }
-  if(form==="fan"){
-    let f="";
-    for(let i=-3;i<=3;i++){
-      const a=i*17, len=26-Math.abs(i)*3;
-      f += `<g transform="translate(33 44) rotate(${a})">
-        <path d="M0 0 q-4 ${-len*0.45} 0 ${-len} q4 ${len*0.55} 0 ${len}Z" fill="${fl}" opacity="${(0.95-Math.abs(i)*0.1).toFixed(2)}"/>
-        <path d="M0 -3 V${-len+4}" stroke="#fff" stroke-width=".8" opacity=".3"/></g>`;
+/* a quadratic curve from (x,y) heading `ang` degrees (-90 is straight up) that bends by `bend` */
+function curve(x,y,len,ang,bend){
+  const a=ang*Math.PI/180, b=(ang+bend)*Math.PI/180;
+  const p1=[x+Math.cos(a)*len*.55, y+Math.sin(a)*len*.55], p2=[p1[0]+Math.cos(b)*len*.5, p1[1]+Math.sin(b)*len*.5];
+  const at=t=>{
+    const u=1-t, px=u*u*x+2*u*t*p1[0]+t*t*p2[0], py=u*u*y+2*u*t*p1[1]+t*t*p2[1];
+    const dx=2*u*(p1[0]-x)+2*t*(p2[0]-p1[0]), dy=2*u*(p1[1]-y)+2*t*(p2[1]-p1[1]);
+    return [px, py, Math.atan2(dy,dx)*180/Math.PI];
+  };
+  return {
+    at,
+    line:(w,col)=>`<path d="M${PX(x)} ${PX(y)}Q${PX(p1[0])} ${PX(p1[1])} ${PX(p2[0])} ${PX(p2[1])}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`,
+    blade:(w,col,op)=>{
+      const L=[],R=[];
+      for(let i=0;i<=10;i++){ const t=i/10, [px,py,ad]=at(t), a2=ad*Math.PI/180, nx=-Math.sin(a2), ny=Math.cos(a2);
+        const hw=w/2*Math.pow(1-t,.75)*(t<.12?.55+t*3.7:1);
+        L.push(PX(px+nx*hw)+" "+PX(py+ny*hw)); R.unshift(PX(px-nx*hw)+" "+PX(py-ny*hw)); }
+      return `<path d="M${L.join("L")}L${R.join("L")}Z" fill="${col}"${op?` opacity="${op}"`:""}/>`;
     }
-    return `<circle cx="33" cy="26" r="16" fill="${flat}" opacity=".10"/><g>${f}</g>`;
-  }
-  if(form==="spire"){
-    let f="";
-    for(let i=0;i<6;i++){
-      const y = 14 + i*6, r = 3 + i*0.9;
-      f += `<circle cx="${i%2?33-r*1.1:33+r*1.1}" cy="${y}" r="${r}" fill="${fl}" opacity="${(0.55+i*0.07).toFixed(2)}"/>`;
-    }
-    return `<circle cx="33" cy="28" r="15" fill="${flat}" opacity=".10"/><g>${f}</g>`;
-  }
-  return `<circle cx="33" cy="26" r="13" fill="${flat}" opacity=".18"/>
-    <ellipse cx="33" cy="17" rx="5.5" ry="9" fill="${fl}"/>
-    <ellipse cx="24" cy="26" rx="5.5" ry="9" fill="${fl}" transform="rotate(-62 24 26)"/>
-    <ellipse cx="42" cy="26" rx="5.5" ry="9" fill="${fl}" transform="rotate(62 42 26)"/>
-    <ellipse cx="28" cy="35" rx="5" ry="8" fill="${fl}" opacity=".9" transform="rotate(-24 28 35)"/>
-    <ellipse cx="38" cy="35" rx="5" ry="8" fill="${fl}" opacity=".9" transform="rotate(24 38 35)"/>
-    <circle cx="33" cy="26" r="4" fill="#fff" opacity=".65"/>`;
+  };
 }
+
+/* ---------- kinds: each returns {back, front, tips:[[x,y,angle,size]]} ---------- */
+const KINDS = {
+  flower(c){
+    const lean=(c.look.lean||0)+(c.rnd()-.5)*8, out=[];
+    const main=curve(50,124,74,-90+lean*.4,lean);
+    const leaves=c.st===0?2:c.st===1?3:5;
+    for(let i=0;i<leaves;i++){
+      const t=.12+i*.15, [x,y]=main.at(t), side=i%2?1:-1;
+      out.push(leafAt(x,y,side>0?-18-c.rnd()*20:198+c.rnd()*20, 22-i*2.5, 7-i*.6, c.look.leaf, i%2?c.leaf:c.leafDark, true));
+    }
+    const tips=[main.at(1).concat(1)];
+    let side="";
+    if(c.m>.45){ const s=curve(50,118,52,-90-26+lean*.3,-10); side=s.line(2.4,c.leafDark); tips.push(s.at(1).concat(.72)); }
+    return {back:side, front:main.line(3.2,c.leafDark)+out.join(""), tips};
+  },
+  bulb(c){
+    const out=[], n=c.st===0?2:c.st===1?4:6;
+    for(let i=0;i<n;i++){
+      const side=i%2?1:-1, k=Math.floor(i/2);
+      out.push(curve(50+side*1.5,124,40+k*7+c.rnd()*6,-90+side*(10+k*13),side*(14+k*9)).blade(7.5-k*.6, i%3?c.leaf:c.leafDark));
+    }
+    const arch=c.look.bloom==="bells"?34:4;
+    const scape=curve(50,124,86,-90+(c.rnd()-.5)*6,arch);
+    const tips=[];
+    if(c.st>=2){
+      if(c.look.bloom==="bells"){ [.62,.78,.92].forEach((t,i)=>tips.push(scape.at(t).concat(.75+i*.08))); }
+      else tips.push(scape.at(1).concat(1));
+    }
+    return {back:"", front:(c.st>=2?scape.line(2.6,c.leafDark):"")+out.join(""), tips};
+  },
+  fern(c){
+    const out=[], n=c.st===0?1:c.st===1?4:7, tips=[];
+    if(c.st===0){   // a fiddlehead, still curled
+      return {back:"", front:`<path d="M50 124Q49 100 54 92A7 7 0 1 0 46 90" stroke="${c.leafDark}" stroke-width="3.2" fill="none" stroke-linecap="round"/>`, tips:[]};
+    }
+    for(let i=0;i<n;i++){
+      const a=-90+(i-(n-1)/2)*(118/n)+(c.rnd()-.5)*8, len=64-Math.abs(i-(n-1)/2)*7;
+      const fr=curve(50,124,len,a,(a+90)*.9), col=c.look.rainbow?shade(c.leaf,(i%3-1)*.22):(i%2?c.leaf:c.leafDark);
+      out.push(fr.line(1.6,c.leafDark));
+      for(let t=.18;t<.96;t+=.085){ const [x,y,d]=fr.at(t), L=10*(1-t*.75);
+        out.push(leafAt(x,y,d-62,L,L*.34,"lance",col)+leafAt(x,y,d+62,L,L*.34,"lance",col)); }
+      tips.push(fr.at(.97).concat(.8));
+    }
+    return {back:"", front:out.join(""), tips};
+  },
+  vine(c){
+    const h=c.st===0?28:c.st===1?62:98, out=[], tips=[];
+    out.push(`<path d="M50 125V${PX(124-h-6)}" stroke="var(--land-lip)" stroke-width="3" stroke-linecap="round"/>`);
+    let d=`M50 124`;
+    for(let y=124,i=0;y>124-h;y-=12,i++) d+=`Q${i%2?40:60} ${PX(y-6)} 50 ${PX(y-12)}`;
+    out.push(`<path d="${d}" stroke="${c.leafDark}" stroke-width="2.4" fill="none"/>`);
+    for(let y=118,i=0,n=0;y>124-h+4;y-=9,i++){
+      const side=i%2?1:-1;
+      out.push(leafAt(50+side*3,y,side>0?-14-c.rnd()*16:194+c.rnd()*16,13,5.5,c.look.leaf,i%3?c.leaf:c.leafDark,true));
+      if(c.st>=2 && i>1 && i%2===0){ const sd=n++%2?1:-1; tips.push([50+sd*14, y+4, 90, .85]); }
+    }
+    if(c.m>.5 && c.st>=2) tips.push([50,124-h-2,90,.95]);
+    return {back:"", front:out.join(""), tips};
+  },
+  tall(c){
+    const lean=(c.rnd()-.5)*6, out=[];
+    const main=curve(50,124,90,-90+lean*.3,lean);
+    const n=c.st===0?2:c.st===1?4:7;
+    for(let i=0;i<n;i++){
+      const t=.08+i*.1, [x,y]=main.at(t), side=i%2?1:-1, L=24-i*2.2;
+      out.push(leafAt(x,y,side>0?-30+c.rnd()*14:210-c.rnd()*14,L,L*.3,c.look.leaf,i%2?c.leaf:c.leafDark,true));
+    }
+    const tips=[main.at(1).concat(1.15)];
+    let back="";
+    if(c.m>.4){ const s=curve(50,104,62,-90+18,-8); back=s.line(2.4,c.leafDark); tips.push(s.at(1).concat(.75)); }
+    return {back, front:main.line(3.6,c.leafDark)+out.join(""), tips};
+  },
+  bush(c){
+    const out=[], tips=[], n=c.st===0?6:c.st===1?22:(c.look.leaf==="needle"?60:40), R=[34,22];
+    out.push(`<path d="M47 124Q48 112 44 104M53 124Q52 112 57 104M50 124V100" stroke="${c.leafDark}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`);
+    for(let i=0;i<n;i++){
+      const a=c.rnd()*Math.PI, rr=Math.sqrt(c.rnd());
+      const x=50+Math.cos(a)*R[0]*rr*(c.st===0?.4:1), y=100-Math.sin(a)*R[1]*rr*(c.st===0?.5:1)+6;
+      out.push(leafAt(x,y,-90+(x-50)*2.4+(c.rnd()-.5)*50, c.look.leaf==="needle"?14:10, c.look.leaf==="needle"?4.2:5, c.look.leaf, i%3?c.leaf:c.leafDark));
+    }
+    if(c.st>=2){ const k=4+Math.round(c.m*4);
+      for(let i=0;i<k;i++){ const a=.2+i/(k-1)*(Math.PI-.4), rr=.55+c.rnd()*.4;
+        tips.push([50+Math.cos(a)*R[0]*rr, 104-Math.sin(a)*R[1]*rr, -90, c.look.bloom==="bells"?.78:.66]); } }
+    return {back:"", front:out.join(""), tips};
+  },
+  ground(c){
+    const out=[], tips=[], n=c.st===0?4:c.st===1?10:18, w=c.st===0?12:28;
+    out.push(`<ellipse cx="50" cy="121" rx="${w+4}" ry="7" fill="${c.leafDark}" opacity=".55"/>`);
+    for(let i=0;i<n;i++){
+      const a=(i/n)*Math.PI*2+c.rnd()*.3, rr=w*(.55+c.rnd()*.45);
+      if(c.look.leaf) out.push(leafAt(50,118,Math.cos(a)>0?-15-Math.abs(Math.sin(a))*14:195+Math.abs(Math.sin(a))*14, rr*.8, 5, c.look.leaf, i%2?c.leaf:c.leafDark, true));
+      else out.push(`<circle cx="${PX(50+Math.cos(a)*rr)}" cy="${PX(118+Math.sin(a)*rr*.3)}" r="${PX(4+c.rnd()*3)}" fill="${i%2?c.leaf:c.leafDark}"/>`);
+    }
+    if(c.st>=2){ const k=3+Math.round(c.m*3);
+      for(let i=0;i<k;i++) tips.push([50+(i-(k-1)/2)*(w*1.4/k)+c.rnd()*3, 108-c.rnd()*7, -90, .6]); }
+    return {back:"", front:out.join(""), tips};
+  },
+  succulent(c){
+    const out=[], tips=[], n=c.st===0?1:c.st===1?3:5;
+    for(let i=0;i<n;i++){
+      const a=-90+(i-(n-1)/2)*16+(c.rnd()-.5)*6, segs=c.st===0?3:5+Math.round(c.rnd()*2);
+      let x=50+(i-(n-1)/2)*3, y=124, ang=a;
+      for(let s=0;s<segs;s++){
+        const L=11-s*.6, nx=x+Math.cos(ang*Math.PI/180)*L, ny=y+Math.sin(ang*Math.PI/180)*L;
+        out.push(`<ellipse cx="${PX((x+nx)/2)}" cy="${PX((y+ny)/2)}" rx="${PX(L/2+.6)}" ry="${PX(4.2-s*.25)}" transform="rotate(${PX(ang)} ${PX((x+nx)/2)} ${PX((y+ny)/2)})" fill="${s%2?c.leaf:c.leafDark}"/>`);
+        x=nx; y=ny; ang+=(a+90)*.25;
+      }
+      tips.push([x,y,ang,.7]);
+    }
+    return {back:"", front:out.join(""), tips: c.st>=2?tips:[]};
+  },
+  kelp(c){
+    const out=[], tips=[], n=c.st===0?2:c.st===1?3:5;
+    for(let i=0;i<n;i++){
+      const side=(i-(n-1)/2), len=(c.st===0?34:62)+c.rnd()*26;
+      let d=`M${PX(50+side*4)} 124`, x=50+side*4, y=124;
+      for(let s=0;s<6;s++){ const ny=y-len/6, nx=x+side*1.5+(s%2?7:-7); d+=`Q${PX(nx)} ${PX(y-len/12)} ${PX(x+side*1.5)} ${PX(ny)}`; x+=side*1.5; y=ny; }
+      out.push(`<path d="${d}" stroke="${i%2?c.leaf:c.leafDark}" stroke-width="${PX(6-Math.abs(side))}" fill="none" stroke-linecap="round" opacity=".92"/>`);
+      if(c.st>=2) tips.push([x,y,-90,.75]);
+    }
+    return {back:"", front:out.join(""), tips};
+  },
+  crystal(c){
+    const out=[], tips=[], n=c.st===0?1:c.st===1?3:6;
+    for(let i=0;i<n;i++){
+      const a=-90+(i-(n-1)/2)*15+(c.rnd()-.5)*8, h=(c.st===0?26:46)-Math.abs(i-(n-1)/2)*6+c.rnd()*8, w=7+c.rnd()*3;
+      const r=a*Math.PI/180, ux=Math.cos(r), uy=Math.sin(r), px=-uy, py=ux, x=50+(i-(n-1)/2)*7, y=124;
+      const P=[[x+px*w,y+py*w],[x+px*w+ux*h*.8,y+py*w+uy*h*.8],[x+ux*h,y+uy*h],[x-px*w+ux*h*.8,y-py*w+uy*h*.8],[x-px*w,y-py*w]];
+      out.push(`<path d="M${P.map(p=>PX(p[0])+" "+PX(p[1])).join("L")}Z" fill="${i%2?c.leaf:c.leafDark}"/>`+
+        `<path d="M${PX(x)} ${y}L${PX(P[2][0])} ${PX(P[2][1])}L${PX(P[1][0])} ${PX(P[1][1])}L${PX(P[0][0])} ${PX(P[0][1])}Z" fill="#fff" opacity=".16"/>`);
+      if(c.st>=2) tips.push([x+ux*h*.86,y+uy*h*.86,a,.55]);
+    }
+    return {back:"", front:out.join(""), tips};
+  },
+  reed(c){
+    const out=[], tips=[], n=c.st===0?3:c.st===1?6:10;
+    for(let i=0;i<n;i++){
+      const a=-90+(i-(n-1)/2)*(46/n)+(c.rnd()-.5)*10;
+      out.push(curve(50+(i-(n-1)/2)*1.6,124,(c.st===0?30:70)+c.rnd()*30,a,(a+90)*1.2+(c.rnd()-.5)*20).blade(3.2,i%2?c.leaf:c.leafDark));
+    }
+    if(c.st>=2){ const k=2+Math.round(c.m*2);
+      for(let i=0;i<k;i++){ const s=curve(50+(i-(k-1)/2)*5,124,96+c.rnd()*14,-90+(i-(k-1)/2)*7,(i-(k-1)/2)*6);
+        out.unshift(s.line(1.8,c.leafDark)); tips.push(s.at(1).concat(.8)); } }
+    return {back:"", front:out.join(""), tips};
+  },
+  tree(c){
+    if(c.st===0) return {back:"", front:`<path d="M50 124V100" stroke="${c.bark}" stroke-width="2.6" stroke-linecap="round"/>`+
+      leafAt(50,102,-40,13,5,"round",c.leaf,true)+leafAt(50,106,215,12,5,"round",c.leafDark,true), tips:[]};
+    const small=c.st===1, out=[], tips=[];
+    out.push(`<path d="M44 124Q48 100 47 ${small?96:80}L53 ${small?96:80}Q52 100 57 124Z" fill="${c.bark}"/>`);
+    if(!small) out.push(`<path d="M49 92Q38 84 32 74M51 88Q62 80 68 70" stroke="${c.bark}" stroke-width="3.2" fill="none" stroke-linecap="round"/>`);
+    const blobs = small ? [[50,86,16]] : [[50,52,24],[30,66,18],[70,64,19],[40,46,16],[62,44,16],[50,70,18]];
+    blobs.forEach(([x,y,r],i)=>{
+      out.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="${i%2?c.leafDark:c.leaf}"/>`);
+      for(let k=0;k<5;k++){ const a=c.rnd()*Math.PI*2, rr=r*.75; out.push(leafAt(x+Math.cos(a)*rr, y+Math.sin(a)*rr, a*180/Math.PI, 8, 3.6, "round", k%2?c.leaf:c.leafDark)); }
+    });
+    if(!small) out.push(`<circle cx="44" cy="44" r="10" fill="#fff" opacity=".07"/>`);
+    if(c.st>=2){ const spots=small?[[44,84],[56,88]]:[[34,62],[64,58],[48,46],[56,70],[40,74],[70,72],[28,70],[58,40]];
+      spots.slice(0, small?2:5+Math.round(c.m*3)).forEach(([x,y])=>tips.push([x,y+4,90,.62])); }
+    return {back:"", front:out.join(""), tips};
+  },
+  conifer(c){
+    const out=[], tips=[], tiers=c.st===0?2:c.st===1?3:5, bend=10+c.rnd()*6;
+    out.push(`<path d="M47 124Q50 104 ${PX(50+bend*.4)} ${PX(124-tiers*18)}" stroke="${c.bark}" stroke-width="4" fill="none" stroke-linecap="round"/>`);
+    for(let i=0;i<tiers;i++){
+      const y=118-i*(c.st===0?10:17), w=(tiers-i)*9+6, sk=bend*(i/tiers);
+      out.push(`<path d="M${PX(50+sk-w*.6)} ${y}Q${PX(50+sk+w*.4)} ${y-4} ${PX(50+sk+w*1.05)} ${y+2}L${PX(50+sk+w*.1)} ${PX(y-(c.st===0?12:20))}Z" fill="${i%2?c.leaf:c.leafDark}"/>`);
+      if(c.st>=2 && i<tiers-1) tips.push([50+sk+w*.5, y-2, 90, .55]);
+    }
+    return {back:"", front:out.join(""), tips};
+  }
+};
+
+/* ---------- blooms ---------- */
+function petals(n, L, W, col, rot){ let o=""; for(let i=0;i<n;i++) o+=`<path transform="rotate(${PX(rot+i*360/n)})" d="M0 0C${PX(-W)} ${PX(-L*.35)} ${PX(-W*.6)} ${PX(-L)} 0 ${PX(-L)}C${PX(W*.6)} ${PX(-L)} ${PX(W)} ${PX(-L*.35)} 0 0Z" fill="${col}"/>`; return o; }
+function budShape(c, u){
+  return `<path d="M0 3C-5 0 -5 -9 0 -14C5 -9 5 0 0 3Z" fill="${c.fl}" transform="scale(${u})"/>`+
+    `<path d="M0 4C-6 2 -6 -4 -3 -6L0 -2L3 -6C6 -4 6 2 0 4Z" fill="${c.leafDark}" transform="scale(${u})"/>`;
+}
+const BLOOMS = {
+  moon(c,u,open){
+    if(!open) return budShape(c,u*1.15);
+    return `<g transform="scale(${u*1.2})"><circle r="15" fill="${c.flat}" opacity=".18"/>${petals(6,15,6,c.fl,0)}${petals(6,9,4,"#fff",30).replace(/fill="#fff"/g,'fill="#fff" opacity=".35"')}<circle r="3" fill="#fff" opacity=".9"/></g>`;
+  },
+  embers(c,u){ return `<g transform="scale(${u})"><circle r="5" fill="${c.flat}" opacity=".35"/><circle r="2.6" fill="${c.flat}"/><circle cx="-4" cy="3" r="1.6" fill="${c.flat}" opacity=".8"/><circle cx="4" cy="2" r="1.4" fill="${c.flat}" opacity=".7"/></g>`; },
+  bells(c,u){ return `<g transform="scale(${u})"><path d="M0 -4V2" stroke="${c.leafDark}" stroke-width="1.4"/><path d="M-7 14Q-7 1 0 1Q7 1 7 14Q3.5 12 0 14Q-3.5 12 -7 14Z" fill="${c.fl}"/><path d="M-3 4Q0 2 3 4" stroke="#fff" stroke-opacity=".4" fill="none"/><circle cy="15.5" r="1.5" fill="#fff" opacity=".85"/></g>`; },
+  lily(c,u){
+    return `<g transform="scale(${u})"><path d="M0 4C-3 -4 -14 -8 -17 -2C-12 -5 -6 -2 0 4Z" fill="${c.fl}"/><path d="M0 4C3 -4 14 -8 17 -2C12 -5 6 -2 0 4Z" fill="${c.fl}"/>`+
+      `<path d="M0 4C-6 -6 -4 -16 0 -19C4 -16 6 -6 0 4Z" fill="${c.fl}"/><path d="M0 2V-12M-2 0L-6 -10M2 0L6 -10" stroke="${shade(c.flat,-.35)}" stroke-width=".9"/><circle cx="-6" cy="-10" r="1.2" fill="${shade(c.flat,-.45)}"/><circle cx="6" cy="-10" r="1.2" fill="${shade(c.flat,-.45)}"/><circle cy="-12" r="1.2" fill="${shade(c.flat,-.45)}"/></g>`;
+  },
+  lantern(c,u){ return `<g transform="scale(${u})"><path d="M0 -6V0" stroke="${c.leafDark}" stroke-width="1.2"/><ellipse cy="8" rx="6.5" ry="8.5" fill="${c.fl}"/><path d="M-3 1Q-4.5 8 -3 15M3 1Q4.5 8 3 15M0 0V16" stroke="${shade(c.flat,-.3)}" stroke-width=".8" fill="none" opacity=".6"/><rect x="-2.4" y="15.5" width="4.8" height="2.4" rx="1" fill="${c.leafDark}"/></g>`; },
+  glassbud(c,u){ return `<g transform="scale(${u})"><path d="M0 -10L7 -2L4 7L-4 7L-7 -2Z" fill="${c.flat}" opacity=".75"/><path d="M0 -10L7 -2L0 0Z" fill="#fff" opacity=".5"/><path d="M-7 -2L0 0L-4 7Z" fill="#fff" opacity=".2"/></g>`; },
+  snowflake(c,u){ let o=""; for(let i=0;i<6;i++) o+=`<g transform="rotate(${i*60})"><path d="M0 0V-10M0 -6L-3 -9M0 -6L3 -9" stroke="${c.flat}" stroke-width="1.6" stroke-linecap="round"/></g>`; return `<g transform="scale(${u})"><circle r="9" fill="${c.flat}" opacity=".18"/>${o}<circle r="2" fill="#fff"/></g>`; },
+  thistle(c,u){ let o=""; for(let i=0;i<13;i++){ const a=-160+i*(140/12); o+=`<path transform="rotate(${PX(a+90)})" d="M0 -6V-17" stroke="${c.flat}" stroke-width="1.8" stroke-linecap="round"/>`; }
+    return `<g transform="scale(${u})">${o}<path d="M-8 -4Q-9 8 0 10Q9 8 8 -4Q0 -8 -8 -4Z" fill="${c.leafDark}"/><path d="M-6 -1L-2 3L2 -1L6 3M-5 4L0 8L5 4" stroke="${c.leaf}" stroke-width="1" fill="none"/></g>`; },
+  daisy(c,u){ let o=""; for(let i=0;i<16;i++) o+=`<ellipse transform="rotate(${i*22.5})" cy="-11" rx="2.8" ry="8" fill="${c.fl}"/>`;
+    return `<g transform="scale(${u})"><circle r="19" fill="${c.flat}" opacity=".12"/>${o}<circle r="6.5" fill="${shade(c.flat,-.55)}"/><circle r="4" fill="${shade(c.flat,-.35)}" opacity=".7"/></g>`; },
+  starlets(c,u,open){
+    const star=(x,y,s)=>`<path transform="translate(${x} ${y}) scale(${s})" d="M0 -6L1.6 -1.8L6 -1.8L2.4 1L3.7 5.4L0 2.8L-3.7 5.4L-2.4 1L-6 -1.8L-1.6 -1.8Z" fill="${c.fl}"/>`;
+    if(!open) return `<g transform="scale(${u})"><circle cx="-4" r="2.2" fill="${c.flat}"/><circle cx="4" cy="2" r="2.2" fill="${c.flat}"/><circle cy="-4" r="2.2" fill="${c.flat}"/></g>`;
+    return `<g transform="scale(${u})">${star(-5,0,.9)}${star(5,2,.8)}${star(0,-6,1)}${star(1,6,.7)}</g>`;
+  },
+  sparks(c,u){ return `<g transform="scale(${u})"><circle r="4" fill="${c.flat}" opacity=".3"/><circle r="2" fill="${c.flat}"/><circle cx="7" cy="3" r="1.4" fill="${c.flat}"/><circle cx="-6" cy="4" r="1.2" fill="${c.flat}"/></g>`; },
+  heather(c,u){ let o=""; for(let i=0;i<6;i++) o+=`<ellipse cx="${i%2?2:-2}" cy="${-i*4}" rx="2.6" ry="3" fill="${c.fl}"/>`; return `<g transform="scale(${u})"><path d="M0 4V-22" stroke="${c.leafDark}" stroke-width="1.2"/>${o}</g>`; },
+  iris(c,u){ return `<g transform="scale(${u})"><path d="M0 0C-4 -8 -3 -18 0 -21C3 -18 4 -8 0 0Z" fill="${c.fl}"/><path d="M0 0C-8 -2 -16 2 -15 10C-11 5 -6 4 0 0Z" fill="${c.fl}"/><path d="M0 0C8 -2 16 2 15 10C11 5 6 4 0 0Z" fill="${c.fl}"/><path d="M-3 1C-7 2 -10 4 -11 7" stroke="#ffd36a" stroke-width="1.6" fill="none"/><path d="M3 1C7 2 10 4 11 7" stroke="#ffd36a" stroke-width="1.6" fill="none"/></g>`; },
+  plume(c,u){ let o=""; for(let i=0;i<7;i++){ const y=-i*4.2, w=6-i*.7; o+=`<path d="M0 ${PX(y+3)}C${PX(-w)} ${PX(y)} ${PX(-w*.6)} ${PX(y-5)} 0 ${PX(y-7)}C${PX(w*.6)} ${PX(y-5)} ${PX(w)} ${PX(y)} 0 ${PX(y+3)}Z" fill="${c.fl}" opacity="${PX(1-i*.08)}"/>`; }
+    return `<g transform="scale(${u})"><ellipse cy="-12" rx="11" ry="20" fill="${c.flat}" opacity=".14"/>${o}</g>`; },
+  trumpet(c,u){ return `<g transform="scale(${u})"><path d="M-3 4L-8 -12Q0 -16 8 -12L3 4Z" fill="${c.fl}"/><path d="M-8 -12Q0 -9 8 -12Q0 -16 -8 -12Z" fill="${shade(c.flat,-.3)}"/><path d="M-1 2L-4 -10M1 2L4 -10" stroke="#fff" stroke-opacity=".35" stroke-width=".8"/></g>`; },
+  cones(c,u){ return `<g transform="scale(${u})"><ellipse cy="6" rx="3.6" ry="6" fill="${shade(c.bark,.15)}"/><path d="M-3 3L3 5M-3 7L3 9M-3 5L3 3" stroke="${shade(c.bark,-.3)}" stroke-width=".8"/></g>`; },
+  geode(c,u){ return `<g transform="scale(${u})"><circle r="9" fill="${c.flat}" opacity=".3"/><path d="M0 -8L4 0L0 6L-4 0Z" fill="${c.flat}"/><path d="M0 -8L4 0L0 0Z" fill="#fff" opacity=".55"/></g>`; },
+  orb(c,u){ return `<g transform="scale(${u})"><circle r="13" fill="${c.flat}" opacity=".16"/><circle r="8" fill="${c.flat}" opacity=".45"/><circle r="5" fill="${c.fl}"/><circle cx="-1.8" cy="-1.8" r="1.6" fill="#fff" opacity=".85"/></g>`; },
+  beads(c,u){ return `<g transform="scale(${u})"><circle cx="-4" r="2.6" fill="${c.fl}"/><circle cx="3" cy="-2" r="3" fill="${c.fl}"/><circle cx="0" cy="-7" r="2.2" fill="${c.fl}"/><circle cx="2" cy="-3" r="1" fill="#fff" opacity=".8"/></g>`; },
+  apples(c,u){ return `<g transform="scale(${u})"><path d="M0 -4V0" stroke="${c.bark}" stroke-width="1.2"/><circle cy="5" r="6" fill="${c.fl}"/><circle cx="-2" cy="3" r="1.8" fill="#fff" opacity=".5"/>${leafAt(0,-2,-30,6,2.4,"lance",c.leaf)}</g>`; },
+  wheat(c,u){ let o=""; for(let i=0;i<6;i++) o+=`<ellipse cx="${i%2?2:-2}" cy="${-i*3.6}" rx="2" ry="3.4" transform="rotate(${i%2?20:-20} ${i%2?2:-2} ${-i*3.6})" fill="${c.fl}"/>`; return `<g transform="scale(${u})"><path d="M0 2V-22" stroke="${c.flat}" stroke-width=".7"/>${o}</g>`; },
+  veil(c,u,open){
+    if(!open) return budShape(c,u);
+    return `<g transform="scale(${u})"><circle r="16" fill="${c.flat}" opacity=".2"/>${petals(5,14,8,c.fl,18).replace(/fill="url/g,'opacity=".55" fill="url')}${petals(5,10,6,c.fl,-18)}<circle r="3" fill="#fff" opacity=".85"/></g>`;
+  },
+  poppy(c,u){ return `<g transform="scale(${u}) rotate(150)"><path d="M0 0C-12 -2 -14 -14 -6 -17C-2 -12 2 -12 6 -17C14 -14 12 -2 0 0Z" fill="${c.fl}"/><path d="M0 0C-6 -3 -7 -10 0 -12C7 -10 6 -3 0 0Z" fill="${shade(c.flat,.25)}" opacity=".6"/><circle cy="-3" r="3" fill="#2a2638"/></g>`; },
+  cup(c,u){ return `<g transform="scale(${u})"><path d="M-7 2C-9 -8 -6 -15 -2 -16L0 -9L2 -16C6 -15 9 -8 7 2Q0 6 -7 2Z" fill="${c.fl}"/><path d="M-2 -16L0 -9L2 -16Q0 -18 -2 -16Z" fill="#fff" opacity=".4"/><path d="M-1 0V-8M1 0V-8" stroke="#ffcf5a" stroke-width="1.2"/></g>`; },
+  anemone(c,u){ let o=""; for(let i=0;i<5;i++) o+=`<ellipse transform="rotate(${i*72})" cy="-8" rx="7" ry="8.5" fill="${c.fl}"/>`;
+    let st=""; for(let i=0;i<12;i++){ const a=i*30*Math.PI/180; st+=`<circle cx="${PX(Math.cos(a)*4.4)}" cy="${PX(Math.sin(a)*4.4)}" r=".9" fill="#3a3050"/>`; }
+    return `<g transform="scale(${u})"><circle r="17" fill="${c.flat}" opacity=".12"/>${o}<circle r="4" fill="#4a3a66"/>${st}</g>`; },
+  none(){ return ""; }
+};
+
+function plantCtx(sp, k, p, seed){
+  const look=PLANT_LOOK[k]||{kind:"flower",leaf:"lance",bloom:"moon"};
+  return {sp, look, rnd:prng(seed), leaf:sp.stem, leafDark:shade(sp.stem,-.28), bark:"#7a6250",
+    flat:sp.flower, fl:`url(#pg-${k})`, st:0, r:0, m:0, open:true};
+}
+function plantArt(k, st, r, m, opts){
+  opts=opts||{};
+  const sp=SPECIES[k], c=plantCtx(sp, k, null, opts.seed||hashStr(k));
+  c.st=st; c.r=r; c.m=m;
+  const night=opts.night, look=c.look;
+  c.open = st===3 && (look.night!=="open" || night || opts.icon);
+  const kind=KINDS[look.kind]||KINDS.flower, body=kind(c);
+  if(st<2) body.tips=[];                      // no buds or flowers before the budding stage
+  const bf=BLOOMS[look.bloom]||BLOOMS.none;
+  let blooms="", halos="";
+  body.tips.forEach(([x,y,ang,sz],i)=>{
+    const hang = ["bells","lantern","apples","cones","poppy"].includes(look.bloom) || (look.kind==="tree");
+    const rot = hang ? 0 : (look.kind==="flower"||look.kind==="tall"||look.kind==="bulb") ? (ang+90)*.6 : 0;
+    const sw = look.swing && st===3;
+    const inner = st===2 ? (look.bloom==="none"?"": ["bells","lantern","apples","cones","beads","sparks","embers","geode","heather","wheat","glassbud"].includes(look.bloom) ? `<g opacity=".7">${bf(c,sz*.55,false)}</g>` : budShape(c,sz*.8))
+                         : bf(c, sz, c.open);
+    if(!inner) return;
+    if(look.glow && night && st===3) halos+=`<circle cx="${PX(x)}" cy="${PX(y+(hang?8*sz:0))}" r="${PX((body.tips.length>3?8:15)*sz)}" fill="${sp.flower}" opacity=".32" class="glowpulse"/>`;
+    blooms+=`<g transform="translate(${PX(x)} ${PX(y)}) rotate(${PX(rot)})">`+
+      (sw ? `<g class="swing" style="animation-delay:-${(i*1.3).toFixed(1)}s">${inner}</g>` : inner)+`</g>`;
+  });
+  let extra="";
+  if(look.frost && st>=1){ const rr=prng(hashStr(k)+7); for(let i=0;i<7;i++) extra+=`<circle cx="${PX(30+rr()*40)}" cy="${PX(74+rr()*44)}" r="${PX(.8+rr()*1.1)}" fill="#fff" opacity=".8" class="twinkle" style="animation-delay:${(rr()*3).toFixed(1)}s"/>`; }
+  if(look.steam && st>=2) extra+=`<path class="steam" d="M44 70q-4 -8 0 -16q4 -8 0 -16" stroke="#fff" stroke-opacity=".35" stroke-width="2.5" fill="none" stroke-linecap="round"/><path class="steam" style="animation-delay:1.6s" d="M57 76q4 -8 0 -16q-4 -8 0 -16" stroke="#fff" stroke-opacity=".3" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  const defs=`<defs><radialGradient id="pg-${k}" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".3" stop-color="${sp.flower}"/><stop offset="1" stop-color="${shade(sp.flower,-.12)}"/></radialGradient></defs>`;
+  const grow = st<3 ? (.42+.58*Math.min(1, st===0 ? .35+r*.6 : .55+r*.45)) : 1;
+  const shadowW = {tree:30, conifer:28, bush:30, ground:30}[look.kind]||18;
+  return defs+`<ellipse cx="50" cy="124" rx="${shadowW}" ry="5" fill="#000" opacity=".22"/>`+
+    `<g transform="translate(50 124) scale(${PX(grow*100)/100}) translate(-50 -124)">${halos}${body.back}${body.front}${blooms}${extra}</g>`;
+}
+function maturityOf(p){
+  const sp=SPECIES[p.sp], look=PLANT_LOOK[p.sp]||{}, over=p.growth-sp.bloom;
+  return over<=0 ? 0 : Math.min(1, over/((MATURE_DAYS[look.kind]||3)*86400000));
+}
+function plantSvg(p, i){
+  const sp=SPECIES[p.sp], st=stageOf(p), look=PLANT_LOOK[p.sp]||{kind:"flower"};
+  const r=Math.min(1, p.growth/sp.bloom), m=maturityOf(p);
+  const [base, grows]=KIND_SIZE[look.kind]||KIND_SIZE.flower;
+  const h=Math.round(base*(st<3?1:1+(grows-1)*m));
+  const night=Clock.part()==="night"||Clock.part()==="dusk";
+  const seed=hashStr(p.sp)+(p.seed||((i||0)*7919+1));
+  const sway=S.comfort.motion && look.kind!=="tree" && look.kind!=="crystal" && look.kind!=="conifer" ? " plant-sway" : "";
+  return `<svg class="sprite" viewBox="0 0 100 130" style="height:${h}px"><g class="${sway}">${plantArt(p.sp, st, r, m, {night, seed})}</g></svg>`;
+}
+/* the species at full bloom, for lists and the flora book */
+function plantIcon(k, cls){
+  return `<svg class="${cls||"leaf"}" viewBox="0 0 100 130">${plantArt(k, 3, 1, .6, {icon:true, night:true})}</svg>`;
+}
+function plantSilhouette(k, cls){
+  return `<svg class="${cls||"leaf"}" viewBox="0 0 100 130" style="filter:brightness(0) opacity(.22)">${plantArt(k, 3, 1, .6, {icon:true})}</svg>`;
+}
+
 function stoneSvg(key, polished){
   const s=STONES[key], c = polished ? s.polished : s.rough;
   return `<svg class="sprite" viewBox="0 0 66 88">
@@ -2215,8 +2654,8 @@ function stoneSvg(key, polished){
 let plotSig = null;
 function plotsSignature(){
   return PL().map(p=> !p ? "_" : p.stone ? "s"+p.stone
-      : stageOf(p) + (p.stored>=1?"!":"") + p.sp).join("|")
-    + "|" + (SESSION.armedSeed||"") + S.energy + S.comfort.motion + bedsOpen() + S.env;
+      : stageOf(p) + (p.stored>=1?"!":"") + p.sp + Math.floor(Math.min(1,p.growth/SPECIES[p.sp].bloom)*6) + Math.floor(maturityOf(p)*10)).join("|")
+    + "|" + (SESSION.armedSeed||"") + S.energy + S.comfort.motion + bedsOpen() + S.env + Clock.part();
 }
 function renderPlotsIfChanged(){
   const sig = plotsSignature();
@@ -2232,6 +2671,7 @@ function renderPlots(){
     b.className="plot";
     b.style.left = PLOT_POS[i][0]+"%";
     b.style.top  = PLOT_POS[i][1]+"%";
+    b.style.zIndex = Math.round(PLOT_POS[i][1]);
     b.dataset.i = i;
     if(i>=open){
       // ground not yet turned
@@ -2250,13 +2690,25 @@ function renderPlots(){
       b.setAttribute("aria-label", STONES[p.stone].name + " on display");
     }else{
       const sp=SPECIES[p.sp], st=stageOf(p);
-      b.innerHTML = plantSvg(p);
+      b.innerHTML = plantSvg(p, i);
       if(st===3 && p.stored>=1 && !low){ b.classList.add("ready"); b.innerHTML += '<i class="ready-pip"></i>'; }
+      if(p.bloomedAt && now()-p.bloomedAt < 10000){ b.classList.add("fresh"); b.innerHTML += '<i class="burst"></i>'; }
       const names=["a seed","a sprout","budding","in bloom"];
       b.setAttribute("aria-label", sp.name + ", " + names[st]);
     }
     box.appendChild(b);
   });
+  if(low) return;
+  const P=PL();
+  for(let i=0;i<open;i++) for(let j=i+1;j<open;j++){
+    const a=P[i], c=P[j];
+    if(!a||!c||!a.sp||!c.sp||a.sp===c.sp||stageOf(a)!==3||stageOf(c)!==3||!bedsAdjacent(i,j)) continue;
+    if(!HYBRIDS.some(h=>h.parents.includes(a.sp)&&h.parents.includes(c.sp))) continue;
+    const d=document.createElement("span"); d.className="pollen";
+    d.style.left=((PLOT_POS[i][0]+PLOT_POS[j][0])/2)+"%"; d.style.top=((PLOT_POS[i][1]+PLOT_POS[j][1])/2-7)+"%";
+    d.innerHTML=[0,1,2,3,4].map(n=>`<i style="left:${4+n*8}px;top:${10+(n%2)*10}px;animation-delay:-${n*1.2}s"></i>`).join("");
+    box.appendChild(d);
+  }
 }
 function bedCost(){ const n=bedsOpen(); return n>=MAX_BEDS ? null : BED_COST[n]; }
 function buyBed(){
@@ -2283,11 +2735,10 @@ function tapPlot(i){
         if((S.seeds[k]||0)<1){ SESSION.armedSeed=null; renderPlots(); return; }
         S.seeds[k]--; if(S.seeds[k]<=0) delete S.seeds[k];
       }
-      PL()[i]={sp:k, growth:0, stored:0}; noteActivity("planting "+SPECIES[k].name.toLowerCase());
+      PL()[i]={sp:k, growth:0, stored:0, seed:Math.floor(Math.random()*1e9)}; noteActivity("planting "+SPECIES[k].name.toLowerCase());
       if(!rare && !S.seeds[SESSION.armedSeed]) SESSION.armedSeed=null;
       Sound.chime(1); buzz(14);
       renderPlots(); save();
-      toast(SPECIES[k].name + " planted. It grows on its own from here.", 3200);
     }else{
       openSeeds();
     }
@@ -2304,12 +2755,20 @@ function tapPlot(i){
     gainSd(n, el); Sound.chime(3); buzz(12);
     maybeWisp(true);
   }else{
-    // tending: a tap is worth twenty seconds of weather
-    p.growth += 20000;
-    if(seasonRate(p.sp)<1 && Math.random()<.3) toast(SPECIES[p.sp].name+" grows slowly until "+SEASON_OF[p.sp]+".", 3400, "bloom");
-    Sound.chime(0); buzz(8);
-    floatNum(el, "\u2726");
-    renderPlots(); save();
+    // tending: once every few hours a tap is worth a tenth of the plant's growing time
+    const sp=SPECIES[p.sp], t=now();
+    if(st<3 && (!p.tendedAt || t-p.tendedAt>=TEND_EVERY)){
+      p.tendedAt=t; p.growth += Math.max(2*MIN, sp.bloom*.1);
+      Sound.chime(0); buzz(8);
+      const left=sp.bloom-p.growth;
+      floatNum(el, left>0 ? "tended \u00b7 "+fmtDur(left/seasonRate(p.sp))+" to bloom" : "tended");
+      renderPlots(); save();
+    }else if(st<3){
+      floatNum(el, fmtDur((sp.bloom-p.growth)/seasonRate(p.sp))+" to bloom");
+    }else{
+      floatNum(el, "next light in "+fmtDur(YIELD_MS - ((p.growth-sp.bloom)%YIELD_MS)));
+    }
+    if(seasonRate(p.sp)<1 && Math.random()<.3) toast(sp.name+" grows slowly until "+SEASON_OF[p.sp]+".", 3400, "bloom");
   }
 }
 
@@ -2332,9 +2791,9 @@ function maybeWisp(force){
       <circle cx="26" cy="26" r="9" fill="${sp.flower}" opacity=".45"/>
       <circle cx="26" cy="26" r="4.5" fill="#fff" opacity=".9"/></svg>`;
   w.addEventListener("click", ()=>{
-    const gift = 6 + Math.floor(Math.random()*14);
+    const gift = 3 + Math.floor(Math.random()*6);
     gainSd(gift, w); Sound.chime(4); buzz(16);
-    toast("+"+gift+" stardust from a wisp. "+pick(WISP_LINES), 3600, "visitor");
+    note(pick(WISP_LINES), "visitor");
     if(Math.random()<.18){
       const k = pick(["quartz","agate","jasper","obsidian","amethyst"]);
       S.stones.push({k, work:STONES[k].work});
@@ -2348,7 +2807,7 @@ function maybeWisp(force){
 }
 
 /* ---------- things on the island you can touch ---------- */
-const POI_COOL = {tree:50000, fall:120000, lantern:40000, boulder:90000, mill:60000, decor:4000};
+const POI_COOL = {tree:600000, fall:1800000, lantern:300000, boulder:900000, mill:600000, decor:4000};
 function poiTap(kind, idx, el){
   const key=S.env+":"+kind+":"+idx, t=now();
   SESSION.poi = SESSION.poi||{};
@@ -2362,20 +2821,18 @@ function poiTap(kind, idx, el){
     for(let i=0;i<6;i++){ const l=document.createElement("i"); l.className="leaf-fx";
       l.style.left=(px+rnd(-4,4))+"%"; l.style.top=(py+rnd(-6,0))+"%"; l.style.setProperty("--dx", rnd(-60,60)+"px");
       l.style.animationDelay=(i*.18)+"s"; box.appendChild(l); setTimeout(()=>l.remove(),3200); }
-    const g=2+Math.floor(Math.random()*3); gainSd(g,null); Sound.chime(1); buzz(8);
-    toast("+"+g+" stardust from the tree.", 2600, "bloom");
+    const g=2+Math.floor(Math.random()*3); gainSd(g,el); Sound.chime(1); buzz(8);
     if(Math.random()<.3) maybeVisitor(true);
   }
   if(kind==="fall"){
     box.insertAdjacentHTML("beforeend", `<svg class="rainbow" viewBox="0 0 120 60" style="left:${px-14}%;top:${py-22}%;width:32%">
       ${["#f2c078","#f0a8a0","#c8b0e8","#8fd9b6","#9fd6e8"].map((c,i)=>`<path d="M${8+i*4} 58 A${52-i*4} ${52-i*4} 0 0 1 ${112-i*4} 58" stroke="${c}" stroke-width="3" fill="none" opacity=".7"/>`).join("")}</svg>`);
     setTimeout(()=>{ const rb=box.querySelector(".rainbow"); rb&&rb.remove(); }, 12000);
-    gainSd(4,null); Sound.chime(4); buzz(10);
-    toast("+4 stardust. A rainbow in the spray.", 3000, "star");
+    gainSd(4,el); Sound.chime(4); buzz(10);
   }
   if(kind==="lantern"){
     Sound.chime(2); buzz(8);
-    if($("#wisps").children.length<3){ maybeWisp(true); toast("A wisp came to the lantern. Tap it.", 3000, "visitor"); }
+    if($("#wisps").children.length<3){ maybeWisp(true); }
   }
   if(kind==="boulder"){
     const chance = S.upgrades.sieve ? .55 : .3;
@@ -2383,7 +2840,7 @@ function poiTap(kind, idx, el){
       const k=pick(["quartz","agate","jasper","obsidian","amethyst","aqua"]);
       S.stones.push({k, work:STONES[k].work}); save();
       Sound.chime(3); buzz(14); toast("A rough "+STONES[k].name.toLowerCase()+" under the boulder. It is in the Tumbler.", 3800, "stone");
-    }else{ gainSd(1,null); Sound.chime(0); toast("+1 stardust. Just a rock this time.", 2400, "info"); }
+    }else{ gainSd(1,el); Sound.chime(0); }
   }
   if(kind==="decor"){
     const it=DECOR[idx]; if(!it) return;
@@ -2393,8 +2850,7 @@ function poiTap(kind, idx, el){
     return;
   }
   if(kind==="mill"){
-    gainSd(3,null); Sound.chime(2); buzz(8);
-    toast("+3 stardust from the windmill.", 2600, "bloom");
+    gainSd(3,el); Sound.chime(2); buzz(8);
   }
 }
 
@@ -2457,17 +2913,17 @@ const Heavens = {
       art=`<svg viewBox="0 0 160 80"><path d="M10 44 q26 -30 76 -22 q30 6 44 20 q-18 20 -60 18 q-40 0 -60 -16Z" fill="var(--ink)" opacity=".22"/>
         <path d="M128 40 l26 -20 -4 30Z" fill="var(--ink)" opacity=".2"/><circle cx="30" cy="40" r="2.4" fill="var(--sky-top)" opacity=".6"/>
         <path d="M60 22 q-6 -12 0 -18 q6 6 0 18" fill="var(--ink)" opacity=".15"/></svg>`;
-      onTap=()=>{ const g=8+Math.floor(Math.random()*8); gainSd(g,b); toast("+"+g+" stardust from the sky whale. "+pick(this.WHALE_LINES), 4200, "star"); Sound.chime(4); };
+      onTap=()=>{ const g=6+Math.floor(Math.random()*5); gainSd(g,b); note(pick(this.WHALE_LINES), "star"); Sound.chime(4); };
     }else if(kind==="lantern"){
       dur=70; y=null;
       art=`<svg viewBox="0 0 40 60"><path d="M12 6 h16 l6 26 q-14 8 -28 0Z" fill="var(--glow)" opacity=".85"/>
         <path d="M14 8 h12 l4 20 q-10 5 -20 0Z" fill="#fff" opacity=".35"/><path d="M12 36 h16" stroke="var(--land)" stroke-width="2"/>
         <circle cx="20" cy="20" r="14" fill="var(--glow)" opacity=".18"/></svg>`;
-      onTap=()=>{ gainSd(5,b); S.journal.lanterns=(S.journal.lanterns||0)+1; save(); toast("+5 stardust from a paper lantern. "+pick(this.LANTERN_WISHES), 4200, "star"); Sound.chime(2); };
+      onTap=()=>{ gainSd(5,b); S.journal.lanterns=(S.journal.lanterns||0)+1; save(); note(pick(this.LANTERN_WISHES), "star"); Sound.chime(2); };
     }else{
       dur=60; y=rnd(80,220);
       art=`<svg viewBox="0 0 120 40">${[0,1,2,3,4,5,6].map(i=>`<path d="M${10+i*15} ${16+(i%2)*6} q5 -5 10 0 q5 -5 10 0" stroke="var(--ink)" stroke-width="1.6" fill="none" opacity=".6"/>`).join("")}</svg>`;
-      onTap=()=>{ gainSd(3,b); toast("+3 stardust from the flock. "+pick(this.BIRD_LINES), 3400, "star"); Sound.chime(1); };
+      onTap=()=>{ gainSd(3,b); note(pick(this.BIRD_LINES), "star"); Sound.chime(1); };
     }
     b.innerHTML=art;
     b.setAttribute("aria-label", kind==="whale"?"A sky whale, passing. Tap it.":kind==="lantern"?"A paper lantern rising. Tap to read its wish.":"A flock of birds. Tap them.");
@@ -2495,10 +2951,10 @@ function shootingStar(){
   b.className="shooting"; b.setAttribute("aria-label","A shooting star. Tap to catch it.");
   b.style.left = rnd(700,1300)+"px"; b.style.top = rnd(40,300)+"px";
   b.addEventListener("click", ()=>{
-    const gift=5+Math.floor(Math.random()*10);
+    const gift=4+Math.floor(Math.random()*6);
     gainSd(gift, b); Sound.chime(4); buzz(14);
     S.journal.stars=(S.journal.stars||0)+1; save();
-    toast("Shooting star caught. "+pick(WISHES), 3600, "star");
+    note("Shooting star caught. "+pick(WISHES), "star");
     b.remove();
   });
   stage.appendChild(b);
@@ -2661,8 +3117,9 @@ function maybeVisitor(force){
     const first=!S.journal.visitors[k];
     S.journal.visitors[k]=(S.journal.visitors[k]||0)+1;
     gainSd(gift, b); Sound.chime(4); buzz(14);
-    toast("+"+gift+" stardust from "+v.name.toLowerCase()+"."+(first?" It is now in your Field Notes.":""), 3600, "visitor");
-    setTimeout(()=> toast(pick(v.lines), 4200, "visitor"), 0);
+    const line=pick(v.lines);
+    if(first) toast(line+" <i>"+v.name+" is in your Field Notes now.</i>", 0, "visitor");
+    else note(v.name+": "+line, "visitor");
     b.classList.add("leaving"); setTimeout(()=>b.remove(), 900);
   });
   $("#visitors").appendChild(b);
@@ -2675,8 +3132,7 @@ function maybeVisitor(force){
   const gone=()=>{ if(chip.innerHTML.includes(v.name)) chip.hidden=true; };
   b.addEventListener("click", gone, {once:true});
   Sound.chime(2);
-  event(v.name+" has landed "+where+". Tap it to say hello.", 5000, "visitor");
-  World.panTo(wx, wy, true);
+  note(v.name+" came by, "+where+".", "visitor");
   setTimeout(()=>{ if(b.isConnected){ b.classList.add("leaving"); setTimeout(()=>b.remove(),900);} gone(); }, 90000);
 }
 
@@ -2700,12 +3156,15 @@ const LETTERS = [
    text:"This is the last one. I am not going anywhere in particular; I am simply tired in the good way now, and the islands are yours.\n\nYou did not earn them by working. You earned them by keeping something alive on the days you could, and by resting on the days you could not, and by never once being told off for either. That was the whole design. — M."}
 ];
 function checkLetters(){
-  LETTERS.forEach(L=>{
-    if(S.letters.includes(L.id)) return;
-    try{ if(!L.when()) return; }catch(e){ return; }
-    S.letters.push(L.id); S.since.letters++; save();
+  // M. writes one letter at a time, and never more than one a day
+  if(S.lastLetterAt && now()-S.lastLetterAt < 20*HOUR) return;
+  LETTERS.some(L=>{
+    if(S.letters.includes(L.id)) return false;
+    try{ if(!L.when()) return false; }catch(e){ return false; }
+    S.letters.push(L.id); S.since.letters++; S.lastLetterAt=now(); save();
     Sound.chime(3);
-    event("A letter from M. was found "+L.where+". Read it in Field Notes.", 5600, "letter");
+    event("A letter from M. was found "+L.where+". Read it in Field Notes.", 0, "letter", true);
+    return true;
   });
 }
 
@@ -2732,6 +3191,9 @@ const Clock = {
   },
   start(kind){
     this.weather=kind;
+    if(kind==="snow" && Math.random()<.35) setTimeout(()=> findSeed("snowdrop"), 8000);
+    if(kind==="petals" && Math.random()<.35) setTimeout(()=> findSeed("windflower"), 8000);
+    if(kind==="warmrain" && Math.random()<.25) setTimeout(()=> findSeed("rainlily"), 8000);
     const box=$("#weather"); box.className="weather "+kind; box.innerHTML="";
     const n= kind==="warmrain"?40:26;
     for(let i=0;i<n;i++){
@@ -2744,7 +3206,7 @@ const Clock = {
     box.classList.add("on");
     const lines={snow:"Snow. It will not settle; it never does up here.", petals:"Blossom on the wind from somewhere upwind of you.",
       warmrain:"Warm rain, the kind you can sit out in.", leaves:"Leaves coming down from trees that are not on this island."};
-    event(lines[kind], 4000, "weather");
+    note(lines[kind], "weather");
     if(kind==="warmrain"){ Sound.rain(true); }
     setTimeout(()=> this.stop(), rnd(90000,180000));
   },
@@ -2798,7 +3260,7 @@ const Resident = {
     if(!S.resident && Object.keys(S.journal.bloomed||{}).length>=1){
       S.resident={name:null, born:now(), seen:now()}; save();
       this.render();
-      event("A wisp has decided to stay on your island. Tap it to give it a name.", 5600, "visitor");
+      event("A wisp has decided to stay on your island. Tap it to give it a name.", 0, "discover", true);
     }
     this.render();
   },
@@ -2847,10 +3309,10 @@ function applyGrowth(ms, rate){
     const sp=SPECIES[p.sp], was=stageOf(p);
     p.growth += ms*rate*seasonRate(p.sp);
     if(stageOf(p)===3){
-      if(was<3){ bloomed++; S.journal.bloomed[p.sp]=true; lastBloomed.push(p.sp); }
+      if(was<3){ bloomed++; S.journal.bloomed[p.sp]=true; lastBloomed.push(p.sp); p.bloomedAt=now(); }
       const over = p.growth - sp.bloom;
-      const earned = Math.floor(over/20000)*sp.gift;   // light the plant has made, ever
-      const cap = sp.gift*(S.upgrades.roots?16:8);      // it only holds so much
+      const earned = Math.floor(over/YIELD_MS)*sp.gift; // light the plant has made, ever
+      const cap = sp.gift*(S.upgrades.roots?HOLD*2:HOLD); // it only holds so much
       if(p.taken===undefined) p.taken = 0;
       if(earned - p.taken > cap) p.taken = earned - cap; // the rest spills, kindly
       p.stored = clamp(earned - p.taken, 0, cap);
@@ -2865,21 +3327,23 @@ function tick(){
   if(dt<0 || dt>60000) dt = 1000;          // tab was backgrounded; offline math handles the rest
   const mode = MOODS[S.energy||"mid"];
   const b = applyGrowth(dt, mode.rate);
-  if(b>0){ Sound.chime(5); event(bloomedNames(b), 3400, "bloom"); }
+  if(b>0){ Sound.chime(5); note(bloomedNames(b), "bloom"); }
   autoPolish(dt);
   SESSION.pollen=(SESSION.pollen||0)+dt;
   if(SESSION.pollen>=60000){
     const hrs=SESSION.pollen/3600000; SESSION.pollen=0;
     crossPollinate(hrs).forEach(h=>{
       Sound.chime(5); buzz(20);
-      event("New seed: "+h.name+", from "+SPECIES[h.parents[0]].name+" and "+SPECIES[h.parents[1]].name+" growing side by side. It is in the Hut.", 6000, "seed");
+      event("New seed: "+h.name+", from "+SPECIES[h.parents[0]].name+" and "+SPECIES[h.parents[1]].name+" growing side by side. It is in the Hut.", 0, "seed", true);
     });
   }
   Clock.tick(dt);
 
   if(S.energy==="low"){
+    S.rainTime=(S.rainTime||0)+dt;
+    if(S.rainTime>=20*MIN) findSeed("rainlily");
     SESSION.restAccum += dt;
-    while(SESSION.restAccum >= 6000){ SESSION.restAccum -= 6000;
+    while(SESSION.restAccum >= 30000){ SESSION.restAccum -= 30000;
       const r=(island().decor.sundial!==undefined ? 1.5 : 1); S.rest += r; S.restLifetime += r; }
     // gather light for you, so nothing needs tapping
     Object.keys(S.islands).forEach(k=> S.islands[k].plots.forEach(p=>{ if(p&&p.sp&&p.stored>=1){
@@ -2901,9 +3365,11 @@ function catchUp(){
   autoPolish(away);
   S.since.blooms += bloomedAway;
   crossPollinate(Math.min(away/3600000, 48)).forEach(h=> S.since.hybrids.push(h.id));
-  const mins = Math.round(away/60000);
-  const txt = mins<90 ? mins+" minutes" : mins<2880 ? Math.round(mins/60)+" hours" : Math.round(mins/1440)+" days";
-  setTimeout(()=> toast("The garden grew for " + txt + " while you were away.", 4200), 1400);
+  if(away >= 1800000){
+    const h = Math.round(away/3600000), d = Math.round(away/86400000);
+    const txt = away < 5400000 ? "a little while" : h < 48 ? h+" hours" : d+" days";
+    note("You were away "+txt+"."+(bloomedAway ? " "+bloomedAway+(bloomedAway===1?" flower":" flowers")+" opened while you were gone." : ""), "info");
+  }
 }
 function paintPurse(){
   $("#sdVal").textContent = fmt(S.sd);
@@ -2990,8 +3456,7 @@ function openHut(tab){
     REST_PLANTS.forEach(k=>{
       const sp=SPECIES[k], have=ownsPlant(k), can=S.rest>=sp.rest;
       html+=`<button class="row ${have?"pick":""}" data-${have?"plantseed":"restbuy"}="${k}" ${(!have&&!can)?"disabled":""}>
-        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V44" stroke="${sp.stem}" stroke-width="3"/>
-          <g transform="translate(0,14) scale(0.78) translate(9,0)">${bloomForm(sp.form,sp.flower,sp.stem)}</g></svg>
+        ${plantIcon(k)}
         <span class="body"><span class="name">${sp.name}</span><span class="meta">${sp.note}</span></span>
         <span class="cost">${have?"plant":sp.rest+" rest"}</span></button>`;
     });
@@ -3024,7 +3489,7 @@ function openSeeds(){
     have.forEach(k=>{
       const sp=SPECIES[k];
       html += `<button class="row pick" data-plantseed="${k}">
-        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V40" stroke="${sp.stem}" stroke-width="3"/><circle cx="33" cy="30" r="9" fill="${sp.flower}"/></svg>
+        ${plantIcon(k)}
         <span class="body"><span class="name">${sp.name} &times;${S.seeds[k]}</span>
         <span class="meta">${sp.note}</span></span></button>`;
     });
@@ -3037,9 +3502,9 @@ function openSeeds(){
     if(!sp.cost) return;
     const can = S.sd>=sp.cost;
     html += `<button class="row" data-buyseed="${k}" ${can?"":"disabled"}>
-      <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V40" stroke="${sp.stem}" stroke-width="3"/><circle cx="33" cy="30" r="9" fill="${sp.flower}"/></svg>
+      ${plantIcon(k)}
       <span class="body"><span class="name">${sp.name}</span>
-      <span class="meta">Blooms in about ${Math.round(sp.bloom/60000)} min of weather &middot; gives ${sp.gift} light${SEASON_OF[k]?" &middot; a "+SEASON_OF[k]+" plant":""}</span></span>
+      <span class="meta">Blooms in about ${fmtDur(sp.bloom)} &middot; then ${sp.gift} stardust every two hours${SEASON_OF[k]?" &middot; a "+SEASON_OF[k]+" plant":""}</span></span>
       <span class="cost">${sp.cost}</span></button>`;
   });
   // rare varieties — bought once with money, then planted as often as you like
@@ -3054,8 +3519,7 @@ function openSeeds(){
   RARE.forEach(k=>{
     const sp=SPECIES[k], mine=ownsPlant(k);
     html += `<button class="row ${mine?"pick":""}" data-${mine?"plantseed":"buysku"}="${mine?k:sp.sku}">
-      <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V44" stroke="${sp.stem}" stroke-width="3"/>
-        <g transform="translate(0,14) scale(0.78) translate(9,0)">${bloomForm(sp.form,sp.flower,sp.stem)}</g></svg>
+      ${plantIcon(k)}
       <span class="body"><span class="name">${sp.name}</span>
       <span class="meta">${sp.note}</span></span>
       <span class="cost">${mine?"plant":priceOf(sp.sku)}</span></button>`;
@@ -3069,8 +3533,7 @@ function openSeeds(){
     mineByIsland.forEach(k=>{
       const sp=SPECIES[k];
       html += `<button class="row pick" data-plantseed="${k}">
-        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V44" stroke="${sp.stem}" stroke-width="3"/>
-          <g transform="translate(0,14) scale(0.78) translate(9,0)">${bloomForm(sp.form,sp.flower,sp.stem)}</g></svg>
+        ${plantIcon(k)}
         <span class="body"><span class="name">${sp.name}</span>
         <span class="meta">${sp.note}</span></span>
         <span class="cost">plant</span></button>`;
@@ -3083,7 +3546,7 @@ function openSeeds(){
     gifted.forEach(k=>{
       const sp=SPECIES[k];
       html += `<button class="row" data-freeseed="${k}">
-        <svg class="leaf" viewBox="0 0 66 88"><path d="M33 78 V40" stroke="${sp.stem}" stroke-width="3"/><circle cx="33" cy="30" r="9" fill="${sp.flower}"/></svg>
+        ${plantIcon(k)}
         <span class="body"><span class="name">${sp.name}</span><span class="meta">${sp.note}</span></span>
         <span class="cost">free</span></button>`;
     });
@@ -3103,6 +3566,10 @@ function openPastimes(){
     <button class="row" data-guide="5" style="border-color:var(--vapor-line)">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--ink-soft)" stroke-width="1.5"><circle cx="22" cy="22" r="14"/><path d="M22 16v7l4 3M22 12v1"/></svg>
       <span class="body"><span class="name">How the pastimes work</span><span class="meta">One line on each, and the mood setting</span></span></button>
+    <button class="row" data-flora="1" style="border-color:var(--vapor-line)">
+      <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--leaf)" stroke-width="1.5" stroke-linecap="round"><path d="M22 38V18"/><path d="M22 26C14 26 10 20 10 12C18 12 22 18 22 26ZM22 22C28 22 33 18 34 10C26 10 22 15 22 22Z"/></svg>
+      <span class="body"><span class="name">Flora</span>
+      <span class="meta">${floraCount()[0]} of ${floraCount()[1]} plants grown &middot; where to find the rest</span></span></button>
     <button class="row" data-open-journal="1" style="border-color:var(--vapor-line)">
       <svg class="leaf" viewBox="0 0 44 44" fill="none" stroke="var(--glow)" stroke-width="1.5"><path d="M10 6h20l6 6v26H10Z"/><path d="M16 20h14M16 27h14M16 34h9"/></svg>
       <span class="body"><span class="name">Field Notes</span>
@@ -3165,11 +3632,8 @@ function openJournal(){
       <span>${met? v.name.replace(/^A |^An /,"") + (j.visitors[k]>1?" &times;"+j.visitors[k]:"") : "Not yet"}</span></div>`;
   });
   html+='</div>';
-  const bl=Object.keys(j.bloomed||{});
-  html+='<div class="lab" style="color:var(--ink);margin:16px 0 8px">Brought into bloom</div>';
-  html+= bl.length ? '<div class="grid">'+bl.map(k=>{const sp=SPECIES[k]; return `<div class="cell">
-      <svg viewBox="0 0 66 88"><g transform="translate(0,12)">${bloomForm(sp.form||"round",sp.flower,sp.stem)}</g></svg><span>${sp.name}</span></div>`;}).join("")+'</div>'
-    : '<div class="note">Nothing has opened yet. It will.</div>';
+  const [fg,ft]=floraCount();
+  html+=`<button class="btn warm" data-flora="1" style="margin-top:16px">Flora book &middot; ${fg} of ${ft} grown</button>`;
   const rows=[
     ["Stones polished", S.polished.length],
     ["Star threads", Object.keys(S.skies).length+" of "+SKIES.length],
@@ -3185,7 +3649,7 @@ function openJournal(){
     ["Fireflies let go", j.fireflies||0],
     ["Moon looked at", j.moon||0],
     ["Lanterns read in the sky", j.lanterns||0],
-    ["Rest turned to stardust", fmt(S.restLifetime)]
+    ["Rest gathered", fmt(S.restLifetime)]
   ];
   if(S.letters.length){
     html+='<div class="lab" style="color:var(--ink);margin:16px 0 8px">Letters</div>';
@@ -3195,6 +3659,47 @@ function openJournal(){
   html+='<div class="lab" style="color:var(--ink);margin:16px 0 8px">Tally</div>';
   html+=rows.map(r=>`<div class="tally"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("");
   openSheet("Field Notes", "Seen, grown and made", html);
+}
+/* ---------- the flora book: every plant in the sky, and how each one is found ---------- */
+const FOUND_BY_PASTIME = {glasswort:"Trace the Heron in Star Threads.", starthistle:"Waiting at the end of the Scree Path, on a trail expedition."};
+function isFoundPlant(k){ return !!FOUND[k] || !!FOUND_BY_PASTIME[k]; }
+function floraHow(k){
+  const sp=SPECIES[k];
+  if(k==="moonpetal") return "Your first seed.";
+  if(FOUND_BY_PASTIME[k]) return FOUND_BY_PASTIME[k];
+  if(FOUND[k]) return FOUND[k].how;
+  if(sp.hybrid){
+    const h=HYBRIDS.find(x=>x.id===k), bl=S.journal.bloomed||{};
+    const nm=i=> bl[h.parents[i]] ? SPECIES[h.parents[i]].name : "a flower you have not grown yet";
+    return (bl[h.parents[0]]||bl[h.parents[1]]) ? "Appears when "+nm(0)+" and "+nm(1)+" bloom side by side." : "A cross between two flowers you have not grown yet.";
+  }
+  if(sp.sku) return "A rare variety, from the Hut.";
+  if(sp.island) return "Comes with "+PLACES[sp.island].name+".";
+  if(sp.rest) return "On the rest shelf, for "+sp.rest+" rest.";
+  return "Seeds in the Hut, "+sp.cost+" stardust.";
+}
+function floraCount(){ const all=Object.keys(SPECIES); return [all.filter(k=>(S.journal.bloomed||{})[k]).length, all.length]; }
+function openFlora(){
+  const all=Object.keys(SPECIES), bl=S.journal.bloomed||{}, [got,total]=floraCount();
+  const groups=[
+    ["From the Hut", k=>!SPECIES[k].sku&&!SPECIES[k].island&&!SPECIES[k].rest&&!SPECIES[k].hybrid&&!isFoundPlant(k)],
+    ["Crosses", k=>!!SPECIES[k].hybrid],
+    ["Found, never bought", k=>isFoundPlant(k)],
+    ["From the islands", k=>!!SPECIES[k].island],
+    ["The rest shelf", k=>!!SPECIES[k].rest],
+    ["Rare varieties", k=>!!SPECIES[k].sku]];
+  let html=`<div class="flora-progress"><span><b>${got}</b> of ${total} brought into bloom</span><i><em style="width:${(got/total*100).toFixed(1)}%"></em></i></div>`;
+  html+='<div class="note">Crosses and found plants are the hidden ones. The book tells you where to look; the garden does the rest.</div>';
+  groups.forEach(([title,f])=>{
+    const ks=all.filter(f), n=ks.filter(k=>bl[k]).length;
+    html+=`<div class="lab" style="color:var(--ink);margin:18px 0 8px">${title} <span style="color:var(--ink-faint);font-weight:500">${n} of ${ks.length}</span></div><div class="flora">`;
+    ks.forEach(k=>{
+      const done=!!bl[k], sp=SPECIES[k], named=done || S.unlocked[k] || !(sp.hybrid||isFoundPlant(k));
+      html+=`<div class="fcell ${done?"":"unknown"}">${done?plantIcon(k,""):plantSilhouette(k,"")}<b>${named?sp.name:"Not yet found"}</b><span>${done?sp.note:floraHow(k)}</span></div>`;
+    });
+    html+='</div>';
+  });
+  openSheet("Flora", "Every plant that grows in the sky", html);
 }
 function islandPlantNote(key){
   const mine = ISLAND_PLANTS.filter(k=>SPECIES[k].island===key);
@@ -3295,6 +3800,7 @@ function renderComfort(){
     <div class="divider"></div>
     ${tog("bigtouch", c.bigtouch, "Bigger things to tap", "Beds, buttons and visitors about a third larger.")}
     ${tog("lefthand", c.lefthand, "Left-handed", "Mirrors the bottom row so the busy buttons sit under a left thumb.")}
+    ${tog("quiet", c.quiet, "Quiet garden", "No pop-up messages about the garden at all. Everything still goes in the log behind the bell.")}
     ${tog("chimes", c.chimes, "Little chimes", "The small notes when something happens. Off leaves the music and weather alone.")}
     ${tog("soften", c.soften, "Soften high sounds", "Takes the top edge off everything. Helps on migraine days.")}
     ${tog("motion", c.motion, "Movement", "Turn off and the island holds still.")}
@@ -3777,7 +4283,7 @@ const Chimes = {
     if(this.echo){ buzz(6); this.echoHear(i); return; }
     buzz(6);
     S.journal.chimesPlayed=(S.journal.chimesPlayed||0)+1;
-    if(S.journal.chimesPlayed%12===0){ S.sd+=4; paintPurse(); toast("The wisps liked that. +4 stardust.", 2600); }
+    if(S.journal.chimesPlayed%12===0){ S.sd+=4; paintPurse(); note("The wisps liked the chimes. +4 stardust.", "visitor"); }
     if(S.energy==="low"){ S.rest+=0.5; paintPurse(); }
     save(); this.status();
   },
@@ -4219,9 +4725,11 @@ const Share = {
   islandCard(v, sub){
     const name=island().name||PLACES[S.env].name;
     // the island in its own 900×900 frame, laid out the way the screen lays it out
-    const beds=PL().map((p,i)=> p && {p, x:PLOT_POS[i][0]*9, y:PLOT_POS[i][1]*9}).filter(Boolean).sort((a,b)=>a.y-b.y);
+    const beds=PL().map((p,i)=> p && {p, i, x:PLOT_POS[i][0]*9, y:PLOT_POS[i][1]*9}).filter(Boolean).sort((a,b)=>a.y-b.y);
     const sprite=(svg,x,y)=> svg.replace(/^<svg[^>]*>/, `<svg x="${x-35}" y="${y-71}" width="70" height="92" viewBox="0 0 66 88">`);
-    const plants=beds.map(({p,x,y})=> sprite(p.stone ? stoneSvg(p.stone,true) : plantSvg(p), x, y)).join("");
+    const plantSprite=(p,i,x,y)=>{ const h=+(plantSvg(p,i).match(/height:(\d+)px/)||[0,100])[1]*.9, w=h*100/130;
+      return `<svg x="${x-w/2}" y="${y+14-h}" width="${w}" height="${h}" viewBox="0 0 100 130">${plantArt(p.sp, stageOf(p), Math.min(1,p.growth/SPECIES[p.sp].bloom), maturityOf(p), {night:true, seed:hashStr(p.sp)+(p.seed||(i*7919+1))})}</svg>`; };
+    const plants=beds.map(({p,x,y,i})=> p.stone ? sprite(stoneSvg(p.stone,true), x, y) : plantSprite(p,i,x,y)).join("");
     const gems=gemSpots().map(({k,x,y})=>`<svg x="${x*9-13}" y="${y*9-13}" width="26" height="26" viewBox="0 0 26 26">${gemArt(k)}</svg>`).join("");
     const growing=beds.filter(b=>b.p.sp), open=growing.filter(b=>stageOf(b.p)===3).length;
     const kinds=new Set(growing.map(b=>b.p.sp)).size;
@@ -4275,9 +4783,7 @@ const Share = {
     mine.forEach((k,i)=>{
       const sp=SPECIES[k], cx=x0+(i%cols)*cw+cw/2, y=y0+Math.floor(i/cols)*ch;
       if(bloomed[k]) art+=`<circle cx="${cx}" cy="${y+a*.36}" r="${a*.42}" fill="${sp.flower}" opacity=".14"/>`;
-      art+=`<svg x="${cx-a*.375}" y="${y}" width="${a*.75}" height="${a}" viewBox="0 0 66 88">
-        <path d="M33 78 V44" stroke="${sp.stem}" stroke-width="3" stroke-linecap="round"/>
-        <g transform="translate(0,14) scale(0.78) translate(9,0)">${bloomForm(sp.form,sp.flower,sp.stem)}</g></svg>`;
+      art+=`<svg x="${cx-a*.385}" y="${y}" width="${a*.77}" height="${a}" viewBox="0 0 100 130">${plantArt(k,3,1,.6,{icon:true,night:true})}</svg>`;
       labels.push({s:sp.name, x:cx, y:y+a+fs+4, size:fs, w:700, color:v("ink"), align:"center", max:cw-14});
       if(S.seeds[k]>0) labels.push({s:"×"+S.seeds[k], x:cx+a*.3, y:y+fs+6, size:fs, w:800, color:v("glow")});
     });
@@ -4647,7 +5153,7 @@ function wire(){
   $("#sheetClose").addEventListener("click", closeSheet);
   $("#scrim").addEventListener("click", closeSheet);
   $("#sheetBody").addEventListener("click", e=>{
-    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade],[data-restbuy],[data-wispname],[data-mind],[data-close],[data-rename],[data-share],[data-sharego],[data-spot],[data-lamp],[data-setname],[data-guide],[data-url]");
+    const t=e.target.closest("[data-buyseed],[data-plantseed],[data-freeseed],[data-open],[data-place],[data-toggle],[data-lowlight],[data-backup],[data-restore],[data-tumbleall],[data-buysku],[data-restorebuys],[data-palette],[data-open-journal],[data-hut],[data-decor],[data-upgrade],[data-restbuy],[data-wispname],[data-mind],[data-close],[data-rename],[data-share],[data-sharego],[data-spot],[data-lamp],[data-setname],[data-guide],[data-url],[data-flora]");
     if(!t) return;
     if(t.dataset.url) window.open(t.dataset.url, '_blank');
     if(t.dataset.buyseed){
@@ -4719,6 +5225,7 @@ function wire(){
     }
     if(t.dataset.palette){ S.comfort.palette=t.dataset.palette; applyComfort(); makeSky(); renderComfort(); }
     if(t.dataset.openJournal) openJournal();
+    if(t.dataset.flora) openFlora();
     if(t.dataset.lowlight) lowLightPreset();
     if(t.dataset.backup) backup();
     if(t.dataset.restore) restore();
@@ -4749,6 +5256,8 @@ function wire(){
 
   $("#revealBtn").addEventListener("click", ()=> Reveal.take());
   $("#toast").addEventListener("click", ()=> Notify.dismiss());
+  $("#btnLog").addEventListener("click", ()=>{ Notify.dismiss(); Log.open(); });
+  Log.paint();
   $$("[data-close-mg]").forEach(b=> b.addEventListener("click", ()=> hideMg(b.dataset.closeMg)));
 
   // idle tracking for the resting dim
@@ -4773,18 +5282,21 @@ const GUIDE = [
     <p>It was built for people living with chronic illness, so it bends to how you feel rather than the other way round. Everything in this guide is optional. The garden will do fine if you only ever open it and watch.</p>`},
   {t:"How is your energy?", h:`<p>Each time you open the app it asks. Your answer shapes the day:</p>
     <ul><li><b>I have some energy</b> — everything is open: planting, pastimes, exploring, the Hut.</li>
-    <li><b>Somewhere in between</b> — the same, a little lighter, plants growing a touch faster.</li>
+    <li><b>Somewhere in between</b> — the same, a little lighter, with hints always on.</li>
     <li><b>Low — be gentle with me</b> — Sanctuary Mode. Rain falls, the garden tends itself, light is gathered for you, the screen dims when you stop touching it, and you earn <b>Rest</b> for doing nothing. Two buttons remain: Resting and Comfort.</li></ul>
     <p>Change it any time with the button in the ribbon at the top.</p>`},
   {t:"The garden", h:`<p><b>Drag</b> to look around; the island is bigger than your screen. Tap the sky, the trees, the waterfall, the lanterns and the boulders — they all do something.</p>
-    <p><b>Planting:</b> open the Hut, tap a seed, then tap open ground. Plants grow on real time and never wilt. A tap on a growing plant is worth twenty seconds of weather.</p>
-    <p><b>Gathering light:</b> a plant in bloom pulses when it has light to give. Tap it for stardust. In Sanctuary Mode this happens for you.</p>
-    <p><b>New beds:</b> the dashed circle with a number is ground you can turn for stardust. Islands grow from six or eight beds to sixteen.</p>`},
+    <p><b>Planting:</b> open the Hut, tap a seed, then tap open ground. Plants grow on real time, over hours and days, and never wilt. Each kind grows its own way: ferns unfurl, vines climb, trees take most of a week to fill out. Once every few hours a tap on a growing plant tends it and brings its bloom closer; any other tap tells you how long it has to go.</p>
+    <p><b>Day and night:</b> some flowers only open after dark, and the glowing ones are brightest then. It is worth looking in at different hours.</p>
+    <p><b>Gathering light:</b> a plant in bloom makes stardust every two hours and holds a few hours' worth, then pulses to say so. Tap it to gather. In Sanctuary Mode this happens for you.</p>
+    <p><b>New beds:</b> the dashed circle with a number is ground you can turn for stardust. Islands start with three or four beds and grow to sixteen.</p>
+    <p><b>Crosses and finds:</b> two different flowers blooming side by side sometimes make a seed nobody sold you; drifting pollen shows when a pair might. Other seeds turn up only at dawn, in rain, or in the right season. The <b>Flora</b> book, in Pastimes, shows every plant and where to look.</p>
+    <p><b>The bell</b> at the top keeps a log of what the garden did, so it never has to interrupt you. Comfort &gt; Quiet garden turns pop-ups off entirely.</p>`},
   {t:"Stardust and Rest", h:`<p><b>Stardust</b> comes from blooms, visitors, shooting stars, the sky, the island, and every pastime. It buys seeds, beds, decor, upgrades and new islands.</p>
     <p><b>Rest</b> comes only from resting in Sanctuary Mode. It never turns into stardust and stardust never turns into it. It buys the night plants, the Moon Garden, and nothing else buys those. The owl comes only to gardens with a hundred rest behind them.</p>`},
   {t:"The Hut", h:`<ul><li><b>Seeds</b> — free plants for stardust, ten rare varieties you buy once and plant forever, and the seeds you have found.</li>
     <li><b>Decor</b> — seven pieces, three places per island. Each draws a particular visitor: a birdbath for birds, a mushroom ring for the snail and frog, a bench for the fox. You choose the lantern colour here too.</li>
-    <li><b>Upgrades</b> — six permanent ones: faster growth, full growth while away, more wisps, more visitors, deeper light, more stones under boulders.</li>
+    <li><b>Upgrades</b> — six permanent ones: faster growth, full growth while away, more wisps, more visitors, plants that hold twice the light, more stones under boulders.</li>
     <li><b>Rest</b> — the night shelf.</li></ul>`},
   {t:"Pastimes", h:`<p>Eleven, none timed, none failable. At the top of the list, choose <b>Gentle</b>, <b>Curious</b> or <b>Absorbing</b> for how much thinking you want today; it resizes all of them.</p>
     <ul><li><b>The Tumbler</b> — swipe a rough stone smooth, or let it turn on its own.</li>
@@ -4911,8 +5423,8 @@ async function boot(){
   }
   if(!S.seen.first){
     S.seen.first=true;
-    PL("cloud")[1]={sp:"moonpetal", growth:90000, stored:0};
-    PL("cloud")[4]={sp:"moonpetal", growth:30000, stored:0};
+    PL("cloud")[0]={sp:"moonpetal", growth:SPECIES.moonpetal.bloom*.7, stored:0};
+    PL("cloud")[1]={sp:"moonpetal", growth:SPECIES.moonpetal.bloom*.25, stored:0};
     save();
     renderPlots();
   }
@@ -4925,12 +5437,13 @@ async function boot(){
   Nav.bind();
   SESSION.lastTick=now();
   setInterval(()=>{ tick(); }, 1000);
-  setInterval(()=>{ if(S.energy!=="low") maybeWisp(false); }, 45000);
-  setInterval(shootingStar, 150000);
+  setInterval(()=>{ if(S.energy!=="low" && Math.random()<.35) maybeWisp(false); }, 90000);
+  setInterval(shootingStar, 420000);
   Heavens.build();
-  setInterval(()=>{ if(Math.random()<.4) Heavens.drifter(pick(["whale","lantern","birds","lantern"])); }, 110000);
+  setInterval(()=>{ if(Math.random()<.4) Heavens.drifter(pick(["whale","lantern","birds","lantern"])); }, 240000);
   setTimeout(()=> Heavens.drifter("lantern"), 20000);
-  setInterval(maybeVisitor, 90000);
+  setInterval(maybeVisitor, 240000);
+  setInterval(()=>{ if(Clock.part()==="dawn" && S.energy) findSeed("dawncrocus"); }, 20000);
 }
 /* Debug handle. Useful from a device console while wiring RevenueCat,
    e.g. Lumina.state().sd = 500; Lumina.billing.restore(); */
@@ -4940,7 +5453,7 @@ window.Lumina = {
   configure:(k)=>{ RC_KEY=k; return Billing.init(); },
   sky:Sky, tumbler:Tumbler, trail:Trail, sound:Sound,
   species:SPECIES, stones:STONES, places:PLACES,
-  tick, maybeWisp, setEnergy, save:saveNow, backup, restore
+  tick, maybeWisp, setEnergy, save:saveNow, backup, restore, art:(...a)=>plantArt(...a), look:PLANT_LOOK
 };
 document.addEventListener("DOMContentLoaded", boot);
 
