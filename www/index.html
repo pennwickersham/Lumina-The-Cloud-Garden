@@ -1224,6 +1224,7 @@ function findSeed(k){
   S.journal.found=S.journal.found||{}; S.journal.found[k]=now(); save();
   Sound.chime(5); buzz(20);
   event("A seed nobody planted: "+SPECIES[k].name+". "+SPECIES[k].note+" It is in the Hut.", 0, "seed", true);
+  Review.moment();
   return true;
 }
 /* ---------- plant looks ----------
@@ -1491,7 +1492,7 @@ function newIsland(k){ return {plots:new Array(MAX_BEDS).fill(null), beds:PLACES
 
 /* ---------- state ---------- */
 const DEFAULT_STATE = {
-  v:3,
+  v:4,
   created:0, lastSeen:0,
   energy:null,              // "high" | "mid" | "low"
   sd:35, rest:0, restLifetime:0,
@@ -1510,7 +1511,8 @@ const DEFAULT_STATE = {
   seen:{},                   // one-time notes
   comfort:{dim:0, warm:0, motion:1, vol:.7, music:.7, ambience:.7, chimes:1, soften:0,
            haptics:1, scale:1, breath:0, palette:"twilight"},
-  journal:{visitors:{}, bloomed:{}, chimesPlayed:0, sorted:0, clouds:0, stars:0}
+  journal:{visitors:{}, bloomed:{}, chimesPlayed:0, sorted:0, clouds:0, stars:0},
+  review:{at:0, n:0}        // the store's rating prompt: when we last asked, and how often
 };
 let S = null;
 let SESSION = {mgOpen:null, armedSeed:null, tumblerStone:null, lastTick:now(), restAccum:0, idleSince:now()};
@@ -1632,6 +1634,12 @@ async function load(){
     }));
     S.v = 3;
   }
+  if((S.v||2) < 4){
+    // v4 remembers when the store's rating prompt was last asked for
+    S.review = {at:0, n:0};
+    S.v = 4;
+  }
+  if(!S.review || typeof S.review!=="object") S.review = {at:0, n:0};
   if(!S.upgrades) S.upgrades={};
   if(!S.restOwned) S.restOwned={};
   if(!S.since) S.since={blooms:0, hybrids:[], stones:0, letters:0};
@@ -3325,8 +3333,10 @@ function tick(){
   SESSION.lastTick = t;
   if(dt<0 || dt>60000) dt = 1000;          // tab was backgrounded; offline math handles the rest
   const mode = MOODS[S.energy||"mid"];
+  const kinds = Object.keys(S.journal.bloomed).length;
   const b = applyGrowth(dt, mode.rate);
   if(b>0){ Sound.chime(5); note(bloomedNames(b), "bloom"); }
+  if(Object.keys(S.journal.bloomed).length > kinds) Review.moment();   // a new page in the Flora book
   autoPolish(dt);
   SESSION.pollen=(SESSION.pollen||0)+dt;
   if(SESSION.pollen>=60000){
@@ -3334,9 +3344,11 @@ function tick(){
     crossPollinate(hrs).forEach(h=>{
       Sound.chime(5); buzz(20);
       event("New seed: "+h.name+", from "+SPECIES[h.parents[0]].name+" and "+SPECIES[h.parents[1]].name+" growing side by side. It is in the Hut.", 0, "seed", true);
+      Review.moment();
     });
   }
   Clock.tick(dt);
+  Review.tick();
 
   if(S.energy==="low"){
     S.rainTime=(S.rainTime||0)+dt;
@@ -4939,6 +4951,7 @@ let RC_KEY = window.LUMINA_RC_KEY || "REVENUECAT_PUBLIC_SDK_KEY";
 
 const Billing = {
   ready:false,
+  busy:false, lastFlowAt:0,   // a purchase or restore in flight, and when one last ran
   plugin(){
     const cap = window.Capacitor && window.Capacitor.Plugins;
     return (cap && cap.Purchases) || window.Purchases || null;
@@ -4992,6 +5005,7 @@ const Billing = {
       toast("Purchases aren't available in this build yet.", 3600);
       return false;
     }
+    this.busy=true; this.lastFlowAt=now();
     try{
       const all = await this.packages();
       const entry = all[sku];
@@ -5010,17 +5024,79 @@ const Billing = {
       if(/cancel/i.test(m)) return false;               // backing out is not an error
       toast("The store didn't answer. Nothing was charged.", 3800);
       return false;
-    }
+    }finally{ this.busy=false; this.lastFlowAt=now(); }
   },
   async restore(){
     const P=this.plugin();
     if(!P || !this.ready){ toast("Nothing to restore in this build.", 3000); return; }
+    this.busy=true; this.lastFlowAt=now();
     try{
       const info = await P.restorePurchases();
       const found = await this.syncOwned(info);
       if(found) Store.flushCloud(true);
       toast(found ? "Restored. Everything you bought is back." : "Nothing further to restore.", 3600);
     }catch(e){ toast("Couldn't reach the store just now.", 3200); }
+    finally{ this.busy=false; this.lastFlowAt=now(); }
+  }
+};
+
+/* ============ ASKING FOR A REVIEW ============ */
+/* The store's own rating prompt (Google Play In-App Review, Apple's
+   SKStoreReviewController), never a dialog of ours: Apple does not allow one.
+   - Only in the Android and iOS apps. The browser build never asks.
+   - At most once every seven days, and the time is kept even when the system
+     decides not to show anything (it often won't, and it never says).
+   - Not before the island has had a couple of days and four kinds have bloomed.
+   - Only just after something good: a kind opening for the first time, a new
+     seed, an island opened. Never during or soon after a purchase, never over a
+     banner, sheet, pastime or the check-in, and never while resting.
+   - Quiet garden promises no pop-ups at all, so it holds this back too.
+   - Nothing is given for it, and nothing changes whether or not anyone rates. */
+const Review = {
+  EVERY:7*24*HOUR, MIN_AGE:2*24*HOUR, MIN_KINDS:4,
+  WAIT:4000, WINDOW:90000, AFTER_BUY:10*MIN,
+  pending:0,                  // when a good moment was noticed this session
+  plugin(){
+    const C=window.Capacitor;
+    if(!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
+    const pf=C.getPlatform && C.getPlatform();
+    if(pf!=="android" && pf!=="ios") return null;
+    return (C.Plugins && C.Plugins.InAppReview) || null;
+  },
+  /* the player has really played, and it has been a week since we last asked */
+  due(){
+    if(!S || !S.review || !this.plugin()) return false;
+    const t=now();
+    if(t-(S.review.at||0) < this.EVERY) return false;
+    if(!S.created || t-S.created < this.MIN_AGE) return false;
+    return Object.keys(S.journal.bloomed||{}).length >= this.MIN_KINDS;
+  },
+  /* nothing else is up, and nothing is being bought */
+  clear(){
+    if(document.hidden || Notify.showing || Notify.busy() || $("#reveal").classList.contains("on")) return false;
+    if(S.comfort.quiet || S.energy==="low") return false;
+    if(Billing.busy || now()-Billing.lastFlowAt < this.AFTER_BUY) return false;
+    return now()-Notify.lastBanner > 8000;
+  },
+  /* a good moment: look again shortly, once whatever marks it has settled */
+  moment(){ if(!this.pending && this.due()) this.pending=now(); },
+  tick(){
+    if(!this.pending) return;
+    const since=now()-this.pending;
+    if(since < this.WAIT) return;
+    if(since > this.WINDOW || !this.due()){ this.pending=0; return; }   // the moment has passed
+    if(!this.clear()) return;
+    this.pending=0; this.ask();
+  },
+  ask(){
+    S.review.at=now(); S.review.n=(S.review.n||0)+1; saveNow();
+    this.request();
+  },
+  /* straight to the system; it decides whether anything appears */
+  request(){
+    const R=this.plugin(); if(!R) return Promise.resolve(false);
+    try{ return Promise.resolve(R.requestReview()).then(()=>true, ()=>false); }
+    catch(e){ return Promise.resolve(false); }
   }
 };
 
@@ -5045,11 +5121,13 @@ function goPlace(key){
       S.rest-=p.restCost; island(key).unlocked=true; paintPurse(); save();
       Sound.chime(5); buzz(22);
       toast(p.name+" opened. Not with effort — with rest. "+islandPlantNote(key).replace("<br>",""), 5600, "bloom");
+      Review.moment();
     }else if(p.cost!==undefined){
       if(S.sd<p.cost){ toast(p.name+" opens for "+p.cost+" stardust. You have "+fmt(S.sd)+".", 4200, "info"); return; }
       S.sd-=p.cost; island(key).unlocked=true; paintPurse(); save();
       Sound.chime(5); buzz(22);
       toast(p.name+" is yours. "+islandPlantNote(key).replace("<br>",""), 5200, "bloom");
+      Review.moment();
     }else{ buySku(p.pack); return; }
   }
   S.env=key; drawIsland(); renderPlots(); save(); closeSheet();
@@ -5450,7 +5528,7 @@ window.Lumina = {
   state:()=>S, session:()=>SESSION, billing:Billing, buy:buySku, prices:PRICES,
   chimes:Chimes, sorter:Sorter, clouds:Clouds, pools:Pools, stream:Stream, jar:Jar, visitors:VISITORS, visit:maybeVisitor, journal:openJournal,
   configure:(k)=>{ RC_KEY=k; return Billing.init(); },
-  sky:Sky, tumbler:Tumbler, trail:Trail, sound:Sound,
+  sky:Sky, tumbler:Tumbler, trail:Trail, sound:Sound, review:Review,
   species:SPECIES, stones:STONES, places:PLACES,
   tick, maybeWisp, setEnergy, save:saveNow, backup, restore, art:(...a)=>plantArt(...a), look:PLANT_LOOK
 };

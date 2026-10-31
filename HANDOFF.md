@@ -122,7 +122,8 @@ The whole game is still one file, `www/index.html`. Search for these names to fi
 | Messages | `toast()`, `event()`, `note()`, `Notify`, `Log` | A banner needs `true` as the last argument to `event()`; the minimum gap (180000 ms) is in `Notify.event` |
 | Letters | `LETTERS`, `checkLetters()` | 20 h minimum gap |
 | Flora book | `openFlora()`, `floraHow()` |  |
-| Save migration | `load()`, `S.v` | v2 → v3 rescales growth using `OLD_BLOOM` |
+| Save migration | `load()`, `S.v` | v2 → v3 rescales growth using `OLD_BLOOM`; v3 → v4 adds `S.review` |
+| Store rating prompt | `Review`, `S.review` | Native only (`@capacitor-community/in-app-review`), at most once every 7 days, after 2 days and 4 kinds bloomed, just after a first bloom of a kind, a new seed or an opened island. Never during a purchase, over a banner or sheet, while resting, or with Quiet garden on. `Lumina.review.request()` calls the system prompt directly for testing |
 | In-game guide | the guide pages, starting `{t:"The garden"` | Already updated for the new pacing |
 
 For debugging on a device, `window.Lumina` exposes the game state (`Lumina.state()`), the plant drawing (`Lumina.art(species, stage, progress, maturity, {night})`) and other helpers.
